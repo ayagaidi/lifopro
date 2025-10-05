@@ -395,7 +395,7 @@ Route::namespace('Company')->group(function () {
     Route::get('company/issuing/tax', [App\Http\Controllers\Company\IssuingController::class, 'issuingtax'])->name('company/issuing/tax');
     Route::post('company/issuing', [App\Http\Controllers\Company\IssuingController::class, 'store'])->name('company/issuing/store');
     Route::get('company/viewdocument/{cardnumber}', [App\Http\Controllers\Company\IssuingController::class, 'viewdocument'])->name('company/viewdocument');
-    Route::get('company/cancelplicy/{cardnumber}', [App\Http\Controllers\Company\IssuingController::class, 'cancelPolicy'])->name('company/cancelplicy');
+    Route::post('company/cancelplicy/{cardnumber}', [App\Http\Controllers\Company\IssuingController::class, 'cancelPolicy'])->name('company/cancelplicy');
     Route::get('company/document/{card_id}', [App\Http\Controllers\Company\IssuingController::class, 'document'])->name('company/document');
 
 

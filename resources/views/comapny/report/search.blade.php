@@ -297,71 +297,143 @@
                 office_users_iddid.value = '';
             });
 
+            // function confirmCancel(cardNumber) {
+            //     checkSession();
+            //     // Show a confirmation alert using SweetAlert
+            //     swal.fire({
+            //         title: 'هل أنت متأكد من إلغاء الوثيقة؟',
+            //         text: 'سيتم إلغاء الوثيقة. هل أنت متأكد؟',
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonColor: '#3085d6',
+            //         cancelButtonColor: '#d33',
+            //         confirmButtonText: 'موافق',
+
+            //         cancelButtonText: 'إلغاء العملية'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             // Disable the button to prevent multiple clicks
+            //             $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', true);
+            //             $('#loader-overlay').show();
+
+            //             // Send the AJAX request
+            //             $.ajax({
+            //                 url: '/company/cancelplicy/' + cardNumber, // Adjust URL as necessary
+            //                 type: 'GET',
+            //                 data: {
+            //                     // Add any additional data you need here
+            //                     '_token': $('meta[name="csrf-token"]').attr('content')
+            //                 },
+            //                 success: function(response) {
+            //                     // Show success message based on the response
+            //                     $('#loader-overlay').hide();
+
+            //                     swal.fire({
+            //                         title: response.status,
+            //                         text: response.message,
+            //                         icon: response.status,
+            //                         confirmButtonColor: '#3085d6'
+            //                     }).then(() => {
+            //                         // Optionally, reload the page or update the UI
+            //                         location.reload();
+            //                         $('#loader-overlay').hide();
+
+            //                     });
+            //                 },
+            //                 error: function(xhr) {
+            //                     // Handle errors and show error message
+            //                     var message = xhr.responseJSON.message || 'حدث خطأ أثناء عملية الإلغاء';
+            //                     $('#loader-overlay').hide();
+
+            //                     swal.fire({
+            //                         title: 'خطأ',
+            //                         text: message,
+            //                         icon: 'error',
+            //                         confirmButtonColor: '#3085d6'
+            //                     }).then(() => {
+            //                         // Re-enable the button in case of error
+            //                         $('button[data-cardnumber="' + cardNumber + '"]').prop(
+            //                             'disabled', false);
+            //                     });
+
+
+            //                 }
+            //             });
+            //         }
+            //     });
+            // }
             function confirmCancel(cardNumber) {
-                checkSession();
-                // Show a confirmation alert using SweetAlert
-                swal.fire({
-                    title: 'هل أنت متأكد من إلغاء الوثيقة؟',
-                    text: 'سيتم إلغاء الوثيقة. هل أنت متأكد؟',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'موافق',
+  checkSession();
 
-                    cancelButtonText: 'إلغاء العملية'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Disable the button to prevent multiple clicks
-                        $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', true);
-                        $('#loader-overlay').show();
+  const reasons = {
+    'خطأ تقني': 'خطأ تقني',
+    'مشكلة في الإنترنت': 'مشكلة في الإنترنت',
+    'خطأ مدخل': 'خطأ مدخل'
+  };
 
-                        // Send the AJAX request
-                        $.ajax({
-                            url: '/company/cancelplicy/' + cardNumber, // Adjust URL as necessary
-                            type: 'GET',
-                            data: {
-                                // Add any additional data you need here
-                                '_token': $('meta[name="csrf-token"]').attr('content')
-                            },
-                            success: function(response) {
-                                // Show success message based on the response
-                                $('#loader-overlay').hide();
+  Swal.fire({
+    title: 'اختر سبب الإلغاء',
+    input: 'select',
+    inputOptions: reasons,
+    inputPlaceholder: 'سبب الإلغاء',
+    showCancelButton: true,
+    confirmButtonText: 'التالي',
+    cancelButtonText: 'إلغاء'
+  }).then((step1) => {
+    if (!step1.isConfirmed) return;
 
-                                swal.fire({
-                                    title: response.status,
-                                    text: response.message,
-                                    icon: response.status,
-                                    confirmButtonColor: '#3085d6'
-                                }).then(() => {
-                                    // Optionally, reload the page or update the UI
-                                    location.reload();
-                                    $('#loader-overlay').hide();
+    const reason = step1.value;
+    if (!reason) {
+      Swal.fire('الرجاء اختيار سبب الإلغاء');
+      return;
+    }
 
-                                });
-                            },
-                            error: function(xhr) {
-                                // Handle errors and show error message
-                                var message = xhr.responseJSON.message || 'حدث خطأ أثناء عملية الإلغاء';
-                                $('#loader-overlay').hide();
+    Swal.fire({
+      title: 'تأكيد الإلغاء',
+      text: `سيتم إلغاء الوثيقة بسبب: (${reason}). هل أنت متأكد؟`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'موافق',
+      cancelButtonText: 'إلغاء'
+    }).then((result) => {
+      if (!result.isConfirmed) return;
 
-                                swal.fire({
-                                    title: 'خطأ',
-                                    text: message,
-                                    icon: 'error',
-                                    confirmButtonColor: '#3085d6'
-                                }).then(() => {
-                                    // Re-enable the button in case of error
-                                    $('button[data-cardnumber="' + cardNumber + '"]').prop(
-                                        'disabled', false);
-                                });
+      // تعطيل زر الإلغاء لهذه البطاقة (اختياري)
+      $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', true);
+      $('#loader-overlay').show();
 
+      $.ajax({
+        url: '/company/cancelplicy/' + cardNumber,
+        type: 'POST',
+        data: {
+          _token: "{{ csrf_token() }}",
+          cancel_reason: reason
+        },
+        success: function(response) {
+          $('#loader-overlay').hide();
 
-                            }
-                        });
-                    }
-                });
-            }
+          Swal.fire({
+            title: response.status,
+            text: response.message,
+            icon: response.status,
+            confirmButtonColor: '#3085d6'
+          }).then(() => {
+            location.reload();
+          });
+        },
+        error: function(xhr) {
+          $('#loader-overlay').hide();
+          const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'حدث خطأ أثناء عملية الإلغاء';
+          Swal.fire('خطأ', msg, 'error').then(() => {
+            $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', false);
+          });
+        }
+      });
+    });
+  });
+}
 
 
 function search() {

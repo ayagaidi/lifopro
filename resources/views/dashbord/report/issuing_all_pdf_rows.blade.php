@@ -28,7 +28,7 @@
     <td>{{ $nf($row->insurance_version) }}</td>
     <td>{{ $nf($row->insurance_total) }}</td>
     <td>{{ $row->insurance_day_from ?? '-' }}</td>
-    <td>{{ $row->insurance_day_to ?? '-' }}</td>
+    <td>{{ $row->nsurance_day_to ?? '-' }}</td>
     <td>{{ $row->insurance_days_number ?? '-' }}</td>
   </tr>
 @endforeach
@@ -42,7 +42,7 @@
     <td>الإجماليات:</td>
     <td>القسط: {{ $nf($totals['total_installment']) }}</td>
     <td>الضريبة: {{ $nf($totals['total_tax']) }}</td>
-    <td>الطابع: {{ $nf($totals['total_stamp']) }}</td>
+    <td>الدمغة: {{ $nf($totals['total_stamp']) }}</td>
     <td>الإشراف: {{ $nf($totals['total_supervision']) }}</td>
     <td>الإصدار: {{ $nf($totals['total_version']) }}</td>
     <td>الإجمالي: {{ $nf($totals['total_insurance']) }}</td>

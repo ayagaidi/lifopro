@@ -17,7 +17,7 @@ class LifoApiService
         // $this->url = 'http://197.44.140.211:83/api/';
                 // $this->url = 'https://oc.gaif.org:83/api/';
 
-        $this->url = 'https://oc.gaif.org:83/api/';
+                $this->url = 'http://197.44.140.211:83/api/';
 
         
     }

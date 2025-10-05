@@ -43,25 +43,25 @@
   <table>
     <thead>
       <tr>
-          <th style="width:9%">#</th>
+          <th style="width:5%">#</th>
                   <th style="width:9%">رقم البطاقة</th>
 
         <th style="width:9%">التاريخ</th>
-        <th style="width:10%"> الشركة/المكتب</th>
+        <th style="width:16%"> الشركة/المكتب</th>
         <th style="width:10%">اسم المؤمن </th>
                 <th style="width:10%">رقم اللوحة</th>
 
         <th style="width:16%">رقم الهيكل</th>
         <th style="width:9%">القسط</th>
         <th style="width:9%">الضريبة</th>
-        <th style="width:9%">الطابع</th>
+        <th style="width:9%">الدمغة</th>
         <th style="width:9%">الإشراف</th>
         <th style="width:9%">الإصدار</th>
         <th style="width:10%">الإجمالي</th
         >
-     <th style="width:10%">مدة التامين من</th>
-        <th style="width:10%">مدة التأمين إلى</th>
-        <th style="width:10%">عدد الأيام</th>
+     <th style="width:13%">مدة التامين من</th>
+        <th style="width:13%">مدة التأمين إلى</th>
+        <th style="width:6%">عدد الأيام</th>
       </tr>
     </thead>
     <tbody>

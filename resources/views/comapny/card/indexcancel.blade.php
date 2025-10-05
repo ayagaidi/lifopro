@@ -43,6 +43,10 @@
                                                         <th>تاريخ اصدار البطاقة </th>
 
                             <th>تاريخ إلغاء البطاقة</th>
+                        
+                        
+                          <th>من قام بالالغاء </th>
+                        <th>سبب الالغاء</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -88,7 +92,9 @@ $(document).ready(function () {
             { data: 'cardstautes_name' },
             { data: 'request_number' },
             { data: 'issuing_date' },
-                        { data: 'card_delete_date' }
+                        { data: 'card_delete_date' },
+                                                { data: 'cancel_by' },
+                                                                        { data: 'reason' }
 
         ],
         dom: 'Blfrtip',

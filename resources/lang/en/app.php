@@ -42,5 +42,7 @@ return [
     'report-list'=>'ادارة التقارير',
     'activity-list'=>'السجلات',
     'role-list'=>'الصلاحيات',
+    'companySummary'=>'تقرير المجمع للشركات',
+    'reortstatic'=>'ادارة الاحصائيات'
 
 ];

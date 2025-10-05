@@ -38,7 +38,9 @@ class PermissionTableSeeder extends Seeder
             'activity-list',
             'role-list',
 
+'companySummary',
           
+          'reortstatic'
             
 
 

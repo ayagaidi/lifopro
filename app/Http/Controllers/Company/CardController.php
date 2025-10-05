@@ -635,12 +635,16 @@ public function printAllCardsPDF()
         ->leftJoin('cardstautes', 'cards.cardstautes_id', '=', 'cardstautes.id')
         ->leftJoin('requests', 'cards.requests_id', '=', 'requests.id')
         ->leftJoin('issuings', 'issuings.cards_id', '=', 'cards.id')
+           
         ->where('cards.cardstautes_id', 3)
                 ->where('cards.companies_id', Auth::user()->companies_id)
 
         ->orderBy('cards.card_delete_date', 'desc')
         ->select([
             'cards.id',
+            'cards.res as reason',
+                        'cards.cancel_by as cancel_by',
+
             'cards.card_serial',
             'cards.card_number',
             'cards.book_id',
@@ -649,7 +653,8 @@ public function printAllCardsPDF()
             'requests.request_number',
             'cards.created_at',
             'cards.card_delete_date',
-            'issuings.created_at as issuing_date'
+            'issuings.created_at as issuing_date',
+                    // (اختياري)
         ])
         ->get();
  return response()->json([

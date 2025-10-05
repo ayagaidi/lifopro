@@ -16,7 +16,7 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-if (file_exists($maintenance = __DIR__.'/../lifo/storage/framework/maintenance.php')) {
+if (file_exists($maintenance = __DIR__.'/../lifopro/storage/framework/maintenance.php')) {
     require $maintenance;
 }
 
@@ -30,12 +30,12 @@ if (file_exists($maintenance = __DIR__.'/../lifo/storage/framework/maintenance.p
 | into the script here so we don't need to manually load our classes.
 |
 */
-ini_set('upload_tmp_dir', __DIR__.'/../lifo/storage/tmp');
-ini_set('sys_temp_dir',    __DIR__.'/../lifo/storage/tmp');
+ini_set('upload_tmp_dir', __DIR__.'/../lifopro/storage/tmp');
+ini_set('sys_temp_dir',    __DIR__.'/../lifopro/storage/tmp');
 
 
 
-require __DIR__.'/../lifo/vendor/autoload.php';
+require __DIR__.'/../lifopro/vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -48,7 +48,7 @@ require __DIR__.'/../lifo/vendor/autoload.php';
 |
 */
 
-$app = require_once __DIR__.'/../lifo/bootstrap/app.php';
+$app = require_once __DIR__.'/../lifopro/bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
 

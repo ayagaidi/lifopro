@@ -328,3 +328,15 @@
 [27-Mar-2025 23:51:24 UTC] PHP Fatal error:  Allowed memory size of 2097152000 bytes exhausted (tried to allocate 33554440 bytes) in /home/lifoly/lifo/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php on line 405
 [27-Jul-2025 21:18:31 UTC] PHP Fatal error:  Out of memory (allocated 182452224) (tried to allocate 8192 bytes) in /home/lifoly/lifo/vendor/symfony/finder/Iterator/RecursiveDirectoryIterator.php on line 71
 [27-Jul-2025 21:18:31 UTC] PHP Fatal error:  Out of memory (allocated 182452224) (tried to allocate 32768 bytes) in /home/lifoly/lifo/vendor/laravel/framework/src/Illuminate/Auth/AuthManager.php on line 1
+[25-Sep-2025 07:41:27 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../lifo/vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[25-Sep-2025 07:41:27 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../lifo/vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[25-Sep-2025 07:41:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/lifoly/te.lifo.ly/lifopro/../lifo/vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php81/root/usr/share/pear') in /home/lifoly/te.lifo.ly/lifopro/index.php:38
+Stack trace:
+#0 {main}
+  thrown in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[25-Sep-2025 07:42:05 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../te.lifo.ly/lifopro/vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[25-Sep-2025 07:42:05 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../te.lifo.ly/lifopro/vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[25-Sep-2025 07:42:05 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/lifoly/te.lifo.ly/lifopro/../te.lifo.ly/lifopro/vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php81/root/usr/share/pear') in /home/lifoly/te.lifo.ly/lifopro/index.php:38
+Stack trace:
+#0 {main}
+  thrown in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38

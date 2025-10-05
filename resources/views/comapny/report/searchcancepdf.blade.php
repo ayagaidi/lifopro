@@ -63,7 +63,9 @@
                                         <th>تاريخ اصدار البطاقة </th>
 
                     <th>تاريخ الغاء البطاقة</th>
-                </tr>
+                     <th>سبب الالغاء</th>
+                              <th>من قام بالالغاء</th>
+                                </tr>
             </thead>
             <tbody>
                 @foreach($cards as $index => $card)
@@ -77,6 +79,9 @@
                                                 <td>{{ $card->issuing->issuing_date }}</td>
 
                         <td>{{ $card->card_delete_date }}</td>
+                         <td>{{ $card->res }}</td>
+                         <td>{{ $card->cancel_by }}</td>
+
                     </tr>
                 @endforeach
             </tbody>

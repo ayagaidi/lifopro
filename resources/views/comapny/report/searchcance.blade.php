@@ -107,6 +107,9 @@
                                     <th>رقم الطلب</th>
                                     <th>تاريخ إصدار البطاقة</th>
                                     <th>تاريخ إلغاء البطاقة</th>
+                              
+                              <th>سبب الالغاء</th>
+                              <th>من قام بالالغاء</th>
                                 </tr>
                             </thead>
                             <tbody>`;
@@ -122,6 +125,10 @@
                                 <td>${card.requests?.request_number ?? '-'}</td>
                                 <td>${card.issuing?.issuing_date ?? '-'}</td>
                                 <td>${card.card_delete_date ?? '-'}</td>
+                                                                <td>${card.res ?? '-'}</td>
+
+                                <td>${card.cancel_by ?? '-'}</td>
+
                             </tr>`;
                         });
 

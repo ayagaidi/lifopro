@@ -47,7 +47,9 @@
                 <th>رقم الطلب</th>
                 <th>تاريخ إصدار البطاقة</th>
                 <th>تاريخ إلغاء البطاقة</th>
-            </tr>
+              <th>سبب الالغاء</th>
+                              <th>من قام بالالغاء</th>
+                                </tr>
         </thead>
         <tbody>
             @foreach ($cards as $card)
@@ -57,6 +59,8 @@
                     <td>{{ $card->requests->request_number ?? '' }}</td>
                     <td>{{ $card->issuings->created_at ? \Carbon\Carbon::parse($card->issuings->created_at)->format('Y-m-d') : '' }}</td>
                     <td>{{ $card->card_delete_date ? \Carbon\Carbon::parse($card->card_delete_date)->format('Y-m-d') : '' }}</td>
+                         <td>{{ $card->res }}</td>
+                         <td>{{ $card->cancel_by }}</td>
                 </tr>
             @endforeach
         </tbody>
