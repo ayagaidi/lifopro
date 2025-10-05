@@ -57,6 +57,54 @@ class ReportController extends Controller
     });
 }
 
+
+
+public function officeStats()
+{
+    $companyId = Auth::user()->companies_id;
+
+    // استعلام الإحصائيات لكل مكتب ضمن نفس الشركة
+    $officeStats = DB::table('issuings')
+        ->join('offices', 'issuings.offices_id', '=', 'offices.id')
+        ->select(
+            'offices.name',
+            DB::raw('COUNT(issuings.id) as total_issuings')
+        )
+        ->where('issuings.companies_id', $companyId)
+        ->orWhere('offices.companies_id', $companyId)
+        ->groupBy('offices.id', 'offices.name')
+        ->get();
+
+    // اختبار النتيجة
+
+    // تجهيز البيانات للعرض في الرسم البياني
+    $officeLabels = $officeStats->pluck('name');
+    $officeData = $officeStats->pluck('total_issuings');
+
+    return view('comapny.report.officestats', compact('officeLabels', 'officeData'));
+}
+
+
+public function officeUsersStats()
+{
+    $companyId = Auth::user()->companies_id;
+
+    $users = DB::table('issuings')
+        ->join('office_users', 'issuings.office_users_id', '=', 'office_users.id')
+        ->join('offices', 'office_users.offices_id', '=', 'offices.id') // ✅ ضروري لربط الشركة
+        ->select('office_users.username', DB::raw('COUNT(issuings.id) as total'))
+        ->where('issuings.companies_id', $companyId)
+        ->orwhere('offices.companies_id', $companyId) // ✅ شرط صحيح، بدلاً من orWhere
+        ->groupBy('office_users.id', 'office_users.username')
+        ->orderByDesc('total')
+        ->get();
+
+    $labels = $users->pluck('username');
+    $data = $users->pluck('total');
+
+    return view('comapny.report.officsstatsuse', compact('labels', 'data'));
+}
+
     /**
      * Show the application dashboard.
      *

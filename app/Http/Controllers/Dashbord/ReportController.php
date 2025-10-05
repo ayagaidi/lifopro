@@ -773,10 +773,11 @@ class ReportController extends Controller
         if ($count === 0) {
             // لا توجد بيانات ضمن الفترة
             Alert::info('لا توجد بيانات', 'لا توجد سجلات ضمن الفترة المحددة.')->persistent('حسنًا');
+            return redirect()->back()->withInput();
 
-            throw ValidationException::withMessages([
-                'fromdate' => 'لا توجد بيانات ضمن الفترة المحددة.',
-            ]);
+            // throw ValidationException::withMessages([
+            //     'fromdate' => 'لا توجد بيانات ضمن الفترة المحددة.',
+            // ]);
         }
 
         if ($count > $MAX_ROWS) {

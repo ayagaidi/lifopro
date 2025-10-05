@@ -8,8 +8,7 @@
     <td>{{ $i++ }}</td> {{-- الكاونتر --}}
         <td>{{ $row->cards->card_number }}</td>
 
-    <td>{{ \Carbon\Carbon::parse($row->issuing_date)->format('Y-m-d') }}</td>
-    <td>
+<td>{{ \Carbon\Carbon::parse($row->issuing_date)->format('Y-m-d H:i:s') }}</td>    <td>
       {{ optional($row->offices)->name }}
       @if(optional($row->offices)->companies)
         / {{ optional($row->offices->companies)->name }}

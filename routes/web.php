@@ -310,6 +310,9 @@ Route::get('/report/issuing/export-pdf', [App\Http\Controllers\Dashbord\ReportCo
 
 
 Route::namespace('Company')->group(function () {
+    
+      Route::get('company/report/officeStats', [App\Http\Controllers\Company\ReportController::class, 'officeStats'])->name('company/report/officeStats');
+         Route::get('company/report/office-users-stats', [App\Http\Controllers\Company\ReportController::class, 'officeUsersStats'])->name('company/report/officeUsersStats');
     Route::get('company/login', [App\Http\Controllers\Company\Auth\CompanyloginController::class, 'showLoginForm'])->name('company/login');
     Route::get('company/refreshcaptcha', [App\Http\Controllers\Company\Auth\CompanyloginController::class, 'refreshcaptcha'])->name('company/refreshcaptcha');
     Route::post('company/store', [App\Http\Controllers\Company\Auth\CompanyloginController::class, 'login'])->name('company/store');
@@ -437,7 +440,8 @@ Route::namespace('Company')->group(function () {
 
 
     Route::get('company/report/stock/stockpdf', [App\Http\Controllers\Company\ReportController::class, 'stockpdf'])->name('company/report/stock/stockpdf');
-
+    
+     
 });
 
 

@@ -43,10 +43,10 @@
   <table>
     <thead>
       <tr>
-          <th style="width:5%">#</th>
+          <th style="width:1%">#</th>
                   <th style="width:9%">رقم البطاقة</th>
 
-        <th style="width:9%">التاريخ</th>
+        <th style="width:11%">التاريخ</th>
         <th style="width:16%"> الشركة/المكتب</th>
         <th style="width:10%">اسم المؤمن </th>
                 <th style="width:10%">رقم اللوحة</th>

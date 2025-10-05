@@ -204,6 +204,25 @@
                                     class="menu-icon fa fa-refresh"></i><span> ادارة الراجعات </span></a>
                         </li>
 
+<li
+                            class="{{ Request::is('company/report/officeStats') ||
+                            Request::is('report/officeUsersStats') 
+                          
+                                ? 'current'
+                                : '' }}">
+                            <a class="waves-effect parent-item js__control" href="#">
+                                <i class="menu-icon fa fa-bar-chart"></i>
+                                <span>إدارة الإحصائيات</span>
+                                <span class="menu-arrow fa fa-angle-down"></span>
+                            </a>
+                            <ul class="sub-menu js__content" style="display: none;">
+                                <li><a href="{{ route('company/report/officeStats') }}">الإصدارات حسب المكتب</a></li>
+                            
+                               
+                                <li><a href="{{ route('company/report/officeUsersStats') }}">إصدارات مستخدمي المكاتب</a></li>
+                            </ul>
+                        </li>
+                        
                         <li
                             class="{{ Request::is('company/report/issuing') ? 'current' : '' }}{{ Request::is('company/report/stock') ? 'current' : '' }} {{ Request::is('company/report/stock/company') ? 'current' : '' }}">
                             <a class="waves-effect parent-item js__control" href="#"><i
