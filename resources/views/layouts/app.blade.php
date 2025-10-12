@@ -289,11 +289,7 @@
                 
 
 
-                 
-
-                    @can('report-list')
-              
-                    @if (Auth::user()->id == 1)
+                    @if (Auth::user()->id == 1) 
                         <li
                             class="{{ Request::is('report/officeStats') ||
                             Request::is('report/office-users-stats') ||
@@ -315,6 +311,33 @@
                                 <li><a href="{{ route('report/officeUsersStats') }}">إصدارات مستخدمي المكاتب</a></li>
                             </ul>
                         </li>
+                    @else
+
+                    @can('report-list')
+              
+                   
+                        <li
+                            class="{{ Request::is('report/officeStats') ||
+                            Request::is('report/office-users-stats') ||
+                            Request::is('report/officeUsersStats') ||
+                            Request::is('report/totalcompanyissuingstats') ||
+                            Request::is('report/countryissuingsstats')
+                                ? 'current'
+                                : '' }}">
+                            <a class="waves-effect parent-item js__control" href="#">
+                                <i class="menu-icon fa fa-bar-chart"></i>
+                                <span>إدارة الإحصائيات</span>
+                                <span class="menu-arrow fa fa-angle-down"></span>
+                            </a>
+                            <ul class="sub-menu js__content" style="display: none;">
+                                <li><a href="{{ route('report/officeStats') }}">الإصدارات حسب المكتب</a></li>
+                                <li><a href="{{ route('report/countryissuingsstats') }}">الإصدارات حسب الدولة</a></li>
+                                <li><a href="{{ route('report/totalcompanyissuingstats') }}">إصدارات الشركات
+                                        والمكاتب</a></li>
+                                <li><a href="{{ route('report/officeUsersStats') }}">إصدارات مستخدمي المكاتب</a></li>
+                            </ul>
+                        </li>
+                         @endcan
                     @endif
 
 
@@ -353,7 +376,7 @@
 
                             </ul>
                         </li>
-                    @endcan
+               
 
 
                     @can('activity-list')
