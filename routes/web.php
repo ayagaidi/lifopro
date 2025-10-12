@@ -441,6 +441,9 @@ Route::namespace('Company')->group(function () {
 
     Route::get('company/report/stock/stockpdf', [App\Http\Controllers\Company\ReportController::class, 'stockpdf'])->name('company/report/stock/stockpdf');
     
+      Route::get('company/report/companySummary', [App\Http\Controllers\Company\ReportController::class, 'officeSummaryForMyCompany'])->name('company/report/companySummary');
+        Route::get('company/report/companySummary/pdf', [App\Http\Controllers\Company\ReportController::class, 'companySummaryReportpdf'])->name('company/report/companySummary/pdf');
+
      
 });
 

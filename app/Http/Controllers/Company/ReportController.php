@@ -764,4 +764,104 @@ public function searchcacel(Request $request)
     //         ], 200);
     //     }
     // }
+
+
+
+    public function officeSummaryForMyCompany(Request $request)
+{
+    $startDate = $request->input('start_date');
+    $endDate   = $request->input('end_date');
+    $user      = auth()->user();
+    $companyId = $user->companies_id; // شركة المستخدم
+
+    // لو ما في تواريخ، نعرض الصفحة فاضية مع قائمة المكاتب (اختياري)
+    if (empty($startDate) || empty($endDate)) {
+        return view('comapny.report.company_summary', [
+            'data'       => [],
+            'startDate'  => null,
+            'endDate'    => null,
+            'user'       => $user,
+        ]);
+    }
+
+    // تجميع حسب المكاتب التابعة لشركة المستخدم
+    $query = DB::table('issuings')
+        ->join('cards', 'issuings.cards_id', '=', 'cards.id')
+        ->join('offices', 'cards.offices_id', '=', 'offices.id')
+        ->select(
+            'offices.id as office_id',
+            'offices.name as office_name',
+            // عدّ البطاقات حسب حالتها وقت الاستعلام
+            DB::raw('SUM(cards.cardstautes_id = 2) as issued_count'),
+            DB::raw('SUM(cards.cardstautes_id = 3) as canceled_count'),
+            // المجاميع المالية من جدول issuings داخل الفترة
+            DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+            DB::raw('SUM(issuings.insurance_tax) as tax'),
+            DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+            DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+            DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+            DB::raw('SUM(issuings.insurance_total) as total')
+        )
+        ->where('cards.companies_id', $companyId)
+        ->whereBetween('issuings.created_at', [
+            $startDate.' 00:00:00',
+            $endDate.' 23:59:59'
+        ])
+        ->groupBy('offices.id', 'offices.name')
+        ->orderBy('offices.name');
+
+    $data = $query->get();
+
+    return view('comapny.report.company_summary', [
+        'data'       => $data,
+        'startDate'  => $startDate,
+        'endDate'    => $endDate,
+        'user'       => $user,
+    ]);
+}
+
+public function companySummaryReportpdf(Request $request)
+{
+    $startDate = $request->input('start_date');
+    $endDate   = $request->input('end_date');
+    $user      = auth()->user();
+    $companyId = $user->companies_id;
+
+    // تجميع حسب الم Offices التابعة لشركة المستخدم
+    // تجميع حسب المكاتب التابعة لشركة المستخدم
+    $query = DB::table('issuings')
+        ->join('cards', 'issuings.cards_id', '=', 'cards.id')
+        ->join('offices', 'cards.offices_id', '=', 'offices.id')
+        ->select(
+            'offices.id as office_id',
+            'offices.name as office_name',
+            // عدّ البطاقات حسب حالتها وقت الاستعلام
+            DB::raw('SUM(cards.cardstautes_id = 2) as issued_count'),
+            DB::raw('SUM(cards.cardstautes_id = 3) as canceled_count'),
+            // المجاميع المالية من جدول issuings داخل الفترة
+            DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+            DB::raw('SUM(issuings.insurance_tax) as tax'),
+            DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+            DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+            DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+            DB::raw('SUM(issuings.insurance_total) as total')
+        )
+        ->where('cards.companies_id', $companyId)
+        ->whereBetween('issuings.created_at', [
+            $startDate.' 00:00:00',
+            $endDate.' 23:59:59'
+        ])
+        ->groupBy('offices.id', 'offices.name')
+        ->orderBy('offices.name');
+
+    $data = $query->get();
+
+    return view('comapny.report.company_summarypdf', [
+        'data'       => $data,
+        'startDate'  => $startDate,
+        'endDate'    => $endDate,
+        'user'       => $user,
+    ]); 
+
+}
 }

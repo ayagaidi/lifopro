@@ -237,7 +237,11 @@
                                 <li><a href="{{ route('company/report/stock/company') }}"> تقارير مخزون الشركة </a>
                                 </li>
                                 <li><a href="{{ route('company/report/stock') }}"> تقارير مخزون المكاتب </a></li>
-
+ <li>
+        <a href="{{ route('company/report/companySummary') }}">
+            تقارير مجمع لإصدارات الشركات
+        </a>
+    </li>
                             </ul>
                         </li>
                     @endif

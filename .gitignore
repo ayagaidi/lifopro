@@ -14,6 +14,7 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
+public
 /.fleet
 /.idea
 /.vscode
@@ -22,3 +23,7 @@ yarn-error.log
 /Applications/XAMPP/xamppfiles/htdocs/lifo/app/Http/Controllers/Office/IssuingController.php
 app/Http/Controllers/Company/IssuingController.php
 /Applications/XAMPP/xamppfiles/htdocs/lifo/app/Services/LifoApiService.php
+index.php
+composer.lock
+.gitignore
+composer.lock
