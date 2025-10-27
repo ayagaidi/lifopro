@@ -2287,22 +2287,50 @@ class ReportController extends Controller
             ]);
         }
 
-        $query = DB::table('issuings')
-            ->join('cards', 'issuings.cards_id', '=', 'cards.id')
-            ->join('offices', 'issuings.offices_id', '=', 'offices.id')
-            ->join('companies', 'offices.companies_id', '=', 'companies.id')
-            ->select(
-                'companies.name as company_name',
-                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
-                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
-                DB::raw('SUM(issuings.insurance_installment) as net_premium'),
-                DB::raw('SUM(issuings.insurance_tax) as tax'),
-                DB::raw('SUM(issuings.insurance_stamp) as stamp'),
-                DB::raw('SUM(issuings.insurance_supervision) as supervision'),
-                DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
-                DB::raw('SUM(issuings.insurance_total) as total')
-            )
-            ->groupBy('companies.id', 'companies.name');
+    //  $query = issuing::query()
+    // ->with(['cards', 'offices', 'offices.company'])
+    // ->join('cards', 'issuings.cards_id', '=', 'cards.id')
+    // ->join('offices', 'issuings.offices_id', '=', 'offices.id')
+    // ->join('companies', 'offices.companies_id', '=', 'companies.id')
+    // ->select([
+    //     'companies.name as company_name',
+    //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+    //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+    //     DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+    //     DB::raw('SUM(issuings.insurance_tax) as tax'),
+    //     DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+    //     DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+    //     DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+    //     DB::raw('SUM(issuings.insurance_total) as total'),
+    // ])
+    
+    // ->groupBy('companies.id', 'companies.name');
+
+
+
+$query = Issuing::query()
+    // نحط LEFT JOIN لأن فيه سجلات بدون مكتب
+    ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
+    // نربط الشركات إما عبر المكتب أو مباشرة عبر issuings.companies_id
+    ->leftJoin('companies', function ($join) {
+        $join->on('companies.id', '=', 'offices.companies_id')
+             ->orOn('companies.id', '=', 'issuings.companies_id');
+    })
+    // لو الكرت ممكن يكون NULL، خليه LEFT JOIN برضه
+    ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
+    ->select([
+        'companies.name as company_name',
+        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+        DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+        DB::raw('SUM(issuings.insurance_tax) as tax'),
+        DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+        DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+        DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+        DB::raw('SUM(issuings.insurance_total) as total'),
+    ])
+    // نتجمع على الشركة
+    ->groupBy('companies.id', 'companies.name');
 
         if (!empty($startDate) && !empty($endDate)) {
             $query->whereBetween('issuings.created_at', [

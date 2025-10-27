@@ -225,7 +225,7 @@ if (decimalPart == 0) {
                         parseFloat($('#insurance_version').val()) +
                         parseFloat($('#insurance_stamp').val());
 
-                    $("#insurance_total").val(insurance_total.toFixed(2));
+                    $("#insurance_total").val(insurance_total.toFixed(3));
                     $('#loader-overlay').hide();
                 },
                 error: function(xhr, status, error) {

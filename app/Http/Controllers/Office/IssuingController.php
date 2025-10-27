@@ -91,6 +91,7 @@ class IssuingController extends Controller
      */
     public function store(Request $request)
     {
+
         $messages = [
             'insurance_name.required' => "الرجاء ادخل  اسم المؤمن ",
             'insurance_location.required' => "الرجاء ادخل العنوان",
@@ -160,7 +161,6 @@ class IssuingController extends Controller
 
 
         try {
-
 
             $lifos = new LifoApiService();
             $api = Apiuser::where('companies_id', Auth::user()->offices->companies_id)->first();

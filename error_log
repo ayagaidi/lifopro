@@ -340,3 +340,15 @@ Stack trace:
 Stack trace:
 #0 {main}
   thrown in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:45 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:45 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:45 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php81/root/usr/share/pear') in /home/lifoly/te.lifo.ly/lifopro/index.php:38
+Stack trace:
+#0 {main}
+  thrown in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:57 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:57 UTC] PHP Warning:  require(/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php): Failed to open stream: No such file or directory in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
+[12-Oct-2025 22:08:57 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '/home/lifoly/te.lifo.ly/lifopro/../vendor/autoload.php' (include_path='.:/opt/cpanel/ea-php81/root/usr/share/pear') in /home/lifoly/te.lifo.ly/lifopro/index.php:38
+Stack trace:
+#0 {main}
+  thrown in /home/lifoly/te.lifo.ly/lifopro/index.php on line 38
