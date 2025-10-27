@@ -829,31 +829,61 @@ public function companySummaryReportpdf(Request $request)
 
     // تجميع حسب الم Offices التابعة لشركة المستخدم
     // تجميع حسب المكاتب التابعة لشركة المستخدم
-    $query = DB::table('issuings')
-        ->join('cards', 'issuings.cards_id', '=', 'cards.id')
-        ->join('offices', 'cards.offices_id', '=', 'offices.id')
-        ->select(
-            'offices.id as office_id',
-            'offices.name as office_name',
-            // عدّ البطاقات حسب حالتها وقت الاستعلام
-            DB::raw('SUM(cards.cardstautes_id = 2) as issued_count'),
-            DB::raw('SUM(cards.cardstautes_id = 3) as canceled_count'),
-            // المجاميع المالية من جدول issuings داخل الفترة
-            DB::raw('SUM(issuings.insurance_installment) as net_premium'),
-            DB::raw('SUM(issuings.insurance_tax) as tax'),
-            DB::raw('SUM(issuings.insurance_stamp) as stamp'),
-            DB::raw('SUM(issuings.insurance_supervision) as supervision'),
-            DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
-            DB::raw('SUM(issuings.insurance_total) as total')
-        )
-        ->where('cards.companies_id', $companyId)
-        ->whereBetween('issuings.created_at', [
-            $startDate.' 00:00:00',
-            $endDate.' 23:59:59'
-        ])
-        ->groupBy('offices.id', 'offices.name')
-        ->orderBy('offices.name');
-
+    // $query = DB::table('issuings')
+    //     ->join('cards', 'issuings.cards_id', '=', 'cards.id')
+    //     ->join('offices', 'cards.offices_id', '=', 'offices.id')
+    //     ->select(
+    //         'offices.id as office_id',
+    //         'offices.name as office_name',
+    //         // عدّ البطاقات حسب حالتها وقت الاستعلام
+    //         DB::raw('SUM(cards.cardstautes_id = 2) as issued_count'),
+    //         DB::raw('SUM(cards.cardstautes_id = 3) as canceled_count'),
+    //         // المجاميع المالية من جدول issuings داخل الفترة
+    //         DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+    //         DB::raw('SUM(issuings.insurance_tax) as tax'),
+    //         DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+    //         DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+    //         DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+    //         DB::raw('SUM(issuings.insurance_total) as total')
+    //     )
+    //     ->where('cards.companies_id', $companyId)
+    //     ->whereBetween('issuings.created_at', [
+    //         $startDate.' 00:00:00',
+    //         $endDate.' 23:59:59'
+    //     ])
+    //     ->groupBy('offices.id', 'offices.name')
+    //     ->orderBy('offices.name');
+$query = DB::table('issuings')
+    ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
+    ->leftJoin('offices', function ($join) {
+        $join->on('offices.id', '=', 'issuings.offices_id')
+             ->orOn('offices.id', '=', 'cards.offices_id');
+    })
+    ->select(
+        DB::raw('COALESCE(offices.id, 0) as office_id'),
+        DB::raw("COALESCE(offices.name, 'الفرع الرئيسي') as office_name"),
+        // عدّ البطاقات حسب الحالة
+        DB::raw('SUM(cards.cardstautes_id = 2) as issued_count'),
+        DB::raw('SUM(cards.cardstautes_id = 3) as canceled_count'),
+        // المجاميع المالية داخل الفترة
+        DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+        DB::raw('SUM(issuings.insurance_tax) as tax'),
+        DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+        DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+        DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+        DB::raw('SUM(issuings.insurance_total) as total')
+    )
+    // الشركة ممكن تكون من cards أو من issuings (للسجلات الفرع الرئيسي/كرت)
+    ->where(function ($q) use ($companyId) {
+        $q->where('cards.companies_id', $companyId)
+          ->orWhere('issuings.companies_id', $companyId);
+    })
+    ->whereBetween('issuings.created_at', [
+        $startDate . ' 00:00:00',
+        $endDate . ' 23:59:59'
+    ])
+    ->groupBy(DB::raw('COALESCE(offices.id, 0)'), DB::raw("COALESCE(offices.name, 'الفرع الرئيسي')"))
+    ->orderBy('office_name');
     $data = $query->get();
 
     return view('comapny.report.company_summarypdf', [
