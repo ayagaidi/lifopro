@@ -33,7 +33,7 @@
 
     <div class="col-md-12">
         <div class="box-content">
-            <canvas id="companyTotalChart" height="500"></canvas>
+            <canvas id="companyTotalChart" height="200"></canvas>
         </div>
     </div>
 </div>
