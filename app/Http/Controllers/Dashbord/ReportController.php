@@ -2639,7 +2639,7 @@ class ReportController extends Controller
     //     DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
     //     DB::raw('SUM(issuings.insurance_total) as total'),
     // ])
-    
+
     // ->groupBy('companies.id', 'companies.name');
 
 
@@ -2682,6 +2682,62 @@ $query = Issuing::query()
         $data = $query->get();
 
         return view('dashbord.report.company_summary', [
+            'data' => $data,
+            'companies' => DB::table('companies')->where('id', '!=', 1)->get(),
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'companyId' => $companyId,
+            'user' => $user
+        ]);
+    }
+
+    public function officeSummaryByCompany(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $companyId = $request->input('company_id');
+        $user = auth()->user();
+
+        // السماح بعرض التقرير إذا وُجدت تواريخ وشركة
+        if (empty($startDate) || empty($endDate) || empty($companyId)) {
+            return view('dashbord.report.office_summary_by_company', [
+                'data' => [],
+                'companies' => DB::table('companies')->where('id', '!=', 1)->get(),
+                'startDate' => null,
+                'endDate' => null,
+                'companyId' => null,
+                'user' => $user
+            ]);
+        }
+
+        $query = Issuing::query()
+            ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
+            ->leftJoin('companies', 'offices.companies_id', '=', 'companies.id')
+            ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
+            ->select([
+                'offices.name as office_name',
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+                DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+                DB::raw('SUM(issuings.insurance_tax) as tax'),
+                DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+                DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+                DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+                DB::raw('SUM(issuings.insurance_total) as total'),
+            ])
+            ->where('companies.id', $companyId)
+            ->groupBy('offices.id', 'offices.name');
+
+        if (!empty($startDate) && !empty($endDate)) {
+            $query->whereBetween('issuings.created_at', [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59'
+            ]);
+        }
+
+        $data = $query->get();
+
+        return view('dashbord.report.office_summary_by_company', [
             'data' => $data,
             'companies' => DB::table('companies')->where('id', '!=', 1)->get(),
             'startDate' => $startDate,

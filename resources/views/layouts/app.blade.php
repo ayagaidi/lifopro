@@ -372,13 +372,25 @@
             تقارير مجمع لإصدارات الشركات
         </a>
     </li>
+        <li>
+        <a href="{{ route('report/officeSummaryByCompany') }}">
+            (مكاتب)تقارير مجمع لإصدارات الشركات
+        </a>
+    </li>
+ 
 @else
     @can('companySummary')
         <li>
             <a href="{{ route('report/companySummary') }}">
                 تقارير مجمع لإصدارات الشركات
             </a>
+     
         </li>
+          <li>
+        <a href="{{ route('report/officeSummaryByCompany') }}">
+            (مكاتب)تقارير مجمع لإصدارات الشركات
+        </a>
+    </li>
     @endcan
 @endif
 
