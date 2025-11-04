@@ -59,50 +59,83 @@ class ReportController extends Controller
 
 
 
-public function officeStats()
+public function officeStats(Request $request)
 {
     $companyId = Auth::user()->companies_id;
 
     // استعلام الإحصائيات لكل مكتب ضمن نفس الشركة
-    $officeStats = DB::table('issuings')
+    $query = DB::table('issuings')
         ->join('offices', 'issuings.offices_id', '=', 'offices.id')
         ->select(
             'offices.name',
             DB::raw('COUNT(issuings.id) as total_issuings')
         )
-        ->where('issuings.companies_id', $companyId)
-        ->orWhere('offices.companies_id', $companyId)
-        ->groupBy('offices.id', 'offices.name')
-        ->get();
+        ->where(function ($q) use ($companyId) {
+            $q->where('issuings.companies_id', $companyId)
+              ->orWhere('offices.companies_id', $companyId);
+        });
 
-    // اختبار النتيجة
+    // Apply date filters if provided
+    if ($request->filled('fromdate') && $request->filled('todate')) {
+        $from = Carbon::parse($request->fromdate)->startOfDay();
+        $to = Carbon::parse($request->todate)->endOfDay();
+        $query->whereBetween('issuings.issuing_date', [$from, $to]);
+    }
+
+    // Apply office filter if provided
+    if ($request->filled('offices_id')) {
+        $query->where('issuings.offices_id', $request->offices_id);
+    }
+
+    $officeStats = $query->groupBy('offices.id', 'offices.name')->get();
 
     // تجهيز البيانات للعرض في الرسم البياني
     $officeLabels = $officeStats->pluck('name');
     $officeData = $officeStats->pluck('total_issuings');
 
-    return view('comapny.report.officestats', compact('officeLabels', 'officeData'));
+    // Get offices for filter dropdown
+    $offices = Office::where('companies_id', $companyId)->get();
+
+    return view('comapny.report.officestats', compact('officeLabels', 'officeData', 'offices', 'request'));
 }
 
 
-public function officeUsersStats()
+public function officeUsersStats(Request $request)
 {
     $companyId = Auth::user()->companies_id;
 
-    $users = DB::table('issuings')
+    $query = DB::table('issuings')
         ->join('office_users', 'issuings.office_users_id', '=', 'office_users.id')
-        ->join('offices', 'office_users.offices_id', '=', 'offices.id') // ✅ ضروري لربط الشركة
+        ->join('offices', 'office_users.offices_id', '=', 'offices.id')
         ->select('office_users.username', DB::raw('COUNT(issuings.id) as total'))
-        ->where('issuings.companies_id', $companyId)
-        ->orwhere('offices.companies_id', $companyId) // ✅ شرط صحيح، بدلاً من orWhere
-        ->groupBy('office_users.id', 'office_users.username')
+        ->where(function ($q) use ($companyId) {
+            $q->where('issuings.companies_id', $companyId)
+              ->orWhere('offices.companies_id', $companyId);
+        });
+
+    // Apply date filters if provided
+    if ($request->filled('fromdate') && $request->filled('todate')) {
+        $from = Carbon::parse($request->fromdate)->startOfDay();
+        $to = Carbon::parse($request->todate)->endOfDay();
+        $query->whereBetween('issuings.issuing_date', [$from, $to]);
+    }
+
+    // Apply office filter if provided
+    if ($request->filled('offices_id')) {
+        $query->where('offices.id', $request->offices_id);
+    }
+
+    $users = $query->groupBy('office_users.id', 'office_users.username')
         ->orderByDesc('total')
         ->get();
 
     $labels = $users->pluck('username');
     $data = $users->pluck('total');
 
-    return view('comapny.report.officsstatsuse', compact('labels', 'data'));
+    // Get offices for filter dropdown
+    $offices = Office::where('companies_id', $companyId)->get();
+
+    return view('comapny.report.officsstatsuse', compact('labels', 'data', 'offices', 'request'));
 }
 
     /**

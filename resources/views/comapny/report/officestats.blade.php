@@ -11,6 +11,39 @@
         </div>
     </div>
 
+    <!-- Filter Form -->
+    <div class="col-md-12">
+        <div class="box-content" style="padding: 20px;">
+            <form method="GET" action="{{ route('company/report/officeStats') }}" class="">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="fromdate">من تاريخ:</label>
+                        <input type="date" name="fromdate" id="fromdate" class="form-control" value="{{ $request->fromdate }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="todate">إلى تاريخ:</label>
+                        <input type="date" name="todate" id="todate" class="form-control" value="{{ $request->todate }}">
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="offices_id">المكتب:</label>
+                        <select name="offices_id" id="offices_id" class="form-control">
+                            <option value="">جميع المكاتب</option>
+                            @foreach($offices as $office)
+                                <option value="{{ $office->id }}" {{ $request->offices_id == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 15px;">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">فلترة</button>
+                        <a href="{{ route('company/report/officeStats') }}" class="btn btn-secondary">إعادة تعيين</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="col-md-12" style="margin-top: 50px;">
         <div class="box-content" style="padding: 20px;">
             <div style="width: 80%; max-width: 1200px; margin: auto;">

@@ -68,7 +68,7 @@
 
     <div class="col-md-12" style="margin-top: 20px;">
         <div class="box-content">
-            <canvas id="officeUsersChart" height="500"></canvas>
+            <canvas id="officeUsersChart" height="200"></canvas>
         </div>
     </div>
 </div>
