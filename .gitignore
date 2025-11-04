@@ -27,3 +27,5 @@ index.php
 composer.lock
 .gitignore
 composer.lock
+
+/Applications/XAMPP/xamppfiles/htdocs/lifopro/app/Services/LifoApiService.php
