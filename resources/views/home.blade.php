@@ -3,6 +3,7 @@
 @section('title', 'الرئيسية')
 @section('content')
     <div class="row small-spacing">
+       
           @if( $unionCards<= 2000  )
         <div class="col-md-12" >
                 <div class="box-content" style="background-color: red;">

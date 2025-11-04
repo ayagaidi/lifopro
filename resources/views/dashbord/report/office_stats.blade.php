@@ -11,10 +11,61 @@
         </div>
     </div>
 
-    <div class="col-md-12" style="margin-top: 50px;">
+    <!-- Filter Form -->
+    <div class="col-md-12">
         <div class="box-content" style="padding: 20px;">
-            <div style="width: 80%; max-width: 1200px; margin: auto;">
-                <canvas id="officeChart" height="600"></canvas>
+            <form method="GET" action="{{ route('report/officeStats') }}" class="">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="fromdate">من تاريخ:</label>
+                        <input type="date" name="fromdate" id="fromdate" class="form-control" value="{{ $request->fromdate }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="todate">إلى تاريخ:</label>
+                        <input type="date" name="todate" id="todate" class="form-control" value="{{ $request->todate }}">
+                    </div>
+                </div>
+                     <div class="row">
+                  <div class="form-group col-md-3">
+                        <label for="companies_id">الشركة:</label>
+                        <select name="companies_id" id="companies_id" class="form-control">
+                            <option value="">جميع الشركات</option>
+                            @foreach($companies as $company)
+                                <option value="{{ $company->id }}" {{ $request->companies_id == $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+  <div class="form-group col-md-3">                        <label for="offices_id">المكتب:</label>
+                        <select name="offices_id" id="offices_id" class="form-control">
+                            <option value="">جميع المكاتب</option>
+                            @foreach($offices as $office)
+                                <option value="{{ $office->id }}" {{ $request->offices_id == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+  <div class="form-group col-md-3">                        <label for="office_users_id">مستخدم المكتب:</label>
+                        <select name="office_users_id" id="office_users_id" class="form-control">
+                            <option value="">جميع المستخدمين</option>
+                            @foreach($officeUsers as $user)
+                                <option value="{{ $user->id }}" {{ $request->office_users_id == $user->id ? 'selected' : '' }}>{{ $user->username }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 15px;">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">فلترة</button>
+                        <a href="{{ route('report/officeStats') }}" class="btn btn-secondary">إعادة تعيين</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-12" style="margin-top: 20px;">
+        <div class="box-content" style="padding: 20px;">
+            <div style="width: 100%; max-width: 800px; margin: auto;">
+                <canvas id="officeChart" height="400"></canvas>
             </div>
 
             <script>

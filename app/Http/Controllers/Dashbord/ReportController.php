@@ -258,6 +258,15 @@ class ReportController extends Controller
         return view('dashbord.report.searchsummary')
             ->with('Company', $Company);
     }
+
+    /**
+     * Show summary report for a specific year
+     */
+    public function indexsummaryByYear($year)
+    {
+        $Company = Company::get();
+        return view('dashbord.report.searchsummary', compact('Company', 'year'));
+    }
     public function index(Request $request)
     {
 
@@ -265,6 +274,123 @@ class ReportController extends Controller
         $Company = Company::get();
         return view('dashbord.report.search')
             ->with('Company', $Company);
+    }
+
+    /**
+     * Get available years for reports
+     */
+    public function getAvailableYears()
+    {
+        $years = Issuing::selectRaw('YEAR(issuing_date) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        return $years;
+    }
+
+    /**
+     * Show sales report for a specific year
+     */
+    public function indexByYear($year)
+    {
+        $Company = Company::get();
+        return view('dashbord.report.search', compact('Company', 'year'));
+    }
+
+    /**
+     * Search sales by year
+     */
+    public function searchbyByYear(Request $request, $year)
+    {
+        $from = Carbon::parse($request->fromdate)->startOfDay();
+        $to = Carbon::parse($request->todate)->endOfDay();
+
+        // Ensure dates are within the specified year
+        $yearStart = Carbon::createFromDate($year, 1, 1)->startOfYear();
+        $yearEnd = Carbon::createFromDate($year, 12, 31)->endOfYear();
+
+        if ($from->lt($yearStart) || $to->gt($yearEnd)) {
+            return response()->json([
+                'code' => 0,
+                'status' => false,
+                'message' => 'التواريخ يجب أن تكون ضمن السنة المحددة.',
+            ], 422);
+        }
+
+        $query = Issuing::query()
+            ->with([
+                'cards:id,card_number,id',
+                'companies:id,name',
+                'offices:id,name,companies_id',
+                'offices.companies:id,name',
+                'company_users:id,username',
+                'office_users:id,username',
+                'cars:id,name'
+            ])
+            ->select([
+                'id', 'cards_id', 'companies_id', 'offices_id', 'company_users_id', 'office_users_id',
+                'insurance_name', 'issuing_date', 'insurance_installment', 'insurance_tax',
+                'insurance_stamp', 'insurance_supervision', 'insurance_version', 'insurance_total',
+                'insurance_day_from', 'nsurance_day_to', 'insurance_days_number', 'plate_number',
+                'chassis_number', 'motor_number', 'cars_id', 'created_at'
+            ])
+            ->whereBetween('issuing_date', [$from, $to]);
+
+        $query->when($request->filled('companies_id'), function ($q) use ($request) {
+            $q->where(function ($sub) use ($request) {
+                $sub->where('companies_id', $request->companies_id)
+                    ->orWhereHas('offices', function ($q2) use ($request) {
+                        $q2->where('companies_id', $request->companies_id);
+                    });
+            });
+        });
+
+        $query->when($request->filled('offices_id'), fn($q) => $q->where('offices_id', $request->offices_id));
+        $query->when($request->filled('company_users_id'), fn($q) => $q->where('company_users_id', $request->company_users_id));
+        $query->when($request->filled('office_users_id'), fn($q) => $q->where('office_users_id', $request->office_users_id));
+        $query->when($request->filled('card_number'), function ($q) use ($request) {
+            $q->whereHas('cards', fn($q2) => $q2->where('card_number', $request->card_number));
+        });
+        $query->when($request->filled('insurance_name'), fn($q) => $q->where('insurance_name', 'like', '%' . $request->insurance_name . '%'));
+        $query->when($request->filled('plate_number'), fn($q) => $q->where('plate_number', $request->plate_number));
+        $query->when($request->filled('chassis_number'), fn($q) => $q->where('chassis_number', $request->chassis_number));
+
+        // Pagination
+        $perPage = $request->get('per_page', 20);
+        $results = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+        $totals = $query->clone()->selectRaw("
+            SUM(insurance_installment) as total_installment,
+            SUM(insurance_tax) as total_tax,
+            SUM(insurance_stamp) as total_stamp,
+            SUM(insurance_supervision) as total_supervision,
+            SUM(insurance_version) as total_version,
+            SUM(insurance_total) as total_insurance
+        ")->first();
+
+        if ($results->isEmpty()) {
+            return response()->json([
+                'code' => 2,
+                'status' => false,
+                'message' => 'لايوجد عمليات اصدار',
+            ]);
+        }
+
+        return response()->json([
+            'code' => 1,
+            'status' => true,
+            'message' => 'تم عرض البيانات',
+            'data' => $results->items(),
+            'pagination' => [
+                'current_page' => $results->currentPage(),
+                'last_page' => $results->lastPage(),
+                'per_page' => $results->perPage(),
+                'total' => $results->total(),
+            ],
+            'totals' => $totals,
+        ]);
     }
 
 
@@ -870,6 +996,151 @@ class ReportController extends Controller
 
         // 13) إخراج كملف تنزيل
         $filename = "sales_all_{$meta['from']}_{$meta['to']}.pdf";
+        return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    }
+
+    /**
+     * Export all PDF for a specific year
+     */
+    public function exportAllPdfByYear(Request $request, $year)
+    {
+        // 1) التحقق الأساسي من التواريخ
+        $request->validate([
+            'fromdate' => ['required', 'date'],
+            'todate'   => ['required', 'date', 'after_or_equal:fromdate'],
+        ], [], [
+            'fromdate' => 'تاريخ البدء',
+            'todate'   => 'تاريخ النهاية',
+        ]);
+
+        // 2) تنظيف الفلاتر (حسب طريقتك)
+        $filters = $this->cleanFilters($request->only([
+            'offices_id',
+            'companies_id',
+            'office_users_id',
+            'insurance_name',
+            'card_number',
+            'chassis_number',
+            'plate_number',
+            'company_users_id',
+            'fromdate',
+            'todate'
+        ]));
+
+        $from = Carbon::parse($filters['fromdate'])->startOfDay();
+        $to   = Carbon::parse($filters['todate'])->endOfDay();
+
+        // Ensure dates are within the specified year
+        $yearStart = Carbon::createFromDate($year, 1, 1)->startOfYear();
+        $yearEnd = Carbon::createFromDate($year, 12, 31)->endOfYear();
+
+        if ($from->lt($yearStart) || $to->gt($yearEnd)) {
+            Alert::warning('التواريخ يجب أن تكون ضمن السنة المحددة.');
+            return redirect()->back()->withInput();
+        }
+
+        // 3) بناء الاستعلام الأساسي
+        $baseQuery = $this->baseQuery($filters)->whereBetween('issuing_date', [$from, $to]);
+
+        // 4) حد أقصى للسجلات
+        $MAX_ROWS = 30000;
+        $count = (clone $baseQuery)->count();
+
+        if ($count === 0) {
+            // لا توجد بيانات ضمن الفترة
+            Alert::info('لا توجد بيانات', 'لا توجد سجلات ضمن الفترة المحددة.')->persistent('حسنًا');
+            return redirect()->back()->withInput();
+        }
+
+        if ($count > $MAX_ROWS) {
+            // أظهر تنبيه للمستخدم ثم امنع التصدير برسالة تحقق
+            Alert::warning(
+                'البيانات كبيرة',
+                "الفترة المختارة تحتوي {$count} سجلًا، والحد الأقصى المسموح به للتصدير هو {$MAX_ROWS}. الرجاء اختيار مدة أقصر."
+            )->persistent('حسنًا');
+            return redirect()->back()->withInput();
+        }
+
+        // 5) إجماليات باستخدام SUM() بدون تحميل كل الصفوف للذاكرة
+        $totals = (clone $baseQuery)->selectRaw("
+            COALESCE(SUM(insurance_installment),0) AS total_installment,
+            COALESCE(SUM(insurance_tax),0)         AS total_tax,
+            COALESCE(SUM(insurance_stamp),0)       AS total_stamp,
+            COALESCE(SUM(insurance_supervision),0) AS total_supervision,
+            COALESCE(SUM(insurance_version),0)     AS total_version,
+            COALESCE(SUM(insurance_total),0)       AS total_insurance
+        ")->first()->toArray();
+
+        // 6) بيانات إضافية للهيدر
+        $meta = [
+            'from'       => $filters['fromdate'],
+            'to'         => $filters['todate'],
+            'username'   => auth()->user()->username ?? '',
+            'today'      => now('Africa/Tripoli')->format('Y-m-d'),
+            'rows_count' => $count,
+            'year'       => $year,
+        ];
+
+        // 7) إعدادات للتعامل مع ذاكرة/وقت التنفيذ
+        ini_set('pcre.backtrack_limit', '10000000');
+        ini_set('pcre.recursion_limit', '1000000');
+        set_time_limit(0);
+        ini_set('memory_limit', '768M');
+
+        // 8) مجلد مؤقت لـ mPDF لتقليل الضغط على الذاكرة
+        $tempDir = storage_path('app/mpdf-temp');
+        if (!is_dir($tempDir)) {
+            @mkdir($tempDir, 0775, true);
+        }
+
+        // 9) تهيئة mPDF
+        $mpdf = new Mpdf([
+            'format'        => 'A4',
+            'orientation'   => 'L',
+            'default_font'  => 'amiri',
+            'tempDir'       => $tempDir,
+            'margin_left'   => 10,
+            'margin_right'  => 10,
+            'margin_top'    => 10,
+            'margin_bottom' => 10,
+        ]);
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont   = true;
+        $mpdf->SetDirectionality('rtl');
+
+        // 10) الهيدر المشترك لكل الصفحات
+        $headerHtml = view('dashbord.report.issuing_all_pdf_header', compact('meta', 'totals'))->render();
+
+        // 11) حجم الدفعة لكل صفحة (عدّل بحسب حجم صفك)
+        $chunkSize = 500;
+
+        // 12) كتابة الصفحات تباعًا باستخدام chunk على الاستعلام (أوفر ذاكرة)
+        $pageIndex = 0;
+        (clone $baseQuery)
+            ->orderBy('issuing_date', 'asc')
+            ->chunk($chunkSize, function ($chunk) use ($mpdf, $headerHtml, $meta, $totals, &$pageIndex) {
+                if ($pageIndex > 0) {
+                    $mpdf->AddPage();
+                }
+
+                // رأس الصفحة + عناوين الأعمدة
+                $mpdf->WriteHTML($headerHtml, HTMLParserMode::DEFAULT_MODE);
+
+                // جسم الصفحة: صفوف هذه الدفعة فقط
+                $bodyHtml = view('dashbord.report.issuing_all_pdf_rows', [
+                    'rows'   => $chunk,
+                    'meta'   => $meta,
+                    'totals' => $totals,
+                ])->render();
+
+                $mpdf->WriteHTML($bodyHtml, HTMLParserMode::HTML_BODY);
+                $pageIndex++;
+            });
+
+        // 13) إخراج كملف تنزيل
+        $filename = "sales_all_{$year}_{$meta['from']}_{$meta['to']}.pdf";
         return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
@@ -2090,12 +2361,31 @@ class ReportController extends Controller
 
     ///officeStats
 
-    public function officeStats()
+    public function officeStats(Request $request)
     {
-        // استعلام إحصائيات الإصدارات لكل مكتب
-        $officeStats = DB::table('issuings')
-            ->join('offices', 'issuings.offices_id', '=', 'offices.id')
-            ->select('offices.name', DB::raw('COUNT(issuings.id) as total_issuings'))
+        $query = DB::table('issuings')
+            ->join('offices', 'issuings.offices_id', '=', 'offices.id');
+
+        // Apply filters
+        if ($request->filled('fromdate') && $request->filled('todate')) {
+            $from = Carbon::parse($request->fromdate)->startOfDay();
+            $to = Carbon::parse($request->todate)->endOfDay();
+            $query->whereBetween('issuings.issuing_date', [$from, $to]);
+        }
+
+        if ($request->filled('companies_id')) {
+            $query->where('offices.companies_id', $request->companies_id);
+        }
+
+        if ($request->filled('offices_id')) {
+            $query->where('issuings.offices_id', $request->offices_id);
+        }
+
+        if ($request->filled('office_users_id')) {
+            $query->where('issuings.office_users_id', $request->office_users_id);
+        }
+
+        $officeStats = $query->select('offices.name', DB::raw('COUNT(issuings.id) as total_issuings'))
             ->groupBy('offices.id', 'offices.name')
             ->get();
 
@@ -2103,7 +2393,12 @@ class ReportController extends Controller
         $officeLabels = $officeStats->pluck('name');
         $officeData = $officeStats->pluck('total_issuings');
 
-        return view('dashbord.report.office_stats', compact('officeLabels', 'officeData'));
+        // Data for filters
+        $companies = Company::all();
+        $offices = Office::all();
+        $officeUsers = OfficeUser::all();
+
+        return view('dashbord.report.office_stats', compact('officeLabels', 'officeData', 'companies', 'offices', 'officeUsers', 'request'));
     }
 
 
@@ -2129,30 +2424,59 @@ class ReportController extends Controller
 
 
     // إحصائية: عدد إصدارات كل شركة، مع احتساب جميع الإصدارات من المكاتب التابعة لها
-    public function totalCompanyIssuingStats()
+    public function totalCompanyIssuingStats(Request $request)
     {
-        $companies = DB::table('issuings')
+        $query = DB::table('issuings')
             ->join('offices', 'issuings.offices_id', '=', 'offices.id')
             ->join('companies', 'offices.companies_id', '=', 'companies.id')
             ->select('companies.name as company_name', DB::raw('COUNT(issuings.id) as total_issuings'))
             ->groupBy('companies.id', 'companies.name')
-            ->orderBy('total_issuings', 'desc')
-            ->get();
+            ->orderBy('total_issuings', 'desc');
+
+        // تطبيق فلتر التاريخ إذا تم توفيره
+        if ($request->filled('fromdate') && $request->filled('todate')) {
+            $from = Carbon::parse($request->fromdate)->startOfDay();
+            $to = Carbon::parse($request->todate)->endOfDay();
+            $query->whereBetween('issuings.issuing_date', [$from, $to]);
+        }
+
+        $companies = $query->get();
 
         $companyLabels = $companies->pluck('company_name');
         $companyData = $companies->pluck('total_issuings');
 
-        return view('dashbord.report.total_company_issuings', compact('companyLabels', 'companyData'));
+        return view('dashbord.report.total_company_issuings', compact('companyLabels', 'companyData', 'request'));
     }
 
 
     // مقارنة إصدارات مستخدمي المكاتب
 
-    public function officeUsersStats()
+    public function officeUsersStats(Request $request)
     {
-        $users = DB::table('issuings')
+        $query = DB::table('issuings')
             ->join('office_users', 'issuings.office_users_id', '=', 'office_users.id')
-            ->select('office_users.username', DB::raw('COUNT(issuings.id) as total'))
+            ->join('offices', 'issuings.offices_id', '=', 'offices.id');
+
+        // Apply filters
+        if ($request->filled('fromdate') && $request->filled('todate')) {
+            $from = Carbon::parse($request->fromdate)->startOfDay();
+            $to = Carbon::parse($request->todate)->endOfDay();
+            $query->whereBetween('issuings.issuing_date', [$from, $to]);
+        }
+
+        if ($request->filled('companies_id')) {
+            $query->where('offices.companies_id', $request->companies_id);
+        }
+
+        if ($request->filled('offices_id')) {
+            $query->where('issuings.offices_id', $request->offices_id);
+        }
+
+        if ($request->filled('office_users_id')) {
+            $query->where('issuings.office_users_id', $request->office_users_id);
+        }
+
+        $users = $query->select('office_users.username', DB::raw('COUNT(issuings.id) as total'))
             ->groupBy('office_users.id', 'office_users.username')
             ->orderByDesc('total')
             ->get();
@@ -2160,7 +2484,12 @@ class ReportController extends Controller
         $labels = $users->pluck('username');
         $data = $users->pluck('total');
 
-        return view('dashbord.report.office_users_stats', compact('labels', 'data'));
+        // Data for filters
+        $companies = Company::all();
+        $offices = Office::all();
+        $officeUsers = OfficeUser::all();
+
+        return view('dashbord.report.office_users_stats', compact('labels', 'data', 'companies', 'offices', 'officeUsers', 'request'));
     }
 
 

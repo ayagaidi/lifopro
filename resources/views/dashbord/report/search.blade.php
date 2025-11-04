@@ -116,7 +116,7 @@
   <div class="row small-spacing">
     <div class="col-md-12">
       <div class="box-content">
-        <h4 class="box-title"><a href="{{ route('report/issuing') }}">ادارة التقارير</a>/ تقاريرالمبيعات</h4>
+        <h4 class="box-title"><a href="{{ route('report/issuing') }}">ادارة التقارير</a>/ تقاريرالمبيعات @if(isset($year)) {{ $year }} @endif</h4>
       </div>
 
       <div class="box-content">
@@ -210,6 +210,31 @@
             <!--{{-- زر PDF الأصلي --}}-->
             <!--<button type="submit" class="btn btn-primary waves-effect">تصدير ك PDF</button>-->
             <button type="button" id="btnExportAllPdf" class="btn btn-danger waves-effect">تصدير PDF (كل النتائج)</button>
+            @if(isset($year))
+            <script>
+                $(document).on('click', '#btnExportAllPdf', function () {
+                    if (!$('#fromdate').val() || !$('#todate').val()) {
+                        Swal.fire("تنبيه", "الرجاء اختيار تاريخ البدء وتاريخ النهاية", "warning");
+                        return;
+                    }
+
+                    const q = $.param({
+                        offices_id:       $('#offices_id').val() || '',
+                        companies_id:     $('#companies_id').val() || '',
+                        office_users_id:  $('#office_users_id').val() || '',
+                        insurance_name:   $('#insurance_name').val() || '',
+                        card_number:      $('#card_number').val() || '',
+                        chassis_number:   $('#chassis_number').val() || '',
+                        plate_number:     $('#plate_number').val() || '',
+                        company_users_id: $('#company_users_id').val() || '',
+                        fromdate:         $('#fromdate').val(),
+                        todate:           $('#todate').val()
+                    });
+
+                    window.location.href = "{{ route('report.issuing.export-pdf-year', $year) }}?" + q;
+                });
+            </script>
+            @endif
 
           </div>
         </form>
@@ -313,8 +338,13 @@
         return;
       }
 
+      var searchUrl = '../../report/issuing/searchby';
+      @if(isset($year))
+        searchUrl = '../../report/issuing/{{ $year }}/searchby';
+      @endif
+
       $.ajax({
-        url: '../../report/issuing/searchby',
+        url: searchUrl,
         type: 'GET',
         data: payload,
         success: function (response) {
@@ -524,7 +554,13 @@
         page:             page,
         per_page:         per_page
       };
-      return $.ajax({ url: '../../report/issuing/searchby', type: 'GET', data: payload });
+
+      var searchUrl = '../../report/issuing/searchby';
+      @if(isset($year))
+        searchUrl = '../../report/issuing/{{ $year }}/searchby';
+      @endif
+
+      return $.ajax({ url: searchUrl, type: 'GET', data: payload });
     }
 
     // طباعة HTML

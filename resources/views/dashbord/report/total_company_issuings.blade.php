@@ -13,6 +13,24 @@
         </div>
     </div>
 
+    <!-- فلتر التاريخ -->
+    <div class="col-md-12">
+        <div class="box-content">
+            <form method="GET" action="{{ route('report/totalcompanyissuingstats') }}" class="form-inline">
+                <div class="form-group">
+                    <label for="fromdate">من تاريخ:</label>
+                    <input type="date" name="fromdate" id="fromdate" class="form-control" value="{{ $request->fromdate ?? '' }}">
+                </div>
+                <div class="form-group">
+                    <label for="todate">إلى تاريخ:</label>
+                    <input type="date" name="todate" id="todate" class="form-control" value="{{ $request->todate ?? '' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">فلترة</button>
+                <a href="{{ route('report/totalcompanyissuingstats') }}" class="btn btn-secondary">إعادة تعيين</a>
+            </form>
+        </div>
+    </div>
+
     <div class="col-md-12">
         <div class="box-content">
             <canvas id="companyTotalChart" height="500"></canvas>

@@ -42,7 +42,7 @@
             <div class="box-content">
 
                 <h4 class="box-title"><a href="{{ route('report/issuing/summary') }}">ادارة التقارير</a>/ تقاريرالمبيعات
-                    [مختصر]</h4>
+                    [مختصر] @if(isset($year)) {{ $year }} @endif</h4>
 
             </div>
 
@@ -165,6 +165,38 @@
     $currentYearStart = \Carbon\Carbon::now()->startOfYear()->format('Y-m-d'); // بداية السنة الحالية
     $nextYearEnd = \Carbon\Carbon::now()->addYear()->endOfYear()->format('Y-m-d'); // نهاية السنة القادمة
 @endphp
+                        @if(isset($year))
+                        <div class="form-group col-md-3">
+                            <label for="inputName" class="control-label"> من </label>
+                           <input name="fromdate" id="fromdate" type="date"
+       min="{{ $year }}-01-01"
+       max="{{ $year }}-12-31"
+       class="form-control @error('fromdate') is-invalid @enderror wd-250" required />
+
+
+
+                            @error('fromdate')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label for="inputName" class="control-label"> الي </label>
+                           <input name="todate" id="todate" type="date"
+       min="{{ $year }}-01-01"
+       max="{{ $year }}-12-31"
+       class="form-control @error('todate') is-invalid @enderror wd-250" required />
+
+
+
+                            @error('todate')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                        @else
                         <div class="form-group col-md-3">
                             <label for="inputName" class="control-label"> من </label>
                            <input name="fromdate" id="fromdate" type="date"
@@ -195,11 +227,16 @@
                                 </span>
                             @enderror
                         </div>
+                        @endif
                     </div>
                     <div class="form-group  col-md-12" style="text-align: left;">
                         <button type="button" onclick="search()"
                             class="btn btn-primary waves-effect waves-light">بحث</button>
+                        @if(isset($year))
+                        <button type="button" id="btnExportPdfYear" class="btn btn-primary waves-effect"> تصدير ك pdf </button>
+                        @else
                         <button type="submit" class="btn btn-primary waves-effect"> تصدير ك pdf </button>
+                        @endif
 
                     </div>
                 </form>
@@ -370,6 +407,18 @@ function search() {
     var fromDateObj = new Date(fromdate);
     var toDateObj = new Date(todate);
 
+    @if(isset($year))
+    // للسنة المحددة
+    var startOfYear = new Date({{ $year }}, 0, 1);  // 1 يناير السنة المحددة
+    var endOfYear = new Date({{ $year }}, 11, 31); // 31 ديسمبر السنة المحددة
+
+    // التحقق أن التواريخ ضمن السنة المحددة
+    if (fromDateObj < startOfYear || toDateObj > endOfYear) {
+        $('#loader-overlay').hide();
+        swal.fire(`يجب أن تكون التواريخ ضمن السنة {{ $year }}`);
+        return;
+    }
+    @else
     // بداية السنة الحالية
     var currentYear = new Date().getFullYear();
     var startOfYear = new Date(currentYear, 0, 1);  // 1 يناير السنة الحالية
@@ -381,6 +430,7 @@ function search() {
         swal.fire(`يجب أن تكون التواريخ بين ${startOfYear.toLocaleDateString()} و ${endOfNextYear.toLocaleDateString()}`);
         return;
     }
+    @endif
 
     // التحقق أن الفرق بين التاريخين لا يتجاوز 3 أشهر (90 يوم تقريبًا)
     var diffTime = toDateObj - fromDateObj;
@@ -409,4 +459,29 @@ function search() {
 
 
 
-    @endsection
+    @if(isset($year))
+    <script>
+        $(document).on('click', '#btnExportPdfYear', function () {
+            if (!$('#fromdate').val() || !$('#todate').val()) {
+                Swal.fire("تنبيه", "الرجاء اختيار تاريخ البدء وتاريخ النهاية", "warning");
+                return;
+            }
+
+            const q = $.param({
+                offices_id:       $('#offices_id').val() || '',
+                companies_id:     $('#companies_id').val() || '',
+                office_users_id:  $('#office_users_id').val() || '',
+                insurance_name:   $('#insurance_name').val() || '',
+                card_number:      $('#card_number').val() || '',
+                chassis_number:   $('#chassis_number').val() || '',
+                plate_number:     $('#plate_number').val() || '',
+                company_users_id: $('#company_users_id').val() || '',
+                fromdate:         $('#fromdate').val(),
+                todate:           $('#todate').val()
+            });
+
+            window.location.href = "{{ route('report.issuing.export-pdf-year', $year) }}?" + q;
+        });
+    </script>
+    @endif
+@endsection

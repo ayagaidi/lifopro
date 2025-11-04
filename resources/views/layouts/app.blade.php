@@ -346,10 +346,19 @@
                                     class="menu-icon fa fa-credit-card"></i><span> ادارة التقارير </span><span
                                     class="menu-arrow fa fa-angle-down"></span></a>
                             <ul class="sub-menu js__content" style="display: none;">
-                                <li><a href="{{ route('report/issuing') }}"> تقارير المبيعات </a></li>
-                               
-<li><a href="{{ route('report/issuing/summary') }}"> تقارير المبيعات [مختصر]</a></li>
-<li><a href="{{ route('report/issuing/summary/archives') }}"> تقارير المبيعات [ارشيف][مختصر]</a></li> 
+                                {{-- <li><a href="{{ route('report/issuing') }}"> تقارير المبيعات </a></li> --}}
+
+                                @php
+                                    $controller = app()->make(\App\Http\Controllers\Dashbord\ReportController::class);
+                                    $years = $controller->getAvailableYears();
+                                @endphp
+                                @foreach($years as $year)
+                                    <li><a href="{{ route('report/issuing/year', $year) }}"> تقارير المبيعات {{ $year }}</a></li>
+                                    <li><a href="{{ route('report/issuing/summary/year', $year) }}"> تقارير المبيعات [مختصر] {{ $year }}</a></li>
+                                @endforeach
+
+{{-- <li><a href="{{ route('report/issuing/summary') }}"> تقارير المبيعات [مختصر]</a></li> --}}
+{{-- <li><a href="{{ route('report/issuing/summary/archives') }}"> تقارير المبيعات [ارشيف][مختصر]</a></li> --}}
 
 <li><a href="{{ route('report/salescount') }}"> تقارير   اجمالي عدد البطاقات</a></li>
                                 <li><a href="{{ route('report/stock') }}"> تقارير المخزون </a></li>

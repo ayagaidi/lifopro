@@ -249,7 +249,12 @@ Route::get('roles/show/{id}', [App\Http\Controllers\Dashbord\RoleController::cla
     Route::get('report/issuing', [App\Http\Controllers\Dashbord\ReportController::class, 'index'])->name('report/issuing');
     Route::get('report/issuing/searchby', [App\Http\Controllers\Dashbord\ReportController::class, 'searchby'])->name('report/issuing/searchby');
     Route::get('report/issuing/summary', [App\Http\Controllers\Dashbord\ReportController::class, 'indexsummary'])->name('report/issuing/summary');
+    Route::get('report/issuing/summary/{year}', [App\Http\Controllers\Dashbord\ReportController::class, 'indexsummaryByYear'])->name('report/issuing/summary/year');
     Route::get('report/issuing/search', [App\Http\Controllers\Dashbord\ReportController::class, 'searchpdf'])->name('report/issuing/search');
+
+    // Year-based reports
+    Route::get('report/issuing/{year}', [App\Http\Controllers\Dashbord\ReportController::class, 'indexByYear'])->name('report/issuing/year');
+    Route::get('report/issuing/{year}/searchby', [App\Http\Controllers\Dashbord\ReportController::class, 'searchbyByYear'])->name('report/issuing/year/searchby');
     
  
      Route::get('report/issuing/export-xlsx', [App\Http\Controllers\Dashbord\ReportController::class, 'exportXlsx'])->name('report.issuing.export-xlsx');
@@ -257,6 +262,8 @@ Route::get('roles/show/{id}', [App\Http\Controllers\Dashbord\RoleController::cla
      // routes/web.php
 Route::get('/report/issuing/export-pdf', [App\Http\Controllers\Dashbord\ReportController::class, 'exportAllPdf'])
      ->name('report.issuing.export-pdf');
+Route::get('/report/issuing/{year}/export-pdf', [App\Http\Controllers\Dashbord\ReportController::class, 'exportAllPdfByYear'])
+     ->name('report.issuing.export-pdf-year');
 
 
     Route::get('report/issuing/summary/archives', [App\Http\Controllers\Dashbord\ReportController::class, 'indexsummaryarchives'])->name('report/issuing/summary/archives');
