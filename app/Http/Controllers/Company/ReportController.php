@@ -125,6 +125,11 @@ public function officeUsersStats(Request $request)
         $query->where('offices.id', $request->offices_id);
     }
 
+    // Apply office user filter if provided
+    if ($request->filled('office_users_id')) {
+        $query->where('issuings.office_users_id', $request->office_users_id);
+    }
+
     $users = $query->groupBy('office_users.id', 'office_users.username')
         ->orderByDesc('total')
         ->get();
@@ -135,7 +140,10 @@ public function officeUsersStats(Request $request)
     // Get offices for filter dropdown
     $offices = Office::where('companies_id', $companyId)->get();
 
-    return view('comapny.report.officsstatsuse', compact('labels', 'data', 'offices', 'request'));
+    // Get office users for the company's offices
+    $officeUsers = OfficeUser::whereIn('offices_id', $offices->pluck('id'))->get();
+
+    return view('comapny.report.officsstatsuse', compact('labels', 'data', 'offices', 'officeUsers', 'request'));
 }
 
     /**

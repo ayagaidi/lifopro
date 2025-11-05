@@ -26,12 +26,23 @@
                         <label for="todate">إلى تاريخ:</label>
                         <input type="date" name="todate" id="todate" class="form-control" value="{{ $request->todate }}">
                     </div>
+                </div>
+                <div class="row">
                     <div class="form-group col-md-3">
                         <label for="offices_id">المكتب:</label>
                         <select name="offices_id" id="offices_id" class="form-control">
                             <option value="">جميع المكاتب</option>
                             @foreach($offices as $office)
                                 <option value="{{ $office->id }}" {{ $request->offices_id == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label for="office_users_id">مستخدم المكتب:</label>
+                        <select name="office_users_id" id="office_users_id" class="form-control">
+                            <option value="">جميع المستخدمين</option>
+                            @foreach($officeUsers as $user)
+                                <option value="{{ $user->id }}" {{ $request->office_users_id == $user->id ? 'selected' : '' }}>{{ $user->username }}</option>
                             @endforeach
                         </select>
                     </div>
