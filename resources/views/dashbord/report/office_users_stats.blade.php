@@ -67,8 +67,10 @@
     </div>
 
     <div class="col-md-12" style="margin-top: 20px;">
-        <div class="box-content">
-            <canvas id="officeUsersChart" height="200"></canvas>
+        <div class="box-content" style="padding: 20px;">
+            <div style="width: 100%; max-width: 800px; margin: auto;">
+                <canvas id="officeUsersChart" height="400"></canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -80,7 +82,7 @@
     const data = {!! json_encode($data) !!};
 
     const colors = labels.map((_, i) => {
-        const palette = ['#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#1abc9c', '#e67e22', '#34495e', '#16a085'];
+        const palette = ['#2ecc71', '#3498db', '#f1c40f', '#e67e22', '#1abc9c', '#9b59b6', '#e74c3c', '#34495e', '#16a085'];
         return palette[i % palette.length];
     });
 
@@ -93,15 +95,49 @@
                 data: data,
                 backgroundColor: colors,
                 borderColor: colors,
-                borderWidth: 1
+                borderWidth: 2,
+                barPercentage: 0.7,
+                categoryPercentage: 0.7,
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'nearest',
+                intersect: true,
+            },
+            hover: {
+                onHover: function(event, chartElement) {
+                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
+                }
+            },
+            animation: {
+                duration: 300,
+                easing: 'easeOutQuad'
+            },
             plugins: {
-               
                 legend: {
-                    display: false
+                    display: true,
+                    labels: {
+                        font: {
+                            size: 16
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'توزيع الإصدارات حسب مستخدمي المكاتب',
+                    font: {
+                        size: 24,
+                        weight: 'bold'
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    bodyFont: {
+                        size: 16
+                    }
                 }
             },
             scales: {
@@ -109,17 +145,79 @@
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: 'عدد الإصدارات'
+                        text: 'عدد الإصدارات',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 14
+                        }
                     }
                 },
                 x: {
                     title: {
                         display: true,
-                        text: 'المستخدمين'
+                        text: 'المستخدمين',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 14
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'hoverZoom',
+            afterDatasetDraw(chart) {
+                const {ctx} = chart;
+                const activeElements = chart.getActiveElements();
+
+                if (activeElements.length === 0) return;
+
+                const active = activeElements[0];
+                const datasetIndex = active.datasetIndex;
+                const index = active.index;
+                const meta = chart.getDatasetMeta(datasetIndex);
+                const bar = meta.data[index];
+
+                if (!bar) return;
+
+                ctx.save();
+
+                const scale = 1.3;
+                const barWidth = bar.width * scale;
+                const barHeight = bar.height * scale;
+
+                const x = bar.x - (barWidth - bar.width) / 2;
+                const y = bar.y - barHeight + bar.height;
+
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+
+                ctx.fillStyle = bar.options.backgroundColor;
+                ctx.strokeStyle = bar.options.borderColor;
+                ctx.lineWidth = bar.options.borderWidth;
+
+                ctx.beginPath();
+                ctx.rect(x, y, barWidth, barHeight);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }]
     });
 </script>
 @endsection
