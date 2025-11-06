@@ -74,6 +74,7 @@
 
 
 
+            @if($showCaptcha)
             <div class="form-group row ">
                 <div class="col-md-8">
 
@@ -100,6 +101,7 @@
                     </span>
                 @enderror
             </div>
+            @endif
             <!-- /.frm-input -->
             <div class="clearfix margin-bottom-20">
 

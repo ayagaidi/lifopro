@@ -485,7 +485,7 @@
         <!-- /.main-content -->
     </div>
 
-    <script src="{{ asset('sweetalert2@11') }}"></script>
+    {{-- <script src="{{ asset('sweetalert2@11') }}"></script> --}}
 
     <script src="{{ asset('dash/assets/scripts/main.min.js') }}"></script>
 

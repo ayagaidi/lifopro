@@ -34,6 +34,87 @@
       // مراقبة الجلسة
       $(document).on('change', 'select, input', checkSession);
 
+         $('select[name="companies_id"]').on('change', function() {
+                checkSession();
+                var companies_id = $(this).val();
+                $('select[name="company_users_id"]').empty();
+                $('select[name="offices_id"]').empty();
+
+                if (companies_id) {
+
+                    $.ajax({
+                        url: '../../report/companyuser/' + companies_id,
+
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+
+                            $('select[name="company_users_id"]').append('<option value="">' +
+                                'اختر مستخدم' + '</option>');
+                            $.each(data, function(key, value) {
+                                $('select[name="company_users_id"]').append('<option value="' +
+                                    value.id + '">' + value.username + '</option>');
+                            });
+
+                        }
+                    });
+
+
+                    $.ajax({
+                        url: '../../report/offices/' + companies_id,
+
+                        type: "GET",
+                        dataType: "json",
+                        success: function(data) {
+
+                            $('select[name="offices_id"]').append('<option value="">' +
+                                'اختر مكتب' + '</option>');
+                            $.each(data, function(key, value) {
+                                $('select[name="offices_id"]').append('<option value="' +
+                                    value.id + '">' + value.name + '</option>');
+                            });
+
+                        }
+                    });
+
+                } else {
+                    $('select[name="office_users_id"]').empty();
+                    $('select[name="offices_id"]').empty();
+
+                }
+            });
+
+            $('select[name="offices_id"]').on('change', function() {
+                checkSession();
+                var offices_id = $(this).val();
+                $('select[name="office_users_id"]').empty();
+                const companyUsersDropdown = document.getElementById('company_users_id');
+                companyUsersDropdown.value = '';
+                if (offices_id) {
+
+                    {
+                        $.ajax({
+                            url: '../../report/officesuser/' +
+                                offices_id, // Correct URL with country ID
+                            type: "GET",
+                            dataType: "json",
+                            success: function(data) {
+
+                                $('select[name="office_users_id"]').append('<option value="">' +
+                                    'اختر مستخدم' + '</option>');
+                                $.each(data, function(key, value) {
+                                    $('select[name="office_users_id"]').append('<option value="' +
+                                        value.id + '">' + value.username + '</option>');
+                                });
+
+                            }
+                        });
+
+                    }
+                } else {
+                    $('select[name="office_users_id"]').empty();
+                }
+            });
       // بحث
       $(document).on('click', '#search-btn', function () { search(1); });
 

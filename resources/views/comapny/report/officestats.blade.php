@@ -44,10 +44,10 @@
         </div>
     </div>
 
-    <div class="col-md-12" style="margin-top: 50px;">
+    <div class="col-md-12" style="margin-top: 20px;">
         <div class="box-content" style="padding: 20px;">
-            <div style="width: 80%; max-width: 1200px; margin: auto;">
-                <canvas id="officeChart" height="600"></canvas>
+            <div style="width: 100%; max-width: 800px; margin: auto;">
+                <canvas id="officeChart" height="400"></canvas>
             </div>
 
             <script>

@@ -57,7 +57,9 @@ class OfficeloginController extends Controller
 
     public function showLoginForm()
     {
-        return view('office.auth.login');
+        $guardName = $this->guard()->getName();
+        $showCaptcha = session('failed_attempts_' . $guardName, 0) >= 5;
+        return view('office.auth.login', compact('showCaptcha'));
     }
 
 
@@ -70,22 +72,29 @@ class OfficeloginController extends Controller
 
     protected function validateLogin(Request $request)
     {
-
-        
-        $request->validate([
+        $rules = [
             $this->username() => 'required|string',
             'password' => 'required|string',
-            'captcha' => 'required|captcha',
-        ]);
+        ];
+
+        $guardName = $this->guard()->getName();
+        // Show captcha only after 5 failed attempts
+        if (session('failed_attempts_' . $guardName, 0) >= 5) {
+            $rules['captcha'] = 'required|captcha';
+        }
+
+        $request->validate($rules);
     }
     public function login(Request $request)
     {
         $this->validateLogin($request);
         /* Validation Logic */
         $userid = OfficeUser::where('username', $request->username)->first();
- 
-        if (is_null($userid)) {
 
+        $guardName = $this->guard()->getName();
+
+        if (is_null($userid)) {
+            session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
             return redirect()
                 ->back()
                 ->withInput($request->only($this->username(), 'remember'))
@@ -95,20 +104,22 @@ class OfficeloginController extends Controller
         $companie=Company::find($Office->companies_id);
 
         if ($companie->active==0) {
+            session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
             return redirect()
             ->back()
             ->withInput($request->only($this->username(), 'remember'))
             ->withErrors(['username' =>"حساب الشركة معطل الرجاء الاتصال الاتحاد"]);
- 
+
         }
 
 
         if ($Office->active==0) {
+            session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
             return redirect()
             ->back()
             ->withInput($request->only($this->username(), 'remember'))
             ->withErrors(['username' =>"حساب المكتب معطل الرجاء الاتصال بمدير الشركة"]);
- 
+
         }
 
 
@@ -121,26 +132,27 @@ class OfficeloginController extends Controller
             return $this->sendLockoutResponse($request);
         }
 
-        
+
 
         // Only Login Active
         if ($this->guard()->validate($this->credentials($request))) {
 
             $user = $this->guard()->getLastAttempted();
-           
+
 
             // Make sure the user is active
             if ($user->active && $this->attemptLogin($request)) {
                 // Send the normal successful login response
+                // Reset failed attempts counter on success
+                session(['failed_attempts_' . $guardName => 0]);
 
-            
-                
                 return $this->sendLoginResponse($request);
             } else {
                 // Increment the failed login attempts and redirect back to the
                 // login form with an error message.
 
                 $this->incrementLoginAttempts($request);
+                session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
                 return redirect()
                     ->back()
                     ->withInput($request->only($this->username(), 'remember'))
@@ -152,6 +164,7 @@ class OfficeloginController extends Controller
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
         $this->incrementLoginAttempts($request);
+        session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
 
         return $this->sendFailedLoginResponse($request);
     }

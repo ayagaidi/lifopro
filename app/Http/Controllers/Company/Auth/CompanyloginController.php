@@ -55,7 +55,9 @@ class CompanyloginController extends Controller
 
     public function showLoginForm()
     {
-        return view('comapny.auth.login');
+        $guardName = $this->guard()->getName();
+        $showCaptcha = session('failed_attempts_' . $guardName, 0) >= 5;
+        return view('comapny.auth.login', compact('showCaptcha'));
     }
 
 
@@ -68,13 +70,18 @@ class CompanyloginController extends Controller
 
     protected function validateLogin(Request $request)
     {
-
-        
-        $request->validate([
+        $rules = [
             $this->username() => 'required|string',
             'password' => 'required|string',
-            'captcha' => 'required|captcha',
-        ]);
+        ];
+
+        $guardName = $this->guard()->getName();
+        // Show captcha only after 5 failed attempts
+        if (session('failed_attempts_' . $guardName, 0) >= 5) {
+            $rules['captcha'] = 'required|captcha';
+        }
+
+        $request->validate($rules);
     }
     public function login(Request $request)
     {
@@ -83,6 +90,8 @@ class CompanyloginController extends Controller
         $userid = CompanyUser::where('username', $request->username)->first();
         if (is_null($userid)) {
 
+            $guardName = $this->guard()->getName();
+            session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
             return redirect()
                 ->back()
                 ->withInput($request->only($this->username(), 'remember'))
@@ -91,11 +100,13 @@ class CompanyloginController extends Controller
 
         $comapy=Company::find($userid->companies_id);
         if ($comapy->active==0) {
+            $guardName = $this->guard()->getName();
+            session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
             return redirect()
             ->back()
             ->withInput($request->only($this->username(), 'remember'))
             ->withErrors(['username' =>"حساب الشركة معطل الرجاء الاتصال بمدير الشركة"]);
- 
+
         }
 
         // If the class is using the ThrottlesLogins trait, we can automatically throttle
@@ -116,14 +127,18 @@ class CompanyloginController extends Controller
             if ($user->active && $this->attemptLogin($request)) {
                 // Send the normal successful login response
 
-            
-                
+                $guardName = $this->guard()->getName();
+                // Reset failed attempts counter on success
+                session(['failed_attempts_' . $guardName => 0]);
+
                 return $this->sendLoginResponse($request);
             } else {
                 // Increment the failed login attempts and redirect back to the
                 // login form with an error message.
 
                 $this->incrementLoginAttempts($request);
+                $guardName = $this->guard()->getName();
+                session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
                 return redirect()
                     ->back()
                     ->withInput($request->only($this->username(), 'remember'))
@@ -135,6 +150,8 @@ class CompanyloginController extends Controller
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
         $this->incrementLoginAttempts($request);
+        $guardName = $this->guard()->getName();
+        session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
 
         return $this->sendFailedLoginResponse($request);
     }

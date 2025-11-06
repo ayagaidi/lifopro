@@ -21,7 +21,7 @@ class LoginController extends Controller
     |
     */
     use AuthenticatesUsers;
-    protected $maxAttempts = 4; // Default is 5
+    protected $maxAttempts = 5; // Default is 5
     protected $decayMinutes = 10; 
 
     /**
@@ -45,6 +45,13 @@ class LoginController extends Controller
     {
         return response()->json(['captcha'=> captcha_img()]);
     }
+
+    public function showLoginForm()
+    {
+        $guardName = $this->guard()->getName();
+        $showCaptcha = session('failed_attempts_' . $guardName, 0) >= 5;
+        return view('auth.login', compact('showCaptcha'));
+    }
     public function username()
     {
         $login = request()->input('email');
@@ -61,16 +68,25 @@ class LoginController extends Controller
 
     protected function validateLogin(Request $request)
     {
-        $request->validate([
+        $rules = [
             $this->username() => 'required|string',
             'password' => 'required|string',
-            'captcha' => 'required|captcha',
-        ]);
+        ];
+
+        $guardName = $this->guard()->getName();
+        // Show captcha only after 5 failed attempts
+        if (session('failed_attempts_' . $guardName, 0) >= 5) {
+            $rules['captcha'] = 'required|captcha';
+        }
+
+        $request->validate($rules);
     }
 
     public function login(Request $request)
     {
         $this->validateLogin($request);
+
+        $guardName = $this->guard()->getName();
 
         // If the class is using the ThrottlesLogins trait, we can automatically throttle
         // the login attempts for this application. We'll key this by the username and
@@ -90,6 +106,9 @@ class LoginController extends Controller
                 // Send the normal successful login response
                 ActivityLogger::activity("تسجيل دخول بنجاح");
 
+                // Reset failed attempts counter on success
+                session(['failed_attempts_' . $guardName => 0]);
+
                 return $this->sendLoginResponse($request);
             } else {
                 // Increment the failed login attempts and redirect back to the
@@ -97,6 +116,7 @@ class LoginController extends Controller
                 ActivityLogger::activity(" فشل تسجيل دخول ");
 
                 $this->incrementLoginAttempts($request);
+                session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
                 return redirect()
                     ->back()
                     ->withInput($request->only($this->username(), 'remember'))
@@ -108,6 +128,7 @@ class LoginController extends Controller
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
         $this->incrementLoginAttempts($request);
+        session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);
 
         return $this->sendFailedLoginResponse($request);
     }
