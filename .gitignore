@@ -19,8 +19,8 @@ public
 /.idea
 /.vscode
 /Applications/XAMPP/xamppfiles/htdocs/lifo/public/doc
-/Applications/XAMPP/xamppfiles/htdocs/lifo/app/Http/Controllers/Company/IssuingController.php
-/Applications/XAMPP/xamppfiles/htdocs/lifo/app/Http/Controllers/Office/IssuingController.php
+# /Applications/XAMPP/xamppfiles/htdocs/lifo/app/Http/Controllers/Company/IssuingController.php
+# /Applications/XAMPP/xamppfiles/htdocs/lifo/app/Http/Controllers/Office/IssuingController.php
 app/Http/Controllers/Company/IssuingController.php
 /Applications/XAMPP/xamppfiles/htdocs/lifo/app/Services/LifoApiService.php
 index.php
