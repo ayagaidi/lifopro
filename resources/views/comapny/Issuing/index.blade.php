@@ -137,7 +137,10 @@ if (decimalPart == 0) {
             var startDate = new Date($('#insurance_day_from').val());
             var daysToAdd = parseInt($('#insurance_days_number').val()) || 0;
 
-            startDate.setDate(startDate.getDate() + daysToAdd - 1);
+            // Add hours equivalent to days (days * 24 hours)
+            startDate.setTime(startDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+
+            // Format the date as YYYY-MM-DD
             var formattedDate = startDate.toISOString().split('T')[0];
 
             $('#insurance_day_to').val(formattedDate);

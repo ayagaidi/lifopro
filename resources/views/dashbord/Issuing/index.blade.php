@@ -35,7 +35,8 @@
                     daysToAdd = 0; // Handle cases where daysToAdd is not a number
                 }
 
-                startDate.setDate(startDate.getDate() + daysToAdd);
+                // Add hours equivalent to days (days * 24 hours)
+                startDate.setTime(startDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
 
                 // Format the date as YYYY-MM-DD
                 var formattedDate = startDate.toISOString().split('T')[0];

@@ -240,7 +240,8 @@ if ($request->insurance_days_number > $maximumDays) {
                         $insurance_from = Carbon::parse($request->insurance_day_from . ' ' . $time);
                                                                                                 // $insurance_to = Carbon::parse($request->nsurance_day_to . ' ' . $time);
 
-                        $insurance_to = Carbon::parse($request->nsurance_day_to . ' ' . "11:59".'pm');
+                        // Add hours equivalent to days (days * 24 hours) to the end date
+                        $insurance_to = Carbon::parse($request->insurance_day_from . ' ' . $time)->addHours($request->insurance_days_number * 24);
                         $insurance_day_from    = date("d-m-Y H:i:s" , strtotime($insurance_from));
                         $nsurance_day_to      = date("d-m-Y H:i:s" , strtotime($insurance_to));
 

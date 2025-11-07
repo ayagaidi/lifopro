@@ -1,23 +1,20 @@
-# TODO: Modify CAPTCHA Mechanism for Login After 5 Failed Attempts
+# TODO: Change Insurance Duration Calculation to Hours
 
-## Information Gathered
-- The application has three login systems: User (Auth/LoginController), Office (Office/Auth/OfficeloginController), and Company (Company/Auth/CompanyloginController).
-- Each controller tracks failed login attempts using session key 'failed_attempts_' . $guardName.
-- CAPTCHA is shown only after 5 or more failed attempts (>=5).
-- On successful login, the counter resets to 0.
-- Views:
-  - resources/views/auth/login.blade.php: Uses @if($showCaptcha) to conditionally show CAPTCHA.
-  - resources/views/office/auth/login.blade.php: Always shows CAPTCHA, needs modification.
-  - resources/views/comapny/auth/login.blade.php: Uses @if(session('failed_attempts_companys', 0) >= 5), should use $showCaptcha for consistency.
+## Overview
+Modify the insurance duration calculation to use hours instead of days for full coverage. Keep form labels as "عدد الايام" (number of days) and input values in days, but calculate end date by adding equivalent hours (days * 24).
 
-## Plan
-1. Update resources/views/office/auth/login.blade.php to conditionally show CAPTCHA using @if($showCaptcha).
-2. Update resources/views/comapny/auth/login.blade.php to use @if($showCaptcha) instead of direct session check.
-3. Verify controllers have correct logic (they do).
+## Tasks
+- [x] Update JavaScript in resources/views/dashbord/Issuing/index.blade.php to calculate end date by adding hours (days * 24) instead of days
+- [x] Update JavaScript in resources/views/comapny/Issuing/index.blade.php to calculate end date by adding hours (days * 24) instead of days
+- [x] Update JavaScript in resources/views/office/Issuing/index.blade.php to calculate end date by adding hours (days * 24) instead of days
+- [x] Update app/Http/Controllers/Company/IssuingController.php to calculate end date by adding hours equivalent to days
+- [x] Update app/Http/Controllers/Office/IssuingController.php to calculate end date by adding hours equivalent to days
+- [x] Update app/Http/Controllers/Dashbord/IssuingController.php to calculate end date by adding hours equivalent to days (Not applicable - Dashbord doesn't have IssuingController)
+- [ ] Test the changes to ensure end date is calculated correctly (e.g., 7 days = add 168 hours, end at same time as start)
 
-## Dependent Files to Edit
-- resources/views/office/auth/login.blade.php
-- resources/views/comapny/auth/login.blade.php
-
-## Followup Steps
-- Test login functionality for all three systems to ensure CAPTCHA appears only after 5 failed attempts and resets on success.
+## Notes
+- Labels remain as "عدد الايام"
+- Input values are in days
+- Min/Max values remain in days (TUN: 7, EGY: 15, Max: 90)
+- Database field insurance_days_number remains as is, storing days
+- End date calculation: start_date + (days * 24 hours)
