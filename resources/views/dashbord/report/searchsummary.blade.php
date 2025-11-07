@@ -297,14 +297,15 @@
 
             $('select[name="companies_id"]').on('change', function() {
                 checkSession();
-                var companies_id = $(this).val();
                 $('select[name="company_users_id"]').empty();
                 $('select[name="offices_id"]').empty();
+                $('select[name="office_users_id"]').empty();
+                var companies_id = $(this).val();
 
                 if (companies_id) {
 
                     $.ajax({
-                        url: '../../report/companyuser/' + companies_id,
+                        url: '../../companyuser/' + companies_id,
 
                         type: "GET",
                         dataType: "json",
@@ -322,7 +323,7 @@
 
 
                     $.ajax({
-                        url: '../../report/offices/' + companies_id,
+                        url: '../../offices/' + companies_id,
 
                         type: "GET",
                         dataType: "json",
@@ -355,7 +356,7 @@
 
                     {
                         $.ajax({
-                            url: '../../report/officesuser/' +
+                            url: '../../officesuser/' +
                                 offices_id, // Correct URL with country ID
                             type: "GET",
                             dataType: "json",
