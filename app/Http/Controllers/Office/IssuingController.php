@@ -77,6 +77,49 @@ class IssuingController extends Controller
         return response()->json($Price);
     }
 
+    public function searchVehicle(Request $request)
+    {
+        $plateNumber = $request->query('plate_number');
+        $chassisNumber = $request->query('chassis_number');
+
+        if (!$plateNumber && !$chassisNumber) {
+            return response()->json(['error' => 'Plate number or chassis number is required'], 400);
+        }
+
+        $query = Issuing::where('offices_id', Auth::user()->offices_id);
+
+        if ($plateNumber) {
+            $query->where('plate_number', $plateNumber);
+        }
+
+        if ($chassisNumber) {
+            $query->where('chassis_number', $chassisNumber);
+        }
+
+        $issuing = $query->latest('created_at')->first();
+
+        if ($issuing) {
+            return response()->json([
+                'found' => true,
+                'data' => [
+                    'insurance_name' => $issuing->insurance_name,
+                    'insurance_location' => $issuing->insurance_location,
+                    'insurance_phone' => $issuing->insurance_phone,
+                    'motor_number' => $issuing->motor_number,
+                    'chassis_number' => $issuing->chassis_number,
+                    'plate_number' => $issuing->plate_number,
+                    'car_made_date' => $issuing->car_made_date,
+                    'cars_id' => $issuing->cars_id,
+                    'vehicle_nationalities_id' => $issuing->vehicle_nationalities_id,
+                    'countries_id' => $issuing->countries_id,
+                    'insurance_clauses_id' => $issuing->insurance_clauses_id,
+                ]
+            ]);
+        } else {
+            return response()->json(['found' => false]);
+        }
+    }
+
 
     /**
      * Show the form for creating a new resource.

@@ -404,6 +404,7 @@ Route::namespace('Company')->group(function () {
     Route::get('company/issuing', [App\Http\Controllers\Company\IssuingController::class, 'index'])->name('company/issuing');
     Route::get('company/issuing/country/{id}', [App\Http\Controllers\Company\IssuingController::class, 'country'])->name('company/issuing/country');
     Route::get('company/issuing/tax', [App\Http\Controllers\Company\IssuingController::class, 'issuingtax'])->name('company/issuing/tax');
+    Route::get('company/issuing/search-vehicle', [App\Http\Controllers\Company\IssuingController::class, 'searchVehicle'])->name('company/issuing/search-vehicle');
     Route::post('company/issuing', [App\Http\Controllers\Company\IssuingController::class, 'store'])->name('company/issuing/store');
     Route::get('company/viewdocument/{cardnumber}', [App\Http\Controllers\Company\IssuingController::class, 'viewdocument'])->name('company/viewdocument');
     Route::post('company/cancelplicy/{cardnumber}', [App\Http\Controllers\Company\IssuingController::class, 'cancelPolicy'])->name('company/cancelplicy');
@@ -503,6 +504,7 @@ Route::namespace('Office')->group(function () {
     Route::get('office/issuing', [App\Http\Controllers\Office\IssuingController::class, 'index'])->name('office/issuing');
     Route::get('office/issuing/country/{id}', [App\Http\Controllers\Office\IssuingController::class, 'country'])->name('office/issuing/country');
     Route::get('office/issuing/tax', [App\Http\Controllers\Office\IssuingController::class, 'issuingtax'])->name('office/issuing/tax');
+    Route::get('office/issuing/search-vehicle', [App\Http\Controllers\Office\IssuingController::class, 'searchVehicle'])->name('office/issuing/search-vehicle');
     Route::post('office/issuing', [App\Http\Controllers\Office\IssuingController::class, 'store'])->name('office/issuing/store');
     Route::get('office/viewdocument/{cardnumber}', [App\Http\Controllers\Office\IssuingController::class, 'viewdocument'])->name('office/viewdocument');
 

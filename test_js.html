@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Insurance End Date Calculation</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <h1>Test Insurance End Date</h1>
+    <label for="insurance_day_from">Start Date:</label>
+    <input type="date" id="insurance_day_from" value="2025-10-20"><br><br>
+
+    <label for="insurance_days_number">Number of Days:</label>
+    <input type="number" id="insurance_days_number" value="7" min="7" max="90"><br><br>
+
+    <label for="insurance_day_to">End Date:</label>
+    <input type="date" id="insurance_day_to" readonly><br><br>
+
+    <button onclick="updateInsuranceEndDate()">Calculate End Date</button>
+
+    <script>
+        function updateInsuranceEndDate() {
+            var startDate = new Date($('#insurance_day_from').val());
+            var daysToAdd = parseInt($('#insurance_days_number').val()) || 0;
+
+            // Add hours equivalent to days (days * 24 hours)
+            startDate.setTime(startDate.getTime() + (daysToAdd * 24 * 60 * 60 * 1000));
+
+            // Format the date as YYYY-MM-DD
+            var formattedDate = startDate.toISOString().split('T')[0];
+
+            $('#insurance_day_to').val(formattedDate);
+            console.log('Calculated End Date:', formattedDate);
+        }
+
+        // Initial calculation
+        updateInsuranceEndDate();
+    </script>
+</body>
+
+</html>

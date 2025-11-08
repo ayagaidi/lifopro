@@ -132,6 +132,45 @@ if (decimalPart == 0) {
             }
         });
 
+        // Auto-fill form when plate_number or chassis_number changes
+        $('#plate_number, #chassis_number').on('blur', function() {
+            var plateNumber = $('#plate_number').val().trim();
+            var chassisNumber = $('#chassis_number').val().trim();
+
+            if (plateNumber || chassisNumber) {
+                $.ajax({
+                    url: '../office/issuing/search-vehicle',
+                    type: 'GET',
+                    data: {
+                        plate_number: plateNumber,
+                        chassis_number: chassisNumber
+                    },
+                    success: function(response) {
+                        if (response.found) {
+                            // Auto-fill the form fields
+                            $('#insurance_name').val(response.data.insurance_name);
+                            $('#insurance_location').val(response.data.insurance_location);
+                            $('#insurance_phone').val(response.data.insurance_phone);
+                            $('#motor_number').val(response.data.motor_number);
+                            $('#chassis_number').val(response.data.chassis_number);
+                            $('#plate_number').val(response.data.plate_number);
+                            $('#car_made_date').val(response.data.car_made_date);
+                            $('#cars_id').val(response.data.cars_id).trigger('change');
+                            $('#vehicle_nationalities_id').val(response.data.vehicle_nationalities_id).trigger('change');
+                            $('#countries_id').val(response.data.countries_id).trigger('change');
+                            $('#insurance_clauses_id').val(response.data.insurance_clauses_id).trigger('change');
+
+                            // Trigger calculations
+                            calculateInsurance();
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error searching vehicle:', error);
+                    }
+                });
+            }
+        });
+
         // منع اختيار تواريخ سابقة لليوم الحالي في التأمين
       //  const today = new Date().toISOString().split('T')[0];
     //    $('#insurance_day_from').attr('min', today).val(today);
