@@ -111,6 +111,7 @@ class IssuingController extends Controller
                     'vehicle_nationalities_id' => $issuing->vehicle_nationalities_id,
                     'countries_id' => $issuing->countries_id,
                     'insurance_clauses_id' => $issuing->insurance_clauses_id,
+                    'car_name' => $issuing->cars ? $issuing->cars->name : '',
                 ]
             ]);
         } else {

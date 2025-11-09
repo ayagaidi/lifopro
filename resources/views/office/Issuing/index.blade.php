@@ -154,11 +154,16 @@ if (decimalPart == 0) {
                             $('#motor_number').val(response.data.motor_number);
                             $('#chassis_number').val(response.data.chassis_number);
                             $('#plate_number').val(response.data.plate_number);
-                            $('#car_made_date').val(response.data.car_made_date);
+                            $('#car_made_date').val(response.data.car_made_date).trigger('change');
                             $('#cars_id').val(response.data.cars_id).trigger('change');
                             $('#vehicle_nationalities_id').val(response.data.vehicle_nationalities_id).trigger('change');
                             $('#countries_id').val(response.data.countries_id).trigger('change');
                             $('#insurance_clauses_id').val(response.data.insurance_clauses_id).trigger('change');
+
+                            // Update car name display if available
+                            if (response.data.car_name) {
+                                $('#cars_id option:selected').text(response.data.car_name);
+                            }
 
                             // Trigger calculations
                             calculateInsurance();
