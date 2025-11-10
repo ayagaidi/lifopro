@@ -1,4 +1,4 @@
-@extends('comapny.app')
+@extends('layouts.app')
 @section('title', 'إحصائيات إصدارات مستخدمي المكاتب')
 
 @section('content')
@@ -41,9 +41,11 @@
                         <label for="office_users_id">مستخدم المكتب:</label>
                         <select name="office_users_id" id="office_users_id" class="form-control">
                             <option value="">جميع المستخدمين</option>
-                            @foreach($officeUsers as $user)
-                                <option value="{{ $user->id }}" {{ $request->office_users_id == $user->id ? 'selected' : '' }}>{{ $user->username }}</option>
-                            @endforeach
+                            @if($request->offices_id)
+                                @foreach($officeUsers->where('offices_id', $request->offices_id) as $user)
+                                    <option value="{{ $user->id }}" {{ $request->office_users_id == $user->id ? 'selected' : '' }}>{{ $user->username }}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -209,6 +211,36 @@
                 ctx.restore();
             }
         }]
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // When office is selected, load office users
+        $('#offices_id').change(function() {
+            var officeId = $(this).val();
+            var officeUsersSelect = $('#office_users_id');
+
+            // Reset office users
+            officeUsersSelect.html('<option value="">جميع المستخدمين</option>');
+
+            if (officeId) {
+                $.ajax({
+                    url: '{{ route("company/report/officesuser", ":id") }}'.replace(':id', officeId),
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, user) {
+                                officeUsersSelect.append('<option value="' + user.id + '">' + user.username + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        alert('خطأ في تحميل مستخدمي المكتب');
+                    }
+                });
+            }
+        });
     });
 </script>
 @endsection

@@ -41,18 +41,14 @@
                         <label for="offices_id">المكتب:</label>
                         <select name="offices_id" id="offices_id" class="form-control">
                             <option value="">جميع المكاتب</option>
-                            @foreach($offices as $office)
-                                <option value="{{ $office->id }}" {{ $request->offices_id == $office->id ? 'selected' : '' }}>{{ $office->name }}</option>
-                            @endforeach
+                            
                         </select>
                     </div>
                     <div class="form-group col-md-3">
                         <label for="office_users_id">مستخدم المكتب:</label>
                         <select name="office_users_id" id="office_users_id" class="form-control">
                             <option value="">جميع المستخدمين</option>
-                            @foreach($officeUsers as $user)
-                                <option value="{{ $user->id }}" {{ $request->office_users_id == $user->id ? 'selected' : '' }}>{{ $user->username }}</option>
-                            @endforeach
+                      
                         </select>
                     </div>
                 </div>
@@ -218,6 +214,64 @@
                 ctx.restore();
             }
         }]
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        // When company is selected, load offices
+        $('#companies_id').change(function() {
+            var companyId = $(this).val();
+            var officesSelect = $('#offices_id');
+            var officeUsersSelect = $('#office_users_id');
+
+            // Reset offices and office users
+            officesSelect.html('<option value="">جميع المكاتب</option>');
+            officeUsersSelect.html('<option value="">جميع المستخدمين</option>');
+
+            if (companyId) {
+                $.ajax({
+                    url: '{{ route("report/offices", ":id") }}'.replace(':id', companyId),
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, office) {
+                                officesSelect.append('<option value="' + office.id + '">' + office.name + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        alert('خطأ في تحميل المكاتب');
+                    }
+                });
+            }
+        });
+
+        // When office is selected, load office users
+        $('#offices_id').change(function() {
+            var officeId = $(this).val();
+            var officeUsersSelect = $('#office_users_id');
+
+            // Reset office users
+            officeUsersSelect.html('<option value="">جميع المستخدمين</option>');
+
+            if (officeId) {
+                $.ajax({
+                    url: '{{ route("report/officesuser", ":id") }}'.replace(':id', officeId),
+                    type: 'GET',
+                    success: function(data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, user) {
+                                officeUsersSelect.append('<option value="' + user.id + '">' + user.username + '</option>');
+                            });
+                        }
+                    },
+                    error: function() {
+                        alert('خطأ في تحميل مستخدمي المكتب');
+                    }
+                });
+            }
+        });
     });
 </script>
 @endsection
