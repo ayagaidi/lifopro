@@ -260,14 +260,16 @@ class RequestsController extends Controller
 
             ->make(true);
     }
-public function ALLreqestcom()
-{
-    $Req = Req::with(
-        'companies',
-        'users',
-        'company_users',
-        'request_statuses'
-    )->whereNull('users_id')
+    public function ALLreqestcom()
+    {
+        $Req = Req::with(
+            'companies',
+            'users',
+            'company_users',
+            'request_statuses',
+            'approvedBy',
+            'rejectedBy'
+        )->whereNull('users_id')
      ->orderBy('created_at', 'DESC');
 
     // التعامل مع paging من DataTables
@@ -282,19 +284,31 @@ public function ALLreqestcom()
 
     // تجهيز البيانات
     $data = $ReqData->map(function ($Req) {
+        $action_user = '';
+        if ($Req->approvedBy) {
+            $action_user = 'مقبول من: ' . $Req->approvedBy->username;
+        } elseif ($Req->rejectedBy) {
+            $action_user = 'مرفوض من: ' . $Req->rejectedBy->username;
+        }
         return [
             'request_number' => $Req->request_number,
-            'companies_name' => $Req->companies_id ? $Req->companies->name : 'الاتحاد الليبي للتآمين', 
+            'companies_name' => $Req->companies_id ? $Req->companies->name : 'الاتحاد الليبي للتآمين',
             'requesby' => $Req->company_users_id ? $Req->company_users->username : ($Req->companies_id ? $Req->companies->name : ''),
             'cards_number' => $Req->cards_number,
             'request_statuses_name' => $Req->request_statuses->name,
             'created_at' => $Req->created_at,
-            'accept' => $Req->request_statuses_id == 1 && $Req->uploded == 0 ? 
-                '<a type="button" class="button" data-toggle="tooltip" data-placement="top" title="قبول الطلب" style="color: red;" data-id="' . encrypt($Req->id) . '">
+            'accept' => $Req->request_statuses_id == 1 ?
+                '<a type="button" class="button" data-toggle="tooltip" data-placement="top" title="قبول الطلب" style="color: green;" data-id="' . encrypt($Req->id) . '">
                     <img src="' . asset('checked.png') . '" style="width: 30px;">
-                </a>' : 
-                ($Req->request_statuses_id == 1 ? 'تم التنزيل' : ''),
+                </a>' :
+                '',
+            'reject' => $Req->request_statuses_id == 1 ?
+                '<a type="button" class="reject-button" data-toggle="tooltip" data-placement="top" title="رفض الطلب" style="color: red;" data-id="' . encrypt($Req->id) . '">
+                    <img src="' . asset('decline.png') . '" style="width: 30px;">
+                </a>' :
+                '',
             'uploded_datetime' => $Req->uploded_datetime,
+            'action_user' => $action_user,
         ];
     });
 
@@ -725,7 +739,7 @@ public function ALLreqestcom()
 
     public function acceptrequest($id)
     {
-         
+
         try {
             $req = decrypt($id);
             $reques = Req::find($req);
@@ -778,6 +792,7 @@ public function ALLreqestcom()
                             $reques->uploded = 1;
                             $reques->request_statuses_id = 2;
                             $reques->uploded_datetime = Carbon::now()->addHours(2)->format('Y-m-d H:i:s');
+                            $reques->approved_by = Auth::id();
                             // $reques->uploded_datetime = now()->format('Y-m-d H:i:s');
                             $reques->save();
 
@@ -833,6 +848,7 @@ public function ALLreqestcom()
             $req = decrypt($id);
             $reques = Req::find($req);
             $reques->request_statuses_id = 3;
+            $reques->rejected_by = Auth::id();
             $reques->save();
             Alert::success("تمت عملية رفض   الطلب    بنجاح");
             ActivityLogger::activity("تمت عملية   رفض  الطلب  بنجاح");

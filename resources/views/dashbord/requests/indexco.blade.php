@@ -36,7 +36,10 @@
                                     <th>حالة الطلب</th>
                                     <th>تاريخ الطلب</th>
                                     <th>قبول الطلب</th>
+                                                                        <th>رفض الطلب</th>
+
                                     <th>تاريخ تنزيل البطاقات</th>
+                                    <th>المستخدم الذي قام بالإجراء</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -65,7 +68,11 @@
                     { "data": "request_statuses_name" },
                     { "data": "created_at" },
                     { "data": "accept" },
-                    { "data": "uploded_datetime" }
+                                        { "data": "reject" },
+
+                    
+                    { "data": "uploded_datetime" },
+                    { "data": "action_user" }
                 ],
                 "processing": true,
                 "paging": true,
@@ -133,6 +140,53 @@
                             Swal.fire({
                                 title: 'خطأ!',
                                 text: "حدث خطأ أثناء معالجة الطلب.",
+                                icon: 'error',
+                                confirmButtonText: 'حسنًا'
+                            });
+                        }
+                    });
+                });
+            });
+
+            // حدث الضغط على زر رفض الطلب
+            $(document).on('click', '.reject-button', function () {
+                var requestId = $(this).data('id');
+
+                Swal.fire({
+                    title: 'هل أنت متأكد؟',
+                    text: "لن تتمكن من التراجع بعد الرفض!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'نعم، قم بالرفض',
+                    cancelButtonText: 'إلغاء'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $('#loader-overlay').show();
+
+                    $.ajax({
+                        url: "{{ url('cardrequests/rejectrequest') }}/" + requestId,
+                        type: "GET",
+                        success: function (response) {
+                            $('#loader-overlay').hide();
+
+                            Swal.fire({
+                                title: 'تم بنجاح!',
+                                text: "تم رفض الطلب بنجاح.",
+                                icon: 'success',
+                                confirmButtonText: 'حسنًا'
+                            }).then(() => {
+                                // إعادة تحميل البيانات دون الرجوع للصفحة الأولى
+                                table.ajax.reload(null, false);
+                            });
+                        },
+                        error: function () {
+                            $('#loader-overlay').hide();
+                            Swal.fire({
+                                title: 'خطأ!',
+                                text: "حدث خطأ أثناء رفض الطلب.",
                                 icon: 'error',
                                 confirmButtonText: 'حسنًا'
                             });
