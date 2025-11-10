@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('comapny.app')
 @section('title', 'إحصائيات إصدارات مستخدمي المكاتب')
 
 @section('content')
