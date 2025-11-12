@@ -7,14 +7,56 @@
         <title>تقرير المجمع للمكاتب حسب الشركة</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
+                font-family: 'Amiri', Arial, sans-serif;
                 direction: rtl;
+                margin: 0;
+                padding: 20px;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            @media print {
+                body {
+                    margin: 0;
+                    padding: 10px;
+                    font-size: 12px;
+                }
+
+                .page-break {
+                    page-break-before: always;
+                }
+
+                .no-print {
+                    display: none !important;
+                }
+
+                .print-only {
+                    display: block !important;
+                }
+
+                table {
+                    page-break-inside: avoid;
+                }
+
+                tr {
+                    page-break-inside: avoid;
+                    page-break-after: auto;
+                }
+
+                th, td {
+                    padding: 6px;
+                }
+            }
+
+            .print-only {
+                display: none;
             }
 
             table {
                 width: 100%;
                 border-collapse: collapse;
                 margin-top: 20px;
+                font-size: 12px;
             }
 
             th,
@@ -22,32 +64,61 @@
                 border: 1px solid #000;
                 padding: 8px;
                 text-align: center;
+                vertical-align: middle;
+            }
+
+            th {
+                background-color: #f0f0f0;
+                font-weight: bold;
+            }
+
+            #report-header {
+                text-align: center;
+                margin-bottom: 20px;
             }
 
             #report-header .row {
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
             }
 
             #report-header p,
             #report-header h4 {
-                margin: 0;
+                margin: 5px 0;
+                font-size: 14px;
+            }
+
+            #report-header img {
+                max-width: 80px;
+                height: auto;
             }
 
             .search-params {
                 margin-top: 10px;
                 font-weight: bold;
+                text-align: center;
             }
 
             .search-params span {
                 margin-left: 20px;
+            }
+
+            .totals-row {
+                background-color: #e9ecef;
+                font-weight: bold;
+            }
+
+            .totals-row td {
+                border-top: 2px solid #000;
             }
         </style>
     </head>
 
     <body>
 
-        <div id="report-header">
+        <div id="report-header" class="no-print">
             <div class="row">
                 <div style="flex:1;">
                     <p>العنوان: الإتحاد الليبي للتأمين</p>
@@ -70,8 +141,13 @@
             </div>
         </div>
 
-        <hr>
-        <table class="table table-bordered table-hover js-basic-example dataTable table-custom " style="cursor: pointer;">
+        <hr class="no-print">
+        <div class="print-only">
+            <h3 style="text-align: center; margin-bottom: 20px;">تقرير المجمع للمكاتب حسب الشركة</h3>
+            <p style="text-align: center; margin-bottom: 10px;">تاريخ التقرير: {{ date('Y-m-d') }}</p>
+        </div>
+
+        <table>
             <thead>
                 <tr>
                     <th>المكتب</th>
@@ -104,7 +180,7 @@
                     </tr>
                 @endforelse
                 @if(count($data) > 0)
-                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                    <tr class="totals-row">
                         <td>الإجمالي</td>
                         <td>{{ $totals['issued_count'] }}</td>
                         <td>{{ $totals['canceled_count'] }}</td>
@@ -120,7 +196,9 @@
         </table>
         <script>
             window.onload = function() {
-                window.print();
+                setTimeout(function() {
+                    window.print();
+                }, 500); // تأخير بسيط لضمان تحميل الصفحة
             }
         </script>
 

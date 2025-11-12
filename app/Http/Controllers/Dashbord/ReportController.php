@@ -2696,6 +2696,7 @@ $query = Issuing::query()
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
         $companyId = $request->input('company_id');
+        $action = $request->input('action'); // 'view' or 'print'
         $user = auth()->user();
 
         // السماح بعرض التقرير إذا وُجدت تواريخ وشركة
@@ -2747,6 +2748,11 @@ $query = Issuing::query()
             'issuing_fee' => $data->sum('issuing_fee'),
             'total' => $data->sum('total'),
         ];
+
+        if ($action === 'print') {
+            // عرض نسخة للطباعة في صفحة جديدة
+            return view('dashbord.report.office_summary_by_company_pdf', compact('data', 'totals', 'startDate', 'endDate', 'companyId', 'user'));
+        }
 
         return view('dashbord.report.office_summary_by_company', [
             'data' => $data,

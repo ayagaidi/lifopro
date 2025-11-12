@@ -88,10 +88,14 @@
             // حدث الضغط على زر قبول الطلب
             $(document).on('click', '.button', function () {
                 var requestId = $(this).data('id');
+                var rowData = table.row($(this).closest('tr')).data();
+                var requestNumber = rowData.request_number;
+                var companyName = rowData.companies_name;
+                var cardsNumber = rowData.cards_number;
 
                 Swal.fire({
                     title: 'هل أنت متأكد؟',
-                    text: "لن تتمكن من التراجع بعد القبول!",
+                    text: `هل أنت متأكد من الموافقة على الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
@@ -151,10 +155,14 @@
             // حدث الضغط على زر رفض الطلب
             $(document).on('click', '.reject-button', function () {
                 var requestId = $(this).data('id');
+                var rowData = table.row($(this).closest('tr')).data();
+                var requestNumber = rowData.request_number;
+                var companyName = rowData.companies_name;
+                var cardsNumber = rowData.cards_number;
 
                 Swal.fire({
                     title: 'هل أنت متأكد؟',
-                    text: "لن تتمكن من التراجع بعد الرفض!",
+                    text: `في الرفض ع الطلبات هل انت متاكد من رفض هلى الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
