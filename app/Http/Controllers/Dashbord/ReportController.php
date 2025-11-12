@@ -2737,8 +2737,20 @@ $query = Issuing::query()
 
         $data = $query->get();
 
+        $totals = [
+            'issued_count' => $data->sum('issued_count'),
+            'canceled_count' => $data->sum('canceled_count'),
+            'net_premium' => $data->sum('net_premium'),
+            'tax' => $data->sum('tax'),
+            'stamp' => $data->sum('stamp'),
+            'supervision' => $data->sum('supervision'),
+            'issuing_fee' => $data->sum('issuing_fee'),
+            'total' => $data->sum('total'),
+        ];
+
         return view('dashbord.report.office_summary_by_company', [
             'data' => $data,
+            'totals' => $totals,
             'companies' => DB::table('companies')->where('id', '!=', 1)->get(),
             'startDate' => $startDate,
             'endDate' => $endDate,

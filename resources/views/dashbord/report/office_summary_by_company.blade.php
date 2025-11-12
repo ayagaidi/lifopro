@@ -103,6 +103,19 @@
                         <td colspan="9">لا توجد بيانات للفترة المحددة.</td>
                     </tr>
                 @endforelse
+                @if(count($data) > 0)
+                    <tr style="background-color: #f8f9fa; font-weight: bold;">
+                        <td>الإجمالي</td>
+                        <td>{{ $totals['issued_count'] }}</td>
+                        <td>{{ $totals['canceled_count'] }}</td>
+                        <td>{{ number_format($totals['net_premium'], 2) }}</td>
+                        <td>{{ number_format($totals['tax'], 2) }}</td>
+                        <td>{{ number_format($totals['stamp'], 2) }}</td>
+                        <td>{{ number_format($totals['supervision'], 2) }}</td>
+                        <td>{{ number_format($totals['issuing_fee'], 2) }}</td>
+                        <td>{{ number_format($totals['total'], 2) }}</td>
+                    </tr>
+                @endif
             </tbody>
         </table>
         <script>
@@ -194,6 +207,17 @@
                                 <td>{{ number_format($row->total, 2) }}</td>
                             </tr>
                         @endforeach
+                        <tr style="background-color: #f8f9fa; font-weight: bold;">
+                            <td>الإجمالي</td>
+                            <td>{{ $totals['issued_count'] }}</td>
+                            <td>{{ $totals['canceled_count'] }}</td>
+                            <td>{{ number_format($totals['net_premium'], 2) }}</td>
+                            <td>{{ number_format($totals['tax'], 2) }}</td>
+                            <td>{{ number_format($totals['stamp'], 2) }}</td>
+                            <td>{{ number_format($totals['supervision'], 2) }}</td>
+                            <td>{{ number_format($totals['issuing_fee'], 2) }}</td>
+                            <td>{{ number_format($totals['total'], 2) }}</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
