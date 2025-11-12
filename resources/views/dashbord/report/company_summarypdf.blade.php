@@ -83,6 +83,19 @@
                 </tr>
             @endforeach
         </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2">الإجمالي</th>
+                <th>{{ $data->sum('issued_count') }}</th>
+                <th>{{ $data->sum('canceled_count') }}</th>
+                <th>{{ number_format($data->sum('net_premium'), 2) }}</th>
+                <th>{{ number_format($data->sum('tax'), 2) }}</th>
+                <th>{{ number_format($data->sum('stamp'), 2) }}</th>
+                <th>{{ number_format($data->sum('supervision'), 2) }}</th>
+                <th>{{ number_format($data->sum('issuing_fee'), 2) }}</th>
+                <th>{{ number_format($data->sum('total'), 2) }}</th>
+            </tr>
+        </tfoot>
     </table>
 @endif
 
