@@ -2713,10 +2713,13 @@ $query = Issuing::query()
 
         $query = Issuing::query()
             ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
-            ->leftJoin('companies', 'offices.companies_id', '=', 'companies.id')
+            ->leftJoin('companies', function ($join) {
+                $join->on('companies.id', '=', 'offices.companies_id')
+                     ->orOn('companies.id', '=', 'issuings.companies_id');
+            })
             ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
             ->select([
-                'offices.name as office_name',
+                DB::raw("COALESCE(offices.name, 'المكتب الرئيسي') as office_name"),
                 DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
                 DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
                 DB::raw('SUM(issuings.insurance_installment) as net_premium'),
@@ -2727,7 +2730,7 @@ $query = Issuing::query()
                 DB::raw('SUM(issuings.insurance_total) as total'),
             ])
             ->where('companies.id', $companyId)
-            ->groupBy('offices.id', 'offices.name');
+            ->groupBy(DB::raw("COALESCE(offices.id, 0)"), DB::raw("COALESCE(offices.name, 'المكتب الرئيسي')"));
 
         if (!empty($startDate) && !empty($endDate)) {
             $query->whereBetween('issuings.created_at', [

@@ -162,7 +162,7 @@
 
                 Swal.fire({
                     title: 'هل أنت متأكد؟',
-                    text: `في الرفض ع الطلبات هل انت متاكد من رفض هلى الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
+                    text: `هل أنت متأكد من رفض الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',

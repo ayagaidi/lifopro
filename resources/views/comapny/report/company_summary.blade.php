@@ -1,9 +1,9 @@
 @extends('comapny.app')
-@section('title', 'التقرير المُجمّع للمكاتب ')
+@section('title', 'التقرير المجمع لاصدارات المكاتب')
 
 @section('content')
 <div class="box-content">
-    <h4 class="box-title">التقرير المُجمّع للمكاتب </h4>
+    <h4 class="box-title">التقرير المجمع لاصدارات المكاتب</h4>
 
     {{-- فلتر التاريخ --}}
     <form method="GET" action="{{ route('company/report/companySummary') }}" class="mb-4">
