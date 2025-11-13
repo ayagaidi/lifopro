@@ -206,8 +206,10 @@ Route::get('roles/show/{id}', [App\Http\Controllers\Dashbord\RoleController::cla
 
     Route::get('cardrequests/company', [App\Http\Controllers\Dashbord\RequestsController::class, 'indexco'])->name('cardrequests/company');
     Route::get('cardrequests/all/company', [App\Http\Controllers\Dashbord\RequestsController::class, 'ALLreqestcom'])->name('cardrequests/all/company');
+    Route::get('cardrequests/upload-receipt/{id}', [App\Http\Controllers\Dashbord\RequestsController::class, 'showUploadReceiptForm'])->name('cardrequests/upload-receipt');
     Route::get('cardrequests/acceptrequest/{id}', [App\Http\Controllers\Dashbord\RequestsController::class, 'acceptrequest'])->name('cardrequests/acceptrequest');
     Route::get('cardrequests/rejectrequest/{id}', [App\Http\Controllers\Dashbord\RequestsController::class, 'rejectrequest'])->name('cardrequests/rejectrequest');
+    Route::post('cardrequests/upload-payment-receipt/{id}', [App\Http\Controllers\Dashbord\RequestsController::class, 'uploadPaymentReceipt'])->name('cardrequests/upload-payment-receipt');
 
     
     Route::get('price', [App\Http\Controllers\Dashbord\PriceController::class, 'index'])->name('price');

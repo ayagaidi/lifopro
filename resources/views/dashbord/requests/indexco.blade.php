@@ -35,9 +35,11 @@
                                     <th>عدد البطاقات</th>
                                     <th>حالة الطلب</th>
                                     <th>تاريخ الطلب</th>
+                                    <th>إيصال الدفع</th>
+                                    <th>تاريخ رفع الإيصال</th>
+                                    <th>رفع إيصال</th>
                                     <th>قبول الطلب</th>
-                                                                        <th>رفض الطلب</th>
-
+                                    <th>رفض الطلب</th>
                                     <th>تاريخ تنزيل البطاقات</th>
                                     <th>المستخدم الذي قام بالإجراء</th>
                                 </tr>
@@ -67,10 +69,11 @@
                     { "data": "cards_number" },
                     { "data": "request_statuses_name" },
                     { "data": "created_at" },
+                    { "data": "payment_receipt" },
+                    { "data": "payment_receipt_uploaded_at" },
+                    { "data": "upload_receipt" },
                     { "data": "accept" },
-                                        { "data": "reject" },
-
-                    
+                    { "data": "reject" },
                     { "data": "uploded_datetime" },
                     { "data": "action_user" }
                 ],

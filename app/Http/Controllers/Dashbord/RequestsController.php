@@ -42,6 +42,14 @@ class RequestsController extends Controller
         return view('dashbord.requests.indexco');
     }
 
+    public function showUploadReceiptForm($id)
+    {
+        $req = decrypt($id);
+        $request = Req::find($req);
+
+        return view('dashbord.requests.upload_receipt', compact('request'));
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -302,6 +310,9 @@ class RequestsController extends Controller
                     <img src="' . asset('checked.png') . '" style="width: 30px;">
                 </a>' :
                 '',
+            'upload_receipt' => $Req->request_statuses_id == 1 && !$Req->payment_receipt_path ?
+                '<a href="' . route('cardrequests/upload-receipt', encrypt($Req->id)) . '" class="btn btn-info btn-sm">رفع إيصال</a>' :
+                '',
             'reject' => $Req->request_statuses_id == 1 ?
                 '<a type="button" class="reject-button" data-toggle="tooltip" data-placement="top" title="رفض الطلب" style="color: red;" data-id="' . encrypt($Req->id) . '">
                     <img src="' . asset('decline.png') . '" style="width: 30px;">
@@ -309,7 +320,12 @@ class RequestsController extends Controller
                 '',
             'uploded_datetime' => $Req->uploded_datetime,
             'action_user' => $action_user,
-        ];
+            'payment_receipt' => $Req->payment_receipt_path ?
+                '<a href="' . asset('storage/' . $Req->payment_receipt_path) . '" target="_blank">عرض الإيصال</a>' :
+                '<span style="color: red;">لم يتم رفع الإيصال</span>',
+'payment_receipt_uploaded_at' => $Req->payment_receipt_uploaded_at
+    ? Carbon::parse($Req->payment_receipt_uploaded_at)->format('Y-m-d H:i:s')
+    : '-',        ];
     });
 
     return response()->json([
@@ -739,10 +755,17 @@ class RequestsController extends Controller
 
     public function acceptrequest($id)
     {
-
         try {
             $req = decrypt($id);
             $reques = Req::find($req);
+
+            // Check if payment receipt is uploaded
+            if (!$reques->payment_receipt_path) {
+                return response()->json([
+                    'status' => 'warning',
+                    'message' => 'يجب رفع إيصال الدفع قبل قبول الطلب'
+                ]);
+            }
 
             $lifos = new LifoApiService();
             $userid = Config::get('apilifo.user_api_name');
@@ -860,6 +883,42 @@ class RequestsController extends Controller
             ActivityLogger::activity($e->getMessage() . "فشل رفض الطلب");
 
             return redirect()->route('cardrequests');
+        }
+    }
+
+    public function uploadPaymentReceipt(Request $request, $id)
+    {
+        $request->validate([
+            'payment_receipt' => 'required|file|mimes:png,jpg,jpeg,pdf|max:2048',
+        ], [
+            'payment_receipt.required' => 'يجب اختيار ملف الإيصال',
+            'payment_receipt.mimes' => 'يجب أن يكون الملف من نوع PNG أو JPG أو PDF',
+            'payment_receipt.max' => 'حجم الملف يجب أن يكون أقل من 2 ميجابايت',
+        ]);
+
+        try {
+            $req = decrypt($id);
+            $reques = Req::find($req);
+
+            if ($request->hasFile('payment_receipt')) {
+                $file = $request->file('payment_receipt');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('payment_receipts', $filename, 'public');
+
+                $reques->payment_receipt_path = $path;
+                $reques->payment_receipt_uploaded_at = now();
+                $reques->save();
+
+                Alert::success("تم رفع إيصال الدفع بنجاح");
+                ActivityLogger::activity("تم رفع إيصال الدفع للطلب رقم: " . $reques->request_number);
+            }
+
+            return redirect()->route('cardrequests/company');
+        } catch (\Exception $e) {
+            Alert::warning($e->getMessage() . "فشل رفع إيصال الدفع");
+            ActivityLogger::activity($e->getMessage() . "فشل رفع إيصال الدفع");
+
+            return redirect()->back();
         }
     }
 
