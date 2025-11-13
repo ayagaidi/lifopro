@@ -901,10 +901,12 @@ class RequestsController extends Controller
             $reques = Req::find($req);
 
             if ($request->hasFile('payment_receipt')) {
-                $file = $request->file('payment_receipt');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('payment_receipts', $filename, 'public');
-
+                // $file = $request->file('payment_receipt');
+                // $filename = time() . '_' . $file->getClientOriginalName();
+                // $path = $file->storeAs('payment_receipts', $filename, 'public');
+$file = $request->file('payment_receipt');
+$filename = time() . '_' . $file->getClientOriginalName();
+$file->move(public_path('payment_receipts'), $filename);
                 $reques->payment_receipt_path = $path;
                 $reques->payment_receipt_uploaded_at = now();
                 $reques->save();
