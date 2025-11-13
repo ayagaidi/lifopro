@@ -272,8 +272,9 @@
                     @can('purposeofuses-list')
                     <li><a href="{{ route('purposeofuses') }}">غرض الاستعمال  </a></li>
 
-                  
+
                 @endcan
+             
                         </ul>
                     </li>
 
@@ -405,11 +406,20 @@
                         <!--    <a class="waves-effect " href="{{ route('card/update') }}"><i-->
                         <!--            class="menu-icon fa fa-refresh"></i><span>تحديث البطاقات </span></a>-->
                         <!--</li>-->
-                        <li class="{{ Request::is('activity*') ? 'current' : '' }} ">
-                            <a class="waves-effect " href="{{ route('activity') }}"><i
-                                    class="menu-icon fa fa-list"></i><span>السجلات </span></a>
+                         <li class="{{ Request::is('logs*') ? 'current' : '' }} ">
+                            <a class="waves-effect parent-item js__control" href="#"><i
+                                    class="menu-icon fa fa-list"></i><span>سجلات النظام</span><span
+                                    class="menu-arrow fa fa-angle-down"></span></a>
+                            <ul class="sub-menu js__content" style="display: none;">
+                                <li><a href="{{ route('logs/activity') }}">سجل النشاط</a></li>
+                                <li><a href="{{ route('logs/api') }}">سجل واجهات الربط</a></li>
+                                                          <li><a href="{{ route('logs/api') }}">السجلات</a></li>
+
+                            </ul>
                         </li>
+                
                     @endcan
+                   
 
                 </ul>
                 <!-- /.menu js__accordion -->

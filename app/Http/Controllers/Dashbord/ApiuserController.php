@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
 use jeremykenedy\LaravelLogger\App\Http\Traits\ActivityLogger;
+use App\Models\ActivityLog;
 
 class ApiuserController extends Controller
 {
@@ -75,8 +76,17 @@ class ApiuserController extends Controller
                     $Apiuser->username = $request->username;
                     $Apiuser->password = encrypt($request->password);
                     $Apiuser->companies_id =  $request->companies_id;
-    
+
                     $Apiuser->save();
+
+                    // Log password change for API user
+                    ActivityLog::create([
+                        'activity_type' => 'تغيير كلمة المرور',
+                        'user_name' => $request->username,
+                        'activity_date' => now(),
+                        'status' => 'success',
+                        'reason' => null,
+                    ]);
                 });
                 Alert::success("تمت   حساب API شركة بنجاح");
                 ActivityLogger::activity($request->username ."تمت   حساب API شركة بنجاح");
@@ -183,8 +193,16 @@ class ApiuserController extends Controller
                     {
                         $Apiuser->password = encrypt($request->password);
 
+                        // Log password change for API user
+                        ActivityLog::create([
+                            'activity_type' => 'تغيير كلمة المرور',
+                            'user_name' => $request->username,
+                            'activity_date' => now(),
+                            'status' => 'success',
+                            'reason' => null,
+                        ]);
                     }
-    
+
                     $Apiuser->save();
                 });
                 Alert::success("تمت   تعديل حساب API شركة بنجاح");

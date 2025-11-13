@@ -314,7 +314,10 @@ Route::get('/report/issuing/{year}/export-pdf', [App\Http\Controllers\Dashbord\R
         Route::get('report/office-summary', [App\Http\Controllers\Dashbord\ReportController::class, 'officeSummaryReport'])->name('report/officeSummary');
         Route::get('report/companySummary', [App\Http\Controllers\Dashbord\ReportController::class, 'companySummaryReport'])->name('report/companySummary');
         Route::get('report/companySummary/pdf', [App\Http\Controllers\Dashbord\ReportController::class, 'companySummaryReportpdf'])->name('report/companySummary/pdf');
-        Route::get('report/officeSummaryByCompany', [App\Http\Controllers\Dashbord\ReportController::class, 'officeSummaryByCompany'])->name('report/officeSummaryByCompany');
+    Route::get('report/officeSummaryByCompany', [App\Http\Controllers\Dashbord\ReportController::class, 'officeSummaryByCompany'])->name('report/officeSummaryByCompany');
+
+    Route::get('logs/activity', [App\Http\Controllers\Dashbord\LogsController::class, 'activityLogs'])->name('logs/activity');
+    Route::get('logs/api', [App\Http\Controllers\Dashbord\LogsController::class, 'apiLogs'])->name('logs/api');
 
 });
 

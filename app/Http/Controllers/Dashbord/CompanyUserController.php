@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use RealRashid\SweetAlert\Facades\Alert;
 use jeremykenedy\LaravelLogger\App\Http\Traits\ActivityLogger;
+use App\Models\ActivityLog;
 
 class CompanyUserController extends Controller
 {
@@ -275,6 +276,16 @@ class CompanyUserController extends Controller
         $user = $CompanyUser;
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+
+        // Log password change
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'user_name' => $user->name ?? $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => null,
+        ]);
+
         Alert::success(trans('users.changesecc'));
         return redirect()->route('company_users', $CompanyUser->companies_id);
     }

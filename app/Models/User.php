@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\ActivityLog;
 
 class User extends Authenticatable
 {
@@ -50,6 +51,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-   
-   
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = bcrypt($value);
+
+        // Log password change
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'user_name' => $this->username ?? $this->email,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => null,
+        ]);
+    }
+
+
 }

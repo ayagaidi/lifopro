@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use LaravelDaily\LaravelCharts\Classes\LaravelChart;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Models\ActivityLog;
 
 class HomeController extends Controller
 {
@@ -267,6 +268,16 @@ class HomeController extends Controller
         $user = Auth::user();
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+
+        // Log password change
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'user_name' => $user->name ?? $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => null,
+        ]);
+
         Alert::success(trans('users.changesecc'));
         return redirect()->back();
     }

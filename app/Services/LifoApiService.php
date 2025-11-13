@@ -5,6 +5,8 @@ namespace App\Services;
 use Ixudra\Curl\Facades\Curl;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use App\Models\ApiLog;
+use Illuminate\Support\Facades\Auth;
 
 class LifoApiService
 {
@@ -39,6 +41,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/NewPolicy', $DATA);
 
+        $this->logApiCall('Issuing Policy', $DATA, $response);
+
         return $response;
     }
 
@@ -46,6 +50,7 @@ class LifoApiService
     {
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/PolicyStatusChange', $DATA);
+        $this->logApiCall('Cancel Policy', $DATA, $response);
         return $response;
     }
 
@@ -58,6 +63,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/OCPolStatus', $DATA);
 
+        $this->logApiCall('Policy Status Check', $DATA, $response);
+
         return $response;
     }
 // 
@@ -67,6 +74,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/NewUORequest', $DATA);
 
+        $this->logApiCall('New Request Admin', $DATA, $response);
+
         return $response;
     }
 
@@ -75,6 +84,8 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/UoRequestStatus', $DATA);
+
+        $this->logApiCall('Request Status Admin', $DATA, $response);
 
         return $response;
     }
@@ -94,6 +105,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)->post($this->url . 'OcRequest/UoOcSerialRequest', $DATA);
 
+        $this->logApiCall('Add Cards Admin', $DATA, $response);
 
         return $response;
     }
@@ -103,6 +115,8 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OrangeCardServices/PostInsCompCertificateBook', $DATA);
+
+        $this->logApiCall('Post Insurance Company Certificate Book', $DATA, $response);
 
         return $response;
     }
@@ -115,6 +129,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/NewICRequest', $DATA);
 
+        $this->logApiCall('New Request', $DATA, $response);
+
         return $response;
     }
 
@@ -124,6 +140,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/IcRequestStatus', $DATA);
 
+        $this->logApiCall('Request Status', $DATA, $response);
+
         return $response;
     }
 
@@ -132,6 +150,8 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/IcOcSerialRequest', $DATA);
+
+        $this->logApiCall('Add Cards', $DATA, $response);
 
         return $response;
     }
@@ -145,6 +165,8 @@ class LifoApiService
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/OCCertificate', $DATA);
 
+        $this->logApiCall('Print Card', $DATA, $response);
+
         return $response;
     }
 
@@ -156,6 +178,19 @@ class LifoApiService
 
     return isset($matches[1]) ? $matches[1] : null;
 }
+
+    private function logApiCall($operation_type, $data, $response, $user_name = null)
+    {
+        $status = $response->successful() ? 'success' : 'failure';
+        ApiLog::create([
+            'user_name' => $user_name ?? (Auth::check() ? Auth::user()->name : 'System'),
+            'operation_type' => $operation_type,
+            'execution_date' => now(),
+            'status' => $status,
+            'sent_data' => $data,
+            'received_data' => $response->body(),
+        ]);
+    }
 
     
 }

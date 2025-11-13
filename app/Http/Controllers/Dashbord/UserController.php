@@ -19,6 +19,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use jeremykenedy\LaravelLogger\App\Http\Traits\IpAddressDetails;
 use jeremykenedy\LaravelLogger\App\Http\Traits\UserAgentDetails;
 use Spatie\Permission\Models\Role;
+use App\Models\ActivityLog;
 
 class UserController extends Controller
 {
@@ -266,6 +267,16 @@ class UserController extends Controller
         $user = Auth::user();
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+
+        // Log password change
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'user_name' => $user->name ?? $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => null,
+        ]);
+
         ActivityLogger::activity(trans('users.changesecclogger'));
         Alert::success(trans('users.changesecc'));
         return redirect()->route('users');
@@ -298,6 +309,16 @@ class UserController extends Controller
         $user = $user;
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+
+        // Log password change
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'user_name' => $user->name ?? $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => null,
+        ]);
+
         ActivityLogger::activity(trans('users.changesecclogger'));
         Alert::success(trans('users.changesecc'));
         return redirect()->back();
