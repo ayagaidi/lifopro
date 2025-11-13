@@ -912,7 +912,7 @@ class RequestsController extends Controller
 
                 $file->move(public_path('payment_receipts'), $filename);
 
-                $reques->payment_receipt_path = 'payment_receipts/' . $filename;
+                $reques->payment_receipt_path = 'public/payment_receipts/' . $filename;
                 $reques->payment_receipt_uploaded_at = now();
                 $reques->save();
 
