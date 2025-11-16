@@ -88,7 +88,7 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
-    $('#user_name, #activity_type, #status, #start_date, #end_date').on('keyup change', function() {
+    $('#user_name, #activity_type, #status).on('keyup change', function() {
         table.ajax.reload();
     });
 });

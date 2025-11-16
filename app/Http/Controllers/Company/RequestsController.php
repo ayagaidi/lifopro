@@ -171,7 +171,7 @@ class RequestsController extends Controller
 
                         return redirect()->back();
                     }
-                    dd($responseca);
+                  
                 } else if ($response->status == 2001) {
                     Alert::warning("فشلت مصادقة المستخدم");
 

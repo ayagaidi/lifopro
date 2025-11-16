@@ -75,7 +75,7 @@ class ApiuserController extends Controller
                     $Apiuser = new Apiuser();
                     $Apiuser->username = $request->username;
                     $Apiuser->password = encrypt($request->password);
-                    $Apiuser->companies_id =  $request->companies_id;
+                    $Apiuser->companies_id = $request->companies_id;
 
                     $Apiuser->save();
 
@@ -121,8 +121,13 @@ class ApiuserController extends Controller
             return '<a style="color: #f97424;" href="' . route('apiuser/edit',$Apiuser_id).'"><i  class="fa  fa-edit" > </i></a>';
         })
          ->addColumn('password', function ($Apiuser) {
-            $password = decrypt($Apiuser->password);
-        
+            try {
+                $password = decrypt($Apiuser->password);
+            } catch (\Exception $e) {
+                // Handle decryption error, perhaps log or set a default
+                $password = 'Error decrypting';
+            }
+
             //return $password ;
                         return '*******' ;
 
@@ -146,13 +151,23 @@ class ApiuserController extends Controller
      */
     public function edit($apiuser)
     {
+        try {
+            $apiuser_id = decrypt($apiuser);
+        } catch (\Exception $e) {
+            // Handle decryption error
+            Alert::error("Invalid request.");
+            return redirect()->route('apiuser');
+        }
 
-        $apiuser_id = decrypt($apiuser);
         $Apiuser = Apiuser::find($apiuser_id);
+        if (!$Apiuser) {
+            Alert::error("API user not found.");
+            return redirect()->route('apiuser');
+        }
+
         $Company = Company::get();
 
         ActivityLogger::activity("عرض تعديل  حساب api   ");
-        $Company = Company::get();
         return view('dashbord.apiuser.edit')
             ->with('Company', $Company)
             ->with('Apiuser', $Apiuser);
@@ -163,8 +178,19 @@ class ApiuserController extends Controller
      */
     public function update(Request $request,$apiuser)
     {
-        $apiuser_id = decrypt($apiuser);
+        try {
+            $apiuser_id = decrypt($apiuser);
+        } catch (\Exception $e) {
+            // Handle decryption error
+            Alert::error("Invalid request.");
+            return redirect()->route('apiuser');
+        }
+
         $Apiuser = Apiuser::find($apiuser_id);
+        if (!$Apiuser) {
+            Alert::error("API user not found.");
+            return redirect()->route('apiuser');
+        }
         $messages = [
             'username.required' => "ادخل  اسم المتسخدم  ",
             'password.required' => "ادخل  كلمة المرور",
@@ -184,10 +210,7 @@ class ApiuserController extends Controller
 
         
             try {
-                DB::transaction(function () use ($request,$apiuser) {
-    
-                    $apiuser_id = decrypt($apiuser);
-                    $Apiuser = Apiuser::find($apiuser_id);
+                DB::transaction(function () use ($request,$apiuser_id) {
                     $Apiuser->username = $request->username;
                     if($request->password)
                     {
