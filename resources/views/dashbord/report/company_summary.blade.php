@@ -79,16 +79,16 @@
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <th>الإجمالي</th>
-                        <th>{{ $data->sum('issued_count') }}</th>
-                        <th>{{ $data->sum('canceled_count') }}</th>
-                        <th>{{ number_format($data->sum('net_premium'), 2) }}</th>
-                        <th>{{ number_format($data->sum('tax'), 2) }}</th>
-                        <th>{{ number_format($data->sum('stamp'), 2) }}</th>
-                        <th>{{ number_format($data->sum('supervision'), 2) }}</th>
-                        <th>{{ number_format($data->sum('issuing_fee'), 2) }}</th>
-                        <th>{{ number_format($data->sum('total'), 2) }}</th>
+                    <tr class="text-center">
+                        <th >الإجمالي</th>
+                        <th style="text-align: center;">{{ $data->sum('issued_count') }}</th>
+                        <th style="text-align: center;">{{ $data->sum('canceled_count') }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('net_premium'), 2) }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('tax'), 2) }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('stamp'), 2) }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('supervision'), 2) }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('issuing_fee'), 2) }}</th>
+                        <th style="text-align: center;">{{ number_format($data->sum('total'), 2) }}</th>
                     </tr>
                 </tfoot>
             </table>

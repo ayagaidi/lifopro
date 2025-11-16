@@ -3,6 +3,13 @@
 
 @section('content')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .swal-confirm-btn, .swal-cancel-btn {
+            width: 120px !important;
+            height: 40px !important;
+            font-size: 16px !important;
+        }
+    </style>
     <script>
         $(document).ready(function () {
             // إظهار اللودر عند إرسال أي فورم
@@ -97,14 +104,18 @@
                 var cardsNumber = rowData.cards_number;
 
                 Swal.fire({
-                    title: 'هل أنت متأكد؟',
-                    text: `هل أنت متأكد من الموافقة على الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
+                    title: '<span style="font-size: 24px; font-weight: bold;">هل أنت متأكد؟</span>',
+                    html: `<span style="font-size: 18px;">هل أنت متأكد من الموافقة على الطلب <span style="color: #007bff; font-weight: bold;">${requestNumber}</span> لشركة <span style="color: #007bff; font-weight: bold;">${companyName}</span> بعدد وثائق <span style="color: #007bff; font-weight: bold;">${cardsNumber}</span>؟</span>`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'نعم، قم بالقبول',
-                    cancelButtonText: 'إلغاء'
+                    cancelButtonText: 'إلغاء',
+                    customClass: {
+                        confirmButton: 'swal-confirm-btn',
+                        cancelButton: 'swal-cancel-btn'
+                    }
                 }).then((result) => {
                     if (!result.isConfirmed) return;
 
@@ -164,14 +175,15 @@
                 var cardsNumber = rowData.cards_number;
 
                 Swal.fire({
-                    title: 'هل أنت متأكد؟',
-                    text: `هل أنت متأكد من رفض الطلب ${requestNumber} لشركة ${companyName} بعدد وثائق ${cardsNumber}؟`,
+                    title: '<span style="font-size: 24px; font-weight: bold;">هل أنت متأكد؟</span>',
+                    html: `<span style="font-size: 18px;">هل أنت متأكد من رفض الطلب <span style="color: red; font-weight: bold;">${requestNumber}</span> لشركة <span style="color: red; font-weight: bold;">${companyName}</span> بعدد وثائق <span style="color: red; font-weight: bold;">${cardsNumber}</span>؟</span>`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: 'red',
                     cancelButtonColor: '#3085d6',
                     confirmButtonText: 'نعم، قم بالرفض',
-                    cancelButtonText: 'إلغاء'
+                    cancelButtonText: 'إلغاء',
+                   
                 }).then((result) => {
                     if (!result.isConfirmed) return;
 
