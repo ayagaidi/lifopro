@@ -308,7 +308,7 @@ class RequestsController extends Controller
             'created_at' => $Req->created_at,
             'accept' => $Req->request_statuses_id == 1 ?
                 '<a type="button" class="button" data-toggle="tooltip" data-placement="top" title="قبول الطلب" style="color: green;" data-id="' . encrypt($Req->id) . '">
-                    <img src="' . asset('checked.png') . '" style="width: 26px;">
+                    <img src="' . asset('checked.png') . '" style="width: 26px;margin-top: 4px;">
                 </a>' :
                 '',
             'upload_receipt' => $Req->request_statuses_id == 1 && !$Req->payment_receipt_path ?

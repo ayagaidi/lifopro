@@ -2,6 +2,8 @@
 @section('title', 'تقرير البطاقات الملغية ')
 
 @section('content')
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="row small-spacing">
         <div class="col-md-12">
             <div class="box-content">
@@ -26,6 +28,51 @@
                                 @endforelse
                             </select>
                             @error('companies_id')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="offices_id" class="control-label">المكتب</label>
+                            <select name="offices_id" id="offices_id"
+                                class="form-control @error('offices_id') is-invalid @enderror select2 wd-250"
+                                data-placeholder="Choose one" data-parsley-class-handler="#slWrapper"
+                                data-parsley-errors-container="#slErrorContainer">
+                                <option value="">اختر المكتب </option>
+                            </select>
+                            @error('offices_id')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="company_users_id" class="control-label">مستخدم الشركة</label>
+                            <select name="company_users_id" id="company_users_id"
+                                class="form-control @error('company_users_id') is-invalid @enderror select2 wd-250"
+                                data-placeholder="Choose one" data-parsley-class-handler="#slWrapper"
+                                data-parsley-errors-container="#slErrorContainer">
+                                <option value="">اختر مستخدم الشركة </option>
+                            </select>
+                            @error('company_users_id')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group col-md-3">
+                            <label for="office_users_id" class="control-label">مستخدم المكتب</label>
+                            <select name="office_users_id" id="office_users_id"
+                                class="form-control @error('office_users_id') is-invalid @enderror select2 wd-250"
+                                data-placeholder="Choose one" data-parsley-class-handler="#slWrapper"
+                                data-parsley-errors-container="#slErrorContainer">
+                                <option value="">اختر مستخدم المكتب </option>
+                            </select>
+                            @error('office_users_id')
                                 <span class="invalid-feedback" style="color: red" role="alert">
                                     {{ $message }}
                                 </span>
@@ -109,6 +156,9 @@
         function updatePdfLink() {
             const params = new URLSearchParams({
                 companies_id: $('#companies_id').val(),
+                offices_id: $('#offices_id').val(),
+                company_users_id: $('#company_users_id').val(),
+                office_users_id: $('#office_users_id').val(),
                 request_number: $('#request_number').val(),
                 card_number: $('#card_number').val(),
                 fromdate: $('#fromdate').val(),
@@ -118,21 +168,79 @@
             $('#pdfLink').attr('href', '{{ route("report/cancelcards/pdf") }}' + '?' + params);
         }
 
+        // Load offices when company is selected
+        $('#companies_id').change(function() {
+            var companyId = $(this).val();
+            if (companyId) {
+                $.ajax({
+                    url: '../report/offices/' + companyId,
+                    type: 'GET',
+                    success: function(data) {
+                        $('#offices_id').html('<option value="">اختر المكتب</option>');
+                        $('#company_users_id').html('<option value="">اختر مستخدم الشركة</option>');
+                        $('#office_users_id').html('<option value="">اختر مستخدم المكتب</option>');
+                        data.forEach(function(office) {
+                            $('#offices_id').append('<option value="' + office.id + '">' + office.name + '</option>');
+                        });
+                        // Load company users
+                        $.ajax({
+                            url: '../report/companyuser/' + companyId,
+                            type: 'GET',
+                            success: function(users) {
+                                users.forEach(function(user) {
+                                    $('#company_users_id').append('<option value="' + user.id + '">' + user.username + '</option>');
+                                });
+                            }
+                        });
+                    }
+                });
+            } else {
+                $('#offices_id').html('<option value="">اختر المكتب</option>');
+                $('#company_users_id').html('<option value="">اختر مستخدم الشركة</option>');
+                $('#office_users_id').html('<option value="">اختر مستخدم المكتب</option>');
+            }
+        });
+
+        // Load office users when office is selected
+        $('#offices_id').change(function() {
+            var officeId = $(this).val();
+            if (officeId) {
+                $.ajax({
+                    url: '../report/officesuser/' + officeId,
+                    type: 'GET',
+                    success: function(users) {
+                        $('#office_users_id').html('<option value="">اختر مستخدم المكتب</option>');
+                        users.forEach(function(user) {
+                            $('#office_users_id').append('<option value="' + user.id + '">' + user.username + '</option>');
+                        });
+                    }
+                });
+            } else {
+                $('#office_users_id').html('<option value="">اختر مستخدم المكتب</option>');
+            }
+        });
+
         function search() {
             $('#loader-overlay').show();
 
             var companies_id = $('#companies_id').val();
+            var offices_id = $('#offices_id').val();
+            var company_users_id = $('#company_users_id').val();
+            var office_users_id = $('#office_users_id').val();
             var request_number = $('#request_number').val();
             var card_number = $('#card_number').val();
             var fromdate = $('#fromdate').val();
             var todate = $('#todate').val();
 
-            if (companies_id || fromdate || todate || request_number || card_number) {
+            if (companies_id || offices_id || company_users_id || office_users_id || fromdate || todate || request_number || card_number) {
                 $.ajax({
                     url: '../report/searchcacel',
                     type: 'GET',
                     data: {
                         companies_id: companies_id,
+                        offices_id: offices_id,
+                        company_users_id: company_users_id,
+                        office_users_id: office_users_id,
                         request_number: request_number,
                         card_number: card_number,
                         fromdate: fromdate,
@@ -156,6 +264,10 @@
                                                 <th>رقم البطاقة</th>
                                                 
                                                 <th>الشركة</th>
+                                                <th>المكتب</th>
+                                                <th>مستخدم الشركة</th>
+                                                <th>مستخدم المكتب</th>
+
                                                 <th>حالة البطاقة</th>
                                                 <th>رقم الطلب</th>
                                                 <th>تاريخ اصدار البطاقة</th>
@@ -170,18 +282,24 @@
                             var x = 0;
                             response.data.forEach(item => {
                                 let companies = item.companies ? item.companies.name : 'الإتحاد الليبي للتأمين';
+                                let office = item.issuing && item.issuing.offices ? item.issuing.offices.name : '';
+                                let companyUser = item.issuing && item.issuing.company_users ? item.issuing.company_users.username : '';
+                                let officeUser = item.issuing && item.issuing.office_users ? item.issuing.office_users.username : '';
 
                                 $('#rowsss').append(
                                     `<tr>
                                         <td>${++x}</td>
-                                        
+
                                         <td>${item.card_number}</td>
-                                       
+
                                         <td>${companies}</td>
+                                        <td>${office}</td>
+                                        <td>${companyUser}</td>
+                                        <td>${officeUser}</td>
                                         <td>${item.cardstautes.name}</td>
                                         <td>${item.requests.request_number}</td>
-                                    
-                                        <td>${item.issuing.issuing_date}</td>
+
+                                        <td>${item.issuing ? item.issuing.issuing_date : ''}</td>
                                         <td>${item.card_delete_date}</td>
                                     </tr>`
                                 );

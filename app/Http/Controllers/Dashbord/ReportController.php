@@ -1971,7 +1971,7 @@ class ReportController extends Controller
         $to = $request->filled('todate') ? Carbon::parse($request->todate)->endOfDay() : null;
 
         // Initialize query with required relationships
-        $cardQuery = Card::with(['users', 'companies', 'cardstautes', 'requests', 'issuing'])
+        $cardQuery = Card::with(['users', 'companies', 'cardstautes', 'requests', 'issuing', 'issuing.company_users', 'issuing.office_users', 'issuing.offices'])
             ->where('cardstautes_id', 3); // Only cancelled cards
 
         // Filter by request number
@@ -1986,6 +1986,27 @@ class ReportController extends Controller
             $cardQuery->whereNull('companies_id');
         } elseif (!empty($request->companies_id)) {
             $cardQuery->where('companies_id', $request->companies_id);
+        }
+
+        // Filter by office
+        if ($request->filled('offices_id')) {
+            $cardQuery->whereHas('issuing', function ($q) use ($request) {
+                $q->where('offices_id', $request->offices_id);
+            });
+        }
+
+        // Filter by company user
+        if ($request->filled('company_users_id')) {
+            $cardQuery->whereHas('issuing', function ($q) use ($request) {
+                $q->where('company_users_id', $request->company_users_id);
+            });
+        }
+
+        // Filter by office user
+        if ($request->filled('office_users_id')) {
+            $cardQuery->whereHas('issuing', function ($q) use ($request) {
+                $q->where('office_users_id', $request->office_users_id);
+            });
         }
 
         // Filter by card number
@@ -2018,6 +2039,9 @@ class ReportController extends Controller
     public function indexcanelcard()
     {
         $Company = Company::select('id', 'name')->get();
+        $offices = Office::select('id', 'name')->get();
+        $companyUsers = CompanyUser::select('id', 'username')->get();
+        $officeUsers = OfficeUser::select('id', 'username')->get();
 
         return view('dashbord.report.searchcance', compact('Company'));
     }
@@ -2029,6 +2053,9 @@ class ReportController extends Controller
             'fromdate' => 'nullable|date',
             'todate' => 'nullable|date|after_or_equal:fromdate',
             'companies_id' => 'nullable',
+            'offices_id' => 'nullable',
+            'company_users_id' => 'nullable',
+            'office_users_id' => 'nullable',
             'request_number' => 'nullable|string',
             'card_number' => 'nullable|string',
         ]);
@@ -2036,7 +2063,7 @@ class ReportController extends Controller
         $from = $request->filled('fromdate') ? Carbon::parse($request->fromdate)->startOfDay() : null;
         $to = $request->filled('todate') ? Carbon::parse($request->todate)->endOfDay() : null;
 
-        $cards = Card::with(['users', 'companies:id,name', 'cardstautes:id,name', 'requests:id,request_number', 'issuing:id,cards_id,issuing_date'])
+        $cards = Card::with(['users', 'companies:id,name', 'cardstautes:id,name', 'requests:id,request_number', 'issuing:id,cards_id,issuing_date,company_users_id,office_users_id,offices_id', 'issuing.company_users:id,username', 'issuing.office_users:id,username', 'issuing.offices:id,name'])
             ->where('cardstautes_id', 3)
             ->when(
                 $request->request_number,
@@ -2061,6 +2088,21 @@ class ReportController extends Controller
                         $q->where('companies_id', $request->companies_id);
                     }
                 }
+            )
+            ->when(
+                $request->offices_id,
+                fn($q) =>
+                $q->whereHas('issuing', fn($sub) => $sub->where('offices_id', $request->offices_id))
+            )
+            ->when(
+                $request->company_users_id,
+                fn($q) =>
+                $q->whereHas('issuing', fn($sub) => $sub->where('company_users_id', $request->company_users_id))
+            )
+            ->when(
+                $request->office_users_id,
+                fn($q) =>
+                $q->whereHas('issuing', fn($sub) => $sub->where('office_users_id', $request->office_users_id))
             )
             ->when(
                 $from && $to,
