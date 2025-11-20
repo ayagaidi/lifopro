@@ -60,7 +60,7 @@
                         <th>الدمغة</th>
                         <th>الإشراف</th>
                         <th>رسوم الإصدار</th>
-                        <th>الإجمالي</th>
+                        <th style="text-align: center">الإجمالي</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -80,7 +80,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="text-center">
-                        <th >الإجمالي</th>
+                        <th  style="text-align: center">الإجمالي</th>
                         <th style="text-align: center;">{{ $data->sum('issued_count') }}</th>
                         <th style="text-align: center;">{{ $data->sum('canceled_count') }}</th>
                         <th style="text-align: center;">{{ number_format($data->sum('net_premium'), 2) }}</th>

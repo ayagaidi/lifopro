@@ -2767,4 +2767,9 @@ $query = Issuing::query()
             'user' => $user
         ]);
     }
+
+    public function insuranceCard()
+    {
+        return view('dashbord.report.insurance_card');
+    }
 }

@@ -26,10 +26,12 @@ class LifoApiService
 
     public  function getAuth($USER_ID, $PASSWORD)
     {
-        $response = Http::post($this->url . 'OcUser/GetToken', [
+        $DATA = [
             'USER_ID' => $USER_ID,
             'PASSWORD' => $PASSWORD,
-        ]);
+        ];
+        $response = Http::post($this->url . 'OcUser/GetToken', $DATA);
+        $this->logApiCall('getAuth', $DATA, $response);
         return $response;
     }
 
@@ -40,7 +42,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/NewPolicy', $DATA);
-
+        $this->logApiCall('issuingPolicy', $DATA, $response);
         return $response;
     }
 
@@ -48,6 +50,7 @@ class LifoApiService
     {
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/PolicyStatusChange', $DATA);
+        $this->logApiCall('cancelPolicy', $DATA, $response);
         return $response;
     }
 
@@ -59,7 +62,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcPolicy/OCPolStatus', $DATA);
-
+        $this->logApiCall('policystatus', $DATA, $response);
         return $response;
     }
 // 
@@ -68,7 +71,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/NewUORequest', $DATA);
-
+        $this->logApiCall('newrequestadmin', $DATA, $response);
         return $response;
     }
 
@@ -77,7 +80,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/UoRequestStatus', $DATA);
-
+        $this->logApiCall('requeststatusadmin', $DATA, $response);
         return $response;
     }
 
@@ -95,7 +98,7 @@ class LifoApiService
 
 
         $response = Http::withHeaders($headers)->post($this->url . 'OcRequest/UoOcSerialRequest', $DATA);
-
+        $this->logApiCall('addcardsadmin', $DATA, $response);
         return $response;
     }
 
@@ -104,7 +107,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OrangeCardServices/PostInsCompCertificateBook', $DATA);
-
+        $this->logApiCall('postInsCompCertificateBook', $DATA, $response);
         return $response;
     }
 
@@ -115,7 +118,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/NewICRequest', $DATA);
-
+        $this->logApiCall('newrequest', $DATA, $response);
         return $response;
     }
 
@@ -124,7 +127,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/IcRequestStatus', $DATA);
-
+        $this->logApiCall('requeststatus', $DATA, $response);
         return $response;
     }
 
@@ -133,7 +136,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/IcOcSerialRequest', $DATA);
-
+        $this->logApiCall('addcards', $DATA, $response);
         return $response;
     }
 
@@ -145,7 +148,7 @@ class LifoApiService
 
         $response = Http::withHeaders($headers)
             ->post($this->url . 'OcRequest/OCCertificate', $DATA);
-
+        $this->logApiCall('printcard', $DATA, $response);
         return $response;
     }
 
@@ -161,16 +164,23 @@ class LifoApiService
     private function logApiCall($operation_type, $data, $response, $username = null)
     {
 
-      
+
         $status = $response->successful() ? 'success' : 'failure';
-        
+
+        $body = $response->body();
+        $psrResponse = $response->toPsrResponse();
+        $stream = $psrResponse->getBody();
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
         ApiLog::create([
             'user_name' => $username ?? (Auth::check() ? Auth::user()->username : 'System'),
             'operation_type' => $operation_type,
             'execution_date' => now(),
             'status' => $status,
             'sent_data' => $data,
-            'received_data' => $response->body(),
+            'received_data' => $body,
         ]);
     }
 

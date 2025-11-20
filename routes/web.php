@@ -298,6 +298,7 @@ Route::get('/report/issuing/{year}/export-pdf', [App\Http\Controllers\Dashbord\R
     Route::get('report/sales/pdf', [App\Http\Controllers\Dashbord\ReportController::class, 'indexsalespdf'])->name('report/sales/pdf');
 
     Route::get('viewdocument/{cardnumber}', [App\Http\Controllers\Dashbord\ReportController::class, 'viewdocument'])->name('viewdocument');
+    Route::get('insurance-card', [App\Http\Controllers\Dashbord\ReportController::class, 'insuranceCard'])->name('insurance-card');
 
     
     
