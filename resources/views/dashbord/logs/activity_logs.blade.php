@@ -34,7 +34,7 @@
 
             <div class="table-responsive" data-pattern="priority-columns">
                 {{-- Report Table --}}
-                <table id="activityLogsTable" class="table table-bordered table-hover dataTable table-custom">
+                <table id="activityLogsTable" class="table table-bordered table-hover dataTable table-custom" style="width: 100% ">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -84,11 +84,18 @@ $(document).ready(function() {
         responsive: true
     });
 
-    $('#searchBtn').on('click', function() {
-        table.ajax.reload();
-    });
+    // hide the table container until user performs a search
+    var tableContainer = $('#activityLogsTable').closest('.table-responsive');
+    tableContainer.hide();
 
-    $('#user_name, #activity_type, #status).on('keyup change', function() {
+    $('#searchBtn').on('click', function() {
+        var hasFilters = $('#user_name').val().trim() !== '' || $('#activity_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        if (!hasFilters) {
+            alert('الرجاء تحديد معيار بحث واحد على الأقل.');
+            return;
+        }
+        // show table area and load results
+        tableContainer.show();
         table.ajax.reload();
     });
 });

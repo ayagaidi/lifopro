@@ -59,6 +59,7 @@ $(document).ready(function() {
     var table = $('#apiLogsTable').DataTable({
         processing: true,
         serverSide: true,
+        deferLoading: 0,
         ajax: {
             url: '{{ route("logs/api") }}',
             data: function(d) {
@@ -85,12 +86,18 @@ $(document).ready(function() {
         pageLength: 20,
         responsive: true
     });
+    // hide the table container until user performs a search
+    var tableContainer = $('#apiLogsTable').closest('.table-responsive');
+    tableContainer.hide();
 
     $('#searchBtn').on('click', function() {
-        table.ajax.reload();
-    });
-
-    $('#user_name, #operation_type, #status').on('keyup change', function() {
+        var hasFilters = $('#user_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        if (!hasFilters) {
+            alert('الرجاء تحديد معيار بحث واحد على الأقل.');
+            return;
+        }
+        // show table area and load results
+        tableContainer.show();
         table.ajax.reload();
     });
 });
