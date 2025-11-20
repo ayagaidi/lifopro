@@ -654,21 +654,33 @@ public function searchpdfsummery(Request $request)
 public function indexcanelcardpdf(Request $request)
 {
     $searchParams = [
-        'request_number' => $request->request_number ?? '',
-        'card_number'    => $request->card_number ?? '',
-        'fromdate'       => $request->fromdate ?? '',
-        'todate'         => $request->todate ?? '',
+        'request_number'  => $request->request_number ?? '',
+        'card_number'     => $request->card_number ?? '',
+        'offices_id'      => $request->offices_id ?? '',
+        'company_users_id' => $request->company_users_id ?? '',
+        'office_users_id' => $request->office_users_id ?? '',
+        'fromdate'        => $request->fromdate ?? '',
+        'todate'          => $request->todate ?? '',
     ];
 
+    $companyId = Auth::user()->companies_id;
+
+   
     $query = Card::with([
             'users',
             'companies:id,name',
             'cardstautes:id,name',
             'requests:id,request_number',
-            'issuing:id,cards_id,issuing_date',
+            'issuing:id,cards_id,issuing_date,company_users_id,office_users_id,offices_id',
+            'issuing.company_users:id,username',
+            'issuing.office_users:id,username',
+            'issuing.offices:id,name',
         ])
         ->where('cardstautes_id', 3)
-        ->where('companies_id', Auth::user()->companies_id);
+        ->where(function ($q) use ($companyId) {
+            $q->where('companies_id', $companyId)
+              ->orWhereHas('offices', fn($sub) => $sub->where('companies_id', $companyId));
+        });
 
     if (!empty($request->request_number)) {
         $query->whereHas('requests', function ($q) use ($request) {
@@ -678,6 +690,24 @@ public function indexcanelcardpdf(Request $request)
 
     if (!empty($request->card_number)) {
         $query->where('card_number', $request->card_number);
+    }
+
+    if (!empty($request->offices_id)) {
+        $query->whereHas('issuing', function ($q) use ($request) {
+            $q->where('offices_id', $request->offices_id);
+        });
+    }
+
+    if (!empty($request->company_users_id)) {
+        $query->whereHas('issuing', function ($q) use ($request) {
+            $q->where('company_users_id', $request->company_users_id);
+        });
+    }
+
+    if (!empty($request->office_users_id)) {
+        $query->whereHas('issuing', function ($q) use ($request) {
+            $q->where('office_users_id', $request->office_users_id);
+        });
     }
 
     if (!empty($request->fromdate) && !empty($request->todate)) {
@@ -697,8 +727,14 @@ public function indexcanelcardpdf(Request $request)
     public function indexcanelcard()
     {
 
+         $offices = Office::select('id', 'name')->where('companies_id', Auth::user()->companies_id)->get();
+        $companyUsers = CompanyUser::select('id', 'username')->where('companies_id', Auth::user()->companies_id)->get();
 
-        return view('comapny.report.searchcance');
+
+        return view('comapny.report.searchcance')
+        ->with('offices', $offices)
+        ->with('companyUsers', $companyUsers)
+        ;
     }
 
 
@@ -707,10 +743,25 @@ public function searchcacel(Request $request)
 {
     $request->validate([
         'fromdate'        => 'nullable|date',
-        'todate'          => 'nullable|date|after_or_equal:fromdate',
+        'todate'          => 'nullable|date',
         'request_number'  => 'nullable|string',
         'card_number'     => 'nullable|string',
+        'offices_id'      => 'nullable|integer',
+        'company_users_id' => 'nullable|integer',
     ]);
+
+    // Custom validation for date range
+    if ($request->filled('fromdate') && $request->filled('todate')) {
+        $from = Carbon::parse($request->fromdate);
+        $to = Carbon::parse($request->todate);
+        if ($to->lt($from)) {
+            return response()->json([
+                'code' => 0,
+                'status' => false,
+                'message' => 'تاريخ النهاية يجب أن يكون لاحقاً أو مطابقاً لتاريخ البداية.',
+            ]);
+        }
+    }
 
     $from = $request->filled('fromdate') ? Carbon::parse($request->fromdate)->startOfDay() : null;
     $to   = $request->filled('todate')   ? Carbon::parse($request->todate)->endOfDay()   : null;
@@ -722,7 +773,10 @@ public function searchcacel(Request $request)
             'companies:id,name',
             'cardstautes:id,name',
             'requests:id,request_number',
-            'issuing:id,cards_id,issuing_date',
+            'issuing:id,cards_id,issuing_date,company_users_id,office_users_id,offices_id',
+            'issuing.company_users:id,username',
+            'issuing.office_users:id,username',
+            'issuing.offices:id,name',
         ])
         ->where('cardstautes_id', 3)
         ->where(function ($q) use ($companyId) {
@@ -736,6 +790,12 @@ public function searchcacel(Request $request)
         )
         ->when($request->card_number, fn($q) =>
             $q->where('card_number', $request->card_number)
+        )
+        ->when($request->offices_id, fn($q) =>
+            $q->whereHas('issuing', fn($sub) => $sub->where('offices_id', $request->offices_id))
+        )
+        ->when($request->company_users_id, fn($q) =>
+            $q->whereHas('issuing', fn($sub) => $sub->where('company_users_id', $request->company_users_id))
         )
         ->when($from && $to, fn($q) =>
             $q->whereBetween('card_delete_date', [$from, $to])

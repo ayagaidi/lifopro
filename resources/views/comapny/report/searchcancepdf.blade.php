@@ -39,6 +39,15 @@
                     @if($searchParams['card_number'])
                         <span>رقم البطاقة: {{ $searchParams['card_number'] }}</span>
                     @endif
+                    @if($searchParams['offices_id'])
+                        <span>المكتب: {{ $searchParams['offices_id'] }}</span>
+                    @endif
+                    @if($searchParams['company_users_id'])
+                        <span>مستخدم الشركة: {{ $searchParams['company_users_id'] }}</span>
+                    @endif
+                    @if($searchParams['office_users_id'])
+                        <span>مستخدم المكتب: {{ $searchParams['office_users_id'] }}</span>
+                    @endif
                     @if($searchParams['fromdate'] && $searchParams['todate'])
                         <span>الفترة من: {{ $searchParams['fromdate'] }} إلى: {{ $searchParams['todate'] }}</span>
                     @endif
@@ -58,14 +67,16 @@
                     <th>م</th>
                     <th>رقم البطاقة</th>
                     <th>الشركة</th>
+                    <th>المكتب</th>
+                    <th>مستخدم الشركة</th>
+                    <th>مستخدم المكتب</th>
                     <th>حالة البطاقة</th>
                     <th>رقم الطلب</th>
-                                        <th>تاريخ اصدار البطاقة </th>
-
+                    <th>تاريخ اصدار البطاقة </th>
                     <th>تاريخ الغاء البطاقة</th>
-                     <th>سبب الالغاء</th>
-                              <th>من قام بالالغاء</th>
-                                </tr>
+                    <th>سبب الالغاء</th>
+                    <th>من قام بالالغاء</th>
+                </tr>
             </thead>
             <tbody>
                 @foreach($cards as $index => $card)
@@ -74,6 +85,9 @@
                       
                         <td>{{ $card->card_number }}</td>
                         <td>{{ $card->companies ? $card->companies->name : 'الإتحاد الليبي للتأمين' }}</td>
+                        <td>{{ $card->issuing->offices->name ?? '' }}</td>
+                        <td>{{ $card->issuing->company_users->username ?? '' }}</td>
+                        <td>{{ $card->issuing->office_users->username ?? '' }}</td>
                         <td>{{ $card->cardstautes->name ?? '' }}</td>
                         <td>{{ $card->requests->request_number ?? '' }}</td>
                                                 <td>{{ $card->issuing->issuing_date }}</td>
