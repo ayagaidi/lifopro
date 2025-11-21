@@ -3,6 +3,14 @@
 
 @section('content')
 
+{{-- Page Level Loader --}}
+<div id="page-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column;">
+    <div class="spinner-border text-light" role="status">
+        <span class="sr-only">جاري التحميل...</span>
+    </div>
+    <p class="text-light mt-2">جاري تحميل البيانات...</p>
+</div>
+
 <div class="row small-spacing" style="margin-top: 50px">
     <div class="col-md-12">
         <div class="box-content">
@@ -67,7 +75,6 @@ $(document).ready(function() {
     var table = $('#apiLogsTable').DataTable({
         processing: true,
         serverSide: true,
-        deferLoading: 0,
         ajax: {
             url: '{{ route("logs/api") }}',
             data: function(d) {
@@ -104,9 +111,16 @@ $(document).ready(function() {
             alert('الرجاء تحديد معيار بحث واحد على الأقل.');
             return;
         }
+        // show loader
+        $('#page-loader').show();
         // show table area and load results
         tableContainer.show();
         table.ajax.reload();
+    });
+
+    // Hide page loader after AJAX request
+    table.on('xhr', function() {
+        $('#page-loader').hide();
     });
 });
 </script>

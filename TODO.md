@@ -1,2 +1,2 @@
-- [x] Add loader to activity_logs.blade.php
-- [x] Add loader to api_logs.blade.php
+- [x] Edit resources/views/dashbord/logs/activity_logs.blade.php: Add deferLoading: 0 to DataTable, remove tableContainer.show() from xhr event, add it to searchBtn click after reload.
+- [x] Edit resources/views/dashbord/logs/api_logs.blade.php: Add deferLoading: 0 to DataTable, add preXhr and xhr events to show/hide page-loader.
