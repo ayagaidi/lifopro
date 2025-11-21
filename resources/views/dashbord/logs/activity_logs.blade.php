@@ -32,6 +32,14 @@
                 </div>
             </div>
 
+            {{-- Loader --}}
+            <div id="loader" class="text-center" style="display: none;">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">جاري التحميل...</span>
+                </div>
+                <p>جاري تحميل البيانات...</p>
+            </div>
+
             <div class="table-responsive" data-pattern="priority-columns">
                 {{-- Report Table --}}
                 <table id="activityLogsTable" class="table table-bordered table-hover dataTable table-custom" style="width: 100% ">
@@ -97,6 +105,16 @@ $(document).ready(function() {
         // show table area and load results
         tableContainer.show();
         table.ajax.reload();
+    });
+
+    // Show loader before AJAX request
+    table.on('preXhr', function() {
+        $('#loader').show();
+    });
+
+    // Hide loader after AJAX request
+    table.on('xhr', function() {
+        $('#loader').hide();
     });
 });
 </script>

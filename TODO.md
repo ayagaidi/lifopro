@@ -1,3 +1,2 @@
-- [x] Modify the approve alert message to use HTML for larger font and colored variables
-- [x] Modify the reject alert message similarly
-- [x] Ensure confirm and cancel buttons have the same size using CSS classes
+- [x] Add loader to activity_logs.blade.php
+- [x] Add loader to api_logs.blade.php
