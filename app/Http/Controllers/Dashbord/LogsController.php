@@ -73,7 +73,7 @@ class LogsController extends Controller
                 $query->whereDate('execution_date', '<=', $request->end_date);
             }
 
-            return DataTables::of($query->orderBy('execution_date', 'desc'))
+            return DataTables::of($query->select(['user_name', 'operation_type', 'execution_date', 'status', 'sent_data', 'received_data'])->limit(10000)->orderBy('execution_date', 'desc'))
                 ->addIndexColumn()
                 ->editColumn('execution_date', function ($log) {
                     return $log->execution_date->format('Y-m-d H:i:s');
