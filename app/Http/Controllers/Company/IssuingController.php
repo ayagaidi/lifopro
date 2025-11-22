@@ -38,8 +38,8 @@ class IssuingController extends Controller
         $Countries = Country::where('active', 1)->get();
 
         $insurance_clauses = InsuranceClause::get();
-  date_default_timezone_set('Africa/Tripoli');
-        $todatdate=Carbon::now()->format('Y-m-d');
+        date_default_timezone_set('Africa/Tripoli');
+        $todatdate = Carbon::now()->format('Y-m-d');
         $price = Price::find(1);
         return view('comapny.Issuing.index')
             ->with('Countries', $Countries)
@@ -242,28 +242,28 @@ class IssuingController extends Controller
                         $car = car::find($request->cars_id);
                         $Company = Company::find(Auth::user()->companies_id);
                         $Country = Country::find($request->countries_id);
-                         $minimumDays = [
-    'TUN' => 7,
-    'EGY' => 15,
-];
+                        $minimumDays = [
+                            'TUN' => 7,
+                            'EGY' => 15,
+                        ];
 
-$maximumDays = 90;
+                        $maximumDays = 90;
 
-$symbol = $Country->symbol;
+                        $symbol = $Country->symbol;
 
-if (isset($minimumDays[$symbol])) {
-    $requiredDays = $minimumDays[$symbol];
+                        if (isset($minimumDays[$symbol])) {
+                            $requiredDays = $minimumDays[$symbol];
 
-    if ($request->insurance_days_number < $requiredDays) {
-        Alert::warning("يجب أن يكون عدد الأيام {$requiredDays} أو أكثر");
-        return redirect()->back();
-    }
-}
+                            if ($request->insurance_days_number < $requiredDays) {
+                                Alert::warning("يجب أن يكون عدد الأيام {$requiredDays} أو أكثر");
+                                return redirect()->back();
+                            }
+                        }
 
-if ($request->insurance_days_number > $maximumDays) {
-    Alert::warning("يجب أن يكون عدد الأيام {$maximumDays} أو أقل");
-    return redirect()->back();
-}
+                        if ($request->insurance_days_number > $maximumDays) {
+                            Alert::warning("يجب أن يكون عدد الأيام {$maximumDays} أو أقل");
+                            return redirect()->back();
+                        }
 
 
                         date_default_timezone_set('Africa/Tripoli');
@@ -276,7 +276,7 @@ if ($request->insurance_days_number > $maximumDays) {
                         }
                         $formatted_date = date('d-m-Y H:i:s');
                         $insurance_from = Carbon::parse($request->insurance_day_from . ' ' . $time);
-                                                                          // $insurance_to = Carbon::parse($request->nsurance_day_to . ' ' . $time);
+                        // $insurance_to = Carbon::parse($request->nsurance_day_to . ' ' . $time);
 
                         // Add hours equivalent to days (days * 24 hours) to the end date
                         $insurance_to = Carbon::parse($request->insurance_day_from . ' ' . $time)->addHours($request->insurance_days_number * 24);
@@ -284,7 +284,7 @@ if ($request->insurance_days_number > $maximumDays) {
                         $insurance_day_from    = date("d-m-Y H:i:s", strtotime($insurance_from));
                         $nsurance_day_to      = date("d-m-Y H:i:s", strtotime($insurance_to));
                         $formatted_issuing_date = Carbon::now()->format('d-m-Y H:i:s');
-                            $insurance_total = round($request->insurance_total, 1);
+                        $insurance_total = round($request->insurance_total, 1);
 
                         $bodyy = [
                             "POL_USER_ID"                => "$userid", // اليوزر الخاص بالمكتب الموحد
@@ -349,48 +349,48 @@ if ($request->insurance_days_number > $maximumDays) {
                                 return redirect()->back();
                             }
                         }
-                        
-
-// $insurance_day_from = Carbon::createFromFormat('d-m-Y H:i:s', $insurance_from);
 
 
-if ($insurance_from->lt(Carbon::now()->startOfDay())) {
-    Alert::warning("تاريخ بداية التأمين يجب أن يكون اليوم أو في المستقبل");
-    return redirect()->back();
-}
+                        // $insurance_day_from = Carbon::createFromFormat('d-m-Y H:i:s', $insurance_from);
 
 
-// $now = Carbon::now()->format('Y-m-d H:i'); // الوقت الحالي حتى الدقيقة فقط
+                        if ($insurance_from->lt(Carbon::now()->startOfDay())) {
+                            Alert::warning("تاريخ بداية التأمين يجب أن يكون اليوم أو في المستقبل");
+                            return redirect()->back();
+                        }
 
-   
 
-//     $exists = Issuing::where('plate_number', $plate)
-//         ->where('chassis_number', $chassis)
-//         ->whereDate('insurance_day_from', $insuranceDate)
-//         ->whereRaw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') = ?", [$now])
-//         ->exists();
+                        // $now = Carbon::now()->format('Y-m-d H:i'); // الوقت الحالي حتى الدقيقة فقط
 
-//     if ($exists) {
-//         Alert::warning("تنبيه", "لا يمكن إصدار وثيقة بنفس البيانات خلال نفس الدقيقة. يرجى الانتظار دقيقة واحدة.");
-//         return redirect()->back()->withInput();
-//     }
 
-$now = Carbon::now();
-$from = $now->copy()->subMinutes(2)->format('Y-m-d H:i:s');
-$to   = $now->copy()->format('Y-m-d H:i:s');
-  $plate = $request->plate_number;
-   $chassis = $request->chassis_number;
-    $insuranceDate = $request->insurance_day_from;
-$exists = Issuing::where('plate_number', $plate)
-    ->where('chassis_number', $chassis)
-    ->whereDate('insurance_day_from', $insuranceDate)
-    ->whereBetween('created_at', [$from, $to])
-    ->exists();
 
-if ($exists) {
-    Alert::warning("تنبيه", "لا يمكن إصدار وثيقة بنفس البيانات خلال دقيقتين متتاليتين. يرجى الانتظار.");
-    return redirect()->back()->withInput();
-}
+                        //     $exists = Issuing::where('plate_number', $plate)
+                        //         ->where('chassis_number', $chassis)
+                        //         ->whereDate('insurance_day_from', $insuranceDate)
+                        //         ->whereRaw("DATE_FORMAT(created_at, '%Y-%m-%d %H:%i') = ?", [$now])
+                        //         ->exists();
+
+                        //     if ($exists) {
+                        //         Alert::warning("تنبيه", "لا يمكن إصدار وثيقة بنفس البيانات خلال نفس الدقيقة. يرجى الانتظار دقيقة واحدة.");
+                        //         return redirect()->back()->withInput();
+                        //     }
+
+                        $now = Carbon::now();
+                        $from = $now->copy()->subMinutes(2)->format('Y-m-d H:i:s');
+                        $to   = $now->copy()->format('Y-m-d H:i:s');
+                        $plate = $request->plate_number;
+                        $chassis = $request->chassis_number;
+                        $insuranceDate = $request->insurance_day_from;
+                        $exists = Issuing::where('plate_number', $plate)
+                            ->where('chassis_number', $chassis)
+                            ->whereDate('insurance_day_from', $insuranceDate)
+                            ->whereBetween('created_at', [$from, $to])
+                            ->exists();
+
+                        if ($exists) {
+                            Alert::warning("تنبيه", "لا يمكن إصدار وثيقة بنفس البيانات خلال دقيقتين متتاليتين. يرجى الانتظار.");
+                            return redirect()->back()->withInput();
+                        }
 
                         $newpolicy = $lifos->issuingPolicy($headers, $bodyy);
 
@@ -421,7 +421,7 @@ if ($exists) {
                                 $issuing->insurance_location = $request->insurance_location;
                                 $issuing->insurance_phone = $request->insurance_phone;
 
-                                $issuing->motor_number ="-";
+                                $issuing->motor_number = "-";
                                 $issuing->plate_number = $request->plate_number;
                                 $issuing->chassis_number = $request->chassis_number;
                                 $issuing->car_made_date = $request->car_made_date;
@@ -464,13 +464,12 @@ if ($exists) {
 
                                 $ex = base64_decode(explode("base64,", $responseca->data)[1]);
 
-                               
 
-                                
+
+
                                 Alert::success("تمت عملية الاصدار   شركة بنجاح");
                                 // return view('comapny.Issuing.doc')->with('ex',$ex);
                                 return redirect()->route('company/document', $card_id);
-                        
                             } else if ($code == 8051) {
                                 Alert::warning("معلمات الطلب غير مكتملة");
                                 return redirect()->back();
@@ -494,17 +493,14 @@ if ($exists) {
                             } else if ($code == 2502) {
                                 Alert::warning("المستخدم غير نشط");
                                 return redirect()->back();
-                            }
-                            else if ($code == 6014) {
+                            } else if ($code == 6014) {
                                 Alert::warning("هذه البطاقة تم اصدارها من قبل");
                                 return redirect()->back();
                             }
                         } else if ($codeee == 6014) {
-                                Alert::warning("هذه البطاقة تم اصدارها من قبل");
-                                return redirect()->back();
-                            }
-                        else 
-                        {
+                            Alert::warning("هذه البطاقة تم اصدارها من قبل");
+                            return redirect()->back();
+                        } else {
                             dd($response);
 
                             Alert::warning($responsee);
@@ -585,20 +581,20 @@ if ($exists) {
 
                         // Generate a unique filename (optional for better organization)
                         $filename = $card_id . '.pdf';
-                        $tempFilePath = public_path('doc/'.$filename);
-                        
+                        $tempFilePath = public_path('doc/' . $filename);
+
                         // Check if the file exists before trying to delete it
                         if (file_exists($tempFilePath)) {
                             unlink($tempFilePath); // Delete the existing file
                         }
-                        
+
                         // $fileObject->move('public/doc/', $filename);
                         // Create a temporary PDF file on the server
                         // $tempFilePath = public_path('doc' , $filename);
                         file_put_contents($tempFilePath, $ex);
                         // Return the view with the PDF file path
                         return view('comapny.Issuing.doc', ['file' => asset('public/doc/' . $filename)])
-                        ->with('card_id',$card_id);
+                            ->with('card_id', $card_id);
 
                         // Return the view with the PDF file path
 
@@ -775,7 +771,7 @@ if ($exists) {
         }
     }
 
-    public function cancelPolicy($card_id)
+    public function cancelPolicy(Request $request, $card_id)
     {
         try {
             $lifos = new LifoApiService();
@@ -806,9 +802,9 @@ if ($exists) {
                             'message' => 'هذه البطاقة ملغاة'
                         ], 200);
                     } else {
-                         $issuing = Issuing::where('cards_id', $card_id)
-    ->where('issuing_date', '>=', Carbon::now()->subHours(24))
-    ->first();
+                        $issuing = Issuing::where('cards_id', $card_id)
+                            ->where('issuing_date', '>=', Carbon::now()->subHours(24))
+                            ->first();
 
                         if ($issuing) {
                             $body = [
@@ -822,10 +818,15 @@ if ($exists) {
                             $responseca = json_decode($bodyca->getContents());
                             $code = $responseca->message->code;
 
+                            $cancel_reason = $request->input('res', null);
+                            $cancel_by = Auth::user()->username ?? Auth::user()->id ?? 'unknown';
+
                             switch ($code) {
                                 case 7506:
                                     $cards->cardstautes_id = 3;
-                                    $cards->card_delete_date=now();
+                                    $cards->card_delete_date = now();
+                                    $cards->cancel_by = $cancel_by;
+                                    $cards->res = $cancel_reason;
 
                                     $cards->save();
 
@@ -846,11 +847,13 @@ if ($exists) {
                                 case 7008:
                                     $cards = Card::find($card_id);
                                     $cards->cardstautes_id = 3;
+                                    $cards->cancel_by = $cancel_by;
+                                    $cards->res = $cancel_reason;
                                     $cards->save();
-    
+
                                     $issuing->insurance_installment_daily = 0;
                                     $issuing->insurance_installment = 0;
-    
+
                                     $issuing->insurance_supervision = 0;
                                     $issuing->insurance_tax = 0;
                                     $issuing->insurance_version = 0;
@@ -911,11 +914,11 @@ if ($exists) {
                                     ], 500);
                             }
                         } else {
-                           return response()->json([
-'status' => 'Warning',
+                            return response()->json([
+                                'status' => 'Warning',
 
-'message' => 'It is been more than 24 hours since, Oscar couldnot be opened'
-], 200);
+                                'message' => 'It is been more than 24 hours since, Oscar couldnot be opened'
+                            ], 200);
                         }
                     }
                 } else if ($responsee->status == 2001) {
@@ -992,10 +995,10 @@ if ($exists) {
                         // $issuing = Issuing::where('cards_id', $card_id)
                         //     ->where('issuing_date', '>=', Carbon::now()->subHours(24)) // Ensure issuing date is not less than 24 hours ago
                         //     ->first();
-                        
+
                         $issuing = Issuing::where('cards_id', $card_id)
-                  ->where('issuing_date', '>=', Carbon::now()->subDays(7))
-                  ->first();
+                            ->where('issuing_date', '>=', Carbon::now()->subDays(7))
+                            ->first();
                         if ($issuing) {
 
                             // Handle case where issuing is not found or the issuing date is older than 24 hours
@@ -1016,7 +1019,7 @@ if ($exists) {
 
                                 $cards = Card::find($card_id);
                                 $cards->cardstautes_id = 3;
-                                $cards->card_delete_date=now();
+                                $cards->card_delete_date = now();
                                 $cards->save();
 
                                 $issuing->insurance_installment_daily = 0;
