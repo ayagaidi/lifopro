@@ -272,6 +272,8 @@
                                                 <th>رقم الطلب</th>
                                                 <th>تاريخ اصدار البطاقة</th>
                                                 <th>تاريخ الغاء البطاقة</th>
+                                                <th>من قام بالإلغاء</th>
+                                                <th>سبب الإلغاء</th>
                                             </tr>
                                         </thead>
                                         <tbody id="rowsss"></tbody>
@@ -301,6 +303,8 @@
 
                                         <td>${item.issuing ? item.issuing.issuing_date : ''}</td>
                                         <td>${item.card_delete_date}</td>
+                                        <td>${item.cancel_by ?? '-'}</td>
+                                        <td>${item.res ?? '-'}</td>
                                     </tr>`
                                 );
                             });

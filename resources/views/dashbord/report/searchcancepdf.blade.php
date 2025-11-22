@@ -77,35 +77,39 @@
 @if($cards->isEmpty())
     <p style="text-align:center; margin-top: 20px;">لا توجد بطاقات لعرضها</p>
 @else
-    <table>
-        <thead>
-            <tr>
-                <th>م</th>
-               
-                <th>رقم البطاقة</th>
-                <th>الشركة</th>
-                <th>حالة البطاقة</th>
-                <th>رقم الطلب</th>
-                  <th> تاريخ اصدار البطاقة </th>
-                <th>تاريخ الغاء البطاقة</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($cards as $index => $card)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                   
-                    <td>{{ $card->card_number }}</td>
-                    <td>{{ $card->companies ? $card->companies->name : 'الإتحاد الليبي للتأمين' }}</td>
-                    <td>{{ $card->cardstautes->name }}</td>
-                    <td>{{ $card->requests ? $card->requests->request_number : '---' }}</td>
-                                        <td>{{ $card->issuing->issuing_date }}</td>
+            <table>
+                <thead>
+                    <tr>
+                        <th>م</th>
+                       
+                        <th>رقم البطاقة</th>
+                        <th>الشركة</th>
+                        <th>حالة البطاقة</th>
+                        <th>رقم الطلب</th>
+                          <th> تاريخ اصدار البطاقة </th>
+                        <th>تاريخ الغاء البطاقة</th>
+                        <th>من قام بالإلغاء</th>
+                        <th>سبب الإلغاء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($cards as $index => $card)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                           
+                            <td>{{ $card->card_number }}</td>
+                            <td>{{ $card->companies ? $card->companies->name : 'الإتحاد الليبي للتأمين' }}</td>
+                            <td>{{ $card->cardstautes->name }}</td>
+                            <td>{{ $card->requests ? $card->requests->request_number : '---' }}</td>
+                                                <td>{{ $card->issuing->issuing_date }}</td>
 
-                    <td>{{ $card->card_delete_date }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                            <td>{{ $card->card_delete_date }}</td>
+                            <td>{{ $card->cancel_by ?? '-' }}</td>
+                            <td>{{ $card->res ?? '-' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
 @endif
 
 <script>
