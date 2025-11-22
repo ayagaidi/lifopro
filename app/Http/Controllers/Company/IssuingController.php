@@ -818,7 +818,7 @@ class IssuingController extends Controller
                             $responseca = json_decode($bodyca->getContents());
                             $code = $responseca->message->code;
 
-                            $cancel_reason = $request->input('res', null);
+                            $cancel_reason = $request->input('cancel_reason', null);
                             $cancel_by = Auth::user()->username ?? Auth::user()->id ?? 'unknown';
 
                             switch ($code) {

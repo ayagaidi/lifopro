@@ -2,39 +2,37 @@
 @section('title', 'تقارير المبيعات ')
 
 @section('content')
- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
- <script>
-   
-    $(document).ready(function() {
-              $('#companies_id').select2({
-        allowClear: true,
-        language: "ar"
-      });
-              $('#company_users_id').select2({
-        placeholder: "اختر مستخدم شركة ...",
-        allowClear: true,
-        language: "ar"
-      });
-      
-      
+    <script>
+        $(document).ready(function() {
+            $('#companies_id').select2({
+                allowClear: true,
+                language: "ar"
+            });
+            $('#company_users_id').select2({
+                placeholder: "اختر مستخدم شركة ...",
+                allowClear: true,
+                language: "ar"
+            });
+
+
             $('#offices_id').select2({
-        placeholder: "اختر مكتب ...",
-        allowClear: true,
-        language: "ar"
-      });
-      
-      
-        
+                placeholder: "اختر مكتب ...",
+                allowClear: true,
+                language: "ar"
+            });
+
+
+
             $('#office_users_id').select2({
-        placeholder: "اختر مستخدم ...",
-        allowClear: true,
-        language: "ar"
-      });
-    });
-            
-            </script>
+                placeholder: "اختر مستخدم ...",
+                allowClear: true,
+                language: "ar"
+            });
+        });
+    </script>
     <div class="row small-spacing">
         <div class="col-md-12">
             <div class="box-content">
@@ -363,269 +361,291 @@
             //     });
             // }
             function confirmCancel(cardNumber) {
-  checkSession();
+                checkSession();
 
-  const reasons = {
-    'خطأ تقني': 'خطأ تقني',
-    'مشكلة في الإنترنت': 'مشكلة في الإنترنت',
-    'خطأ مدخل': 'خطأ مدخل'
-  };
+                const reasons = {
+                    'خطأ تقني': 'خطأ تقني',
+                    'مشكلة في الإنترنت': 'مشكلة في الإنترنت',
+                    'خطأ مدخل': 'خطأ مدخل'
+                };
 
-  Swal.fire({
-    title: 'اختر سبب الإلغاء',
-    input: 'select',
-    inputOptions: reasons,
-    inputPlaceholder: 'سبب الإلغاء',
-    showCancelButton: true,
-    confirmButtonText: 'التالي',
-    cancelButtonText: 'إلغاء'
-  }).then((step1) => {
-    if (!step1.isConfirmed) return;
+                Swal.fire({
+                    title: 'اختر سبب الإلغاء',
+                    input: 'select',
+                    inputOptions: reasons,
+                    inputPlaceholder: 'سبب الإلغاء',
+                    showCancelButton: true,
+                    confirmButtonText: 'التالي',
+                    cancelButtonText: 'إلغاء'
+                }).then((step1) => {
+                    if (!step1.isConfirmed) return;
 
-    const reason = step1.value;
-    if (!reason) {
-      Swal.fire('الرجاء اختيار سبب الإلغاء');
-      return;
-    }
+                    const reason = step1.value;
+                    if (!reason) {
+                        Swal.fire('الرجاء اختيار سبب الإلغاء');
+                        return;
+                    }
 
-    Swal.fire({
-      title: 'تأكيد الإلغاء',
-      text: `سيتم إلغاء الوثيقة بسبب: (${reason}). هل أنت متأكد؟`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'موافق',
-      cancelButtonText: 'إلغاء'
-    }).then((result) => {
-      if (!result.isConfirmed) return;
+                    Swal.fire({
+                        title: 'تأكيد الإلغاء',
+                        text: `سيتم إلغاء الوثيقة بسبب: (${reason}). هل أنت متأكد؟`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'موافق',
+                        cancelButtonText: 'إلغاء'
+                    }).then((result) => {
+                        if (!result.isConfirmed) return;
 
-      // تعطيل زر الإلغاء لهذه البطاقة (اختياري)
-      $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', true);
-      $('#loader-overlay').show();
+                        // تعطيل زر الإلغاء لهذه البطاقة (اختياري)
+                        $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', true);
+                        $('#loader-overlay').show();
 
-      $.ajax({
-        url: '/company/cancelplicy/' + cardNumber,
-        type: 'POST',
-        data: {
-          _token: "{{ csrf_token() }}",
-          cancel_reason: reason
-        },
-        success: function(response) {
-          $('#loader-overlay').hide();
+                        $.ajax({
+                            url: '/company/cancelplicy/' + cardNumber,
+                            type: 'POST',
+                            data: {
+                                _token: "{{ csrf_token() }}",
+                                cancel_reason: reason
+                            },
+                            success: function(response) {
+                                $('#loader-overlay').hide();
 
-          Swal.fire({
-            title: response.status,
-            text: response.message,
-            icon: response.status,
-            confirmButtonColor: '#3085d6'
-          }).then(() => {
-            location.reload();
-          });
-        },
-        error: function(xhr) {
-          $('#loader-overlay').hide();
-          const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'حدث خطأ أثناء عملية الإلغاء';
-          Swal.fire('خطأ', msg, 'error').then(() => {
-            $('button[data-cardnumber="' + cardNumber + '"]').prop('disabled', false);
-          });
-        }
-      });
-    });
-  });
-}
-
-
-function search() {
-    checkSession();
-    $('#loader-overlay').show();
-
-    var userTypeId = @json(auth()->user()->user_type_id);
-
-    var companies_id = $('#companies_id').val();
-    var office_users_id = $('#office_users_id').val();
-    var offices_id = $('#offices_id').val();
-    var company_users_id = $('#company_users_id').val();
-
-    var insurance_name = $('#insurance_name').val();
-    var plate_number = $('#plate_number').val();
-    var chassis_number = $('#chassis_number').val();
-    var card_number = $('#card_number').val();
-    var fromdate = $('#fromdate').val();
-    var todate = $('#todate').val();
-
-    if (!fromdate || !todate) {
-        $('#loader-overlay').hide();
-        swal.fire("الرجاء اختيار تاريخ البدء وتاريخ النهاية");
-        return;
-    }
-
-    const from = new Date(fromdate);
-    const to = new Date(todate);
-    const monthDiff = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
-    if (monthDiff > 3 || (monthDiff === 3 && to.getDate() > from.getDate())) {
-        $('#loader-overlay').hide();
-        Swal.fire("يجب أن تكون الفترة 3 أشهر أو أقل فقط.");
-        return;
-    }
-
-    if (companies_id || offices_id || office_users_id || card_number || insurance_name || plate_number || chassis_number || company_users_id || (fromdate && todate)) {
-        $.ajax({
-            url: '../../company/report/issuing/searchby',
-            type: 'GET',
-            data: {
-                offices_id,
-                companies_id,
-                office_users_id,
-                insurance_name,
-                card_number,
-                chassis_number,
-                plate_number,
-                company_users_id,
-                fromdate,
-                todate,
-            },
-            success: function(response) {
-                $('#loader-overlay').hide();
-
-                if (response.code == 1) {
-                    var extraColumnHeader = '<th> الغاء الوثيقة </th>';
-
-                    $('#searchs').html(
-                        '<div class="table-responsive" data-pattern="priority-columns">' +
-                        '<table id="datatable1" class="table table-bordered table-hover js-basic-example dataTable table-custom" style="cursor: pointer;">' +
-                        '<thead>' +
-                        '<tr>' +
-                        '<th>#</th>' +
-                        '<th>رقم البطاقة</th>' +
-                        '<th>المُصدر</th>' +
-                        '<th>المكتب</th>' +
-                        '<th>المؤمن له</th>' +
-                        '<th>تاريخ الاصدار</th>' +
-                        '<th>صافي القسط</th>' +
-                        '<th>الضريبة</th>' +
-                        '<th>رسم الدمغة</th>' +
-                        '<th>الإشراف</th>' +
-                        '<th>الإصدار</th>' +
-                        '<th>الاجمالي</th>' +
-                        '<th>مدة التأمين من</th>' +
-                        '<th>مدة التأمين الى</th>' +
-                        '<th>عدد الايام</th>' +
-                        '<th>نوع المركبة</th>' +
-                        '<th>رقم اللوحة</th>' +
-                        '<th>رقم الهيكل</th>' +
-                        '<th>رقم المحرك</th>' +
-                        '<th>عرض الوثيقة</th>' +
-                        extraColumnHeader +
-                        '</tr>' +
-                        '</thead>' +
-                        '<tbody id="rowsss"></tbody>' +
-                        '<tfoot id="table-footer"></tfoot>' +
-                        '</table>' +
-                        '</div>'
-                    );
-
-                    let x = 0;
-                    let totalInstallment = 0,
-                        totalTax = 0,
-                        totalStamp = 0,
-                        totalSupervision = 0,
-                        totalVersion = 0,
-                        totalInsurance = 0;
-
-                    response.data.forEach((item, i) => {
-                        totalInstallment += parseFloat(item.insurance_installment) || 0;
-                        totalTax += parseFloat(item.insurance_tax) || 0;
-                        totalStamp += parseFloat(item.insurance_stamp) || 0;
-                        totalSupervision += parseFloat(item.insurance_supervision) || 0;
-                        totalVersion += parseFloat(item.insurance_version) || 0;
-                        totalInsurance += parseFloat(item.insurance_total) || 0;
-
-                        const companies = item.companies ? item.companies.name : 'الإتحاد الليبي للتأمين';
-                        const offices = item.offices ? item.offices.name : 'الفرع الرئيسي';
-                        let user = '';
-                        if (item.company_users_id) user = item.company_users ? item.company_users.username : '';
-                        else if (item.office_users_id) user = item.office_users ? item.office_users.username : '';
-
-                        const cardNumber = item.cards_id;
-                        const url = "{{ route('company/viewdocument', ['cardnumber' => 'PLACEHOLDER']) }}".replace('PLACEHOLDER', encodeURIComponent(cardNumber));
-                        const viewDocLink = '<a style="color: #f97424;" target="_blank" href="' + url + '">' +
-                            '<img src="{{ asset('contract.png') }}" style="width: 50%;"></a>';
-
-                        const cancelPolicyHtml = userTypeId == 1 ?
-                            '<a style="color: #f97424; cursor:pointer;" onclick="return confirmCancel(' + cardNumber + ');">' +
-                            '<img src="{{ asset('ccc.png') }}" style="width: 50%;"></a>' : '';
-
-                        const card = item.cards ? item.cards.card_number : item.id;
-
-                        $('#rowsss').append(
-                            '<tr>' +
-                            '<td>' + (++x) + '</td>' +
-                            '<td>' + card + '</td>' +
-                            '<td>' + user + '</td>' +
-                            '<td>' + offices + '</td>' +
-                            '<td>' + item.insurance_name + '</td>' +
-                            '<td>' + item.issuing_date + '</td>' +
-                            '<td>' + item.insurance_installment + '</td>' +
-                            '<td>' + item.insurance_tax + '</td>' +
-                            '<td>' + item.insurance_stamp + '</td>' +
-                            '<td>' + item.insurance_supervision + '</td>' +
-                            '<td>' + item.insurance_version + '</td>' +
-                            '<td>' + item.insurance_total + '</td>' +
-                            '<td>' + item.insurance_day_from + '</td>' +
-                            '<td>' + item.nsurance_day_to + '</td>' +
-                            '<td>' + item.insurance_days_number + '</td>' +
-                            '<td>' + (item.cars ? item.cars.name : item.cars_id) + '</td>' +
-                            '<td>' + item.plate_number + '</td>' +
-                            '<td>' + item.chassis_number + '</td>' +
-                            '<td>' + item.motor_number + '</td>' +
-                            '<td>' + viewDocLink + '</td>' +
-                            '<td>' + cancelPolicyHtml + '</td>' +
-                            '</tr>'
-                        );
+                                Swal.fire({
+                                    title: response.status,
+                                    text: response.message,
+                                    icon: response.status,
+                                    confirmButtonColor: '#3085d6'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            },
+                            error: function(xhr) {
+                                $('#loader-overlay').hide();
+                                const msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr
+                                    .responseJSON.message : 'حدث خطأ أثناء عملية الإلغاء';
+                                Swal.fire('خطأ', msg, 'error').then(() => {
+                                    $('button[data-cardnumber="' + cardNumber + '"]').prop(
+                                        'disabled', false);
+                                });
+                            }
+                        });
                     });
+                });
+            }
 
-                    const footerHtml = '<tr>' +
-                        '<th colspan="6" style="text-align:center;">الإجمالي</th>' +
-                        '<th>' + totalInstallment.toFixed(3) + '</th>' +
-                        '<th>' + totalTax.toFixed(3) + '</th>' +
-                        '<th>' + totalStamp.toFixed(3) + '</th>' +
-                        '<th>' + totalSupervision.toFixed(3) + '</th>' +
-                        '<th>' + totalVersion.toFixed(3) + '</th>' +
-                        '<th>' + totalInsurance.toFixed(3) + '</th>' +
-                        '<th colspan="8"></th>' +
-                        '</tr>';
-                    $('#table-footer').html(footerHtml);
 
-                    $('#datatable1').DataTable({
-                        language: { url: "{{ asset('Arabic.json') }}" },
-                        lengthMenu: [10, 20, 30, 50],
-                        paging: true,
-                        searching: true,
-                        ordering: true,
-                        dom: 'Blfrtip',
-                        buttons: [
-                            { extend: 'copyHtml5', text: 'نسخ', exportOptions: { columns: ':visible' } },
-                            { extend: 'excelHtml5', text: 'excel تصدير كـ ', exportOptions: { columns: ':visible' }, title: 'تقرير المبيعات من ' + fromdate + ' إلى ' + todate }
-                        ]
+            function search() {
+                checkSession();
+                $('#loader-overlay').show();
+
+                var userTypeId = @json(auth()->user()->user_type_id);
+
+                var companies_id = $('#companies_id').val();
+                var office_users_id = $('#office_users_id').val();
+                var offices_id = $('#offices_id').val();
+                var company_users_id = $('#company_users_id').val();
+
+                var insurance_name = $('#insurance_name').val();
+                var plate_number = $('#plate_number').val();
+                var chassis_number = $('#chassis_number').val();
+                var card_number = $('#card_number').val();
+                var fromdate = $('#fromdate').val();
+                var todate = $('#todate').val();
+
+                if (!fromdate || !todate) {
+                    $('#loader-overlay').hide();
+                    swal.fire("الرجاء اختيار تاريخ البدء وتاريخ النهاية");
+                    return;
+                }
+
+                const from = new Date(fromdate);
+                const to = new Date(todate);
+                const monthDiff = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+                if (monthDiff > 3 || (monthDiff === 3 && to.getDate() > from.getDate())) {
+                    $('#loader-overlay').hide();
+                    Swal.fire("يجب أن تكون الفترة 3 أشهر أو أقل فقط.");
+                    return;
+                }
+
+                if (companies_id || offices_id || office_users_id || card_number || insurance_name || plate_number ||
+                    chassis_number || company_users_id || (fromdate && todate)) {
+                    $.ajax({
+                        url: '../../company/report/issuing/searchby',
+                        type: 'GET',
+                        data: {
+                            offices_id,
+                            companies_id,
+                            office_users_id,
+                            insurance_name,
+                            card_number,
+                            chassis_number,
+                            plate_number,
+                            company_users_id,
+                            fromdate,
+                            todate,
+                        },
+                        success: function(response) {
+                            $('#loader-overlay').hide();
+
+                            if (response.code == 1) {
+                                var extraColumnHeader = '<th> الغاء الوثيقة </th>';
+
+                                $('#searchs').html(
+                                    '<div class="table-responsive" data-pattern="priority-columns">' +
+                                    '<table id="datatable1" class="table table-bordered table-hover js-basic-example dataTable table-custom" style="cursor: pointer;">' +
+                                    '<thead>' +
+                                    '<tr>' +
+                                    '<th>#</th>' +
+                                    '<th>رقم البطاقة</th>' +
+                                    '<th>المُصدر</th>' +
+                                    '<th>المكتب</th>' +
+                                    '<th>المؤمن له</th>' +
+                                    '<th>تاريخ الاصدار</th>' +
+                                    '<th>صافي القسط</th>' +
+                                    '<th>الضريبة</th>' +
+                                    '<th>رسم الدمغة</th>' +
+                                    '<th>الإشراف</th>' +
+                                    '<th>الإصدار</th>' +
+                                    '<th>الاجمالي</th>' +
+                                    '<th>مدة التأمين من</th>' +
+                                    '<th>مدة التأمين الى</th>' +
+                                    '<th>عدد الايام</th>' +
+                                    '<th>نوع المركبة</th>' +
+                                    '<th>رقم اللوحة</th>' +
+                                    '<th>رقم الهيكل</th>' +
+                                    '<th>رقم المحرك</th>' +
+                                    '<th>عرض الوثيقة</th>' +
+                                    extraColumnHeader +
+                                    '</tr>' +
+                                    '</thead>' +
+                                    '<tbody id="rowsss"></tbody>' +
+                                    '<tfoot id="table-footer"></tfoot>' +
+                                    '</table>' +
+                                    '</div>'
+                                );
+
+                                let x = 0;
+                                let totalInstallment = 0,
+                                    totalTax = 0,
+                                    totalStamp = 0,
+                                    totalSupervision = 0,
+                                    totalVersion = 0,
+                                    totalInsurance = 0;
+
+                                response.data.forEach((item, i) => {
+                                    totalInstallment += parseFloat(item.insurance_installment) || 0;
+                                    totalTax += parseFloat(item.insurance_tax) || 0;
+                                    totalStamp += parseFloat(item.insurance_stamp) || 0;
+                                    totalSupervision += parseFloat(item.insurance_supervision) || 0;
+                                    totalVersion += parseFloat(item.insurance_version) || 0;
+                                    totalInsurance += parseFloat(item.insurance_total) || 0;
+
+                                    const companies = item.companies ? item.companies.name :
+                                        'الإتحاد الليبي للتأمين';
+                                    const offices = item.offices ? item.offices.name : 'الفرع الرئيسي';
+                                    let user = '';
+                                    if (item.company_users_id) user = item.company_users ? item
+                                        .company_users.username : '';
+                                    else if (item.office_users_id) user = item.office_users ? item
+                                        .office_users.username : '';
+
+                                    const cardNumber = item.cards_id;
+                                    const url =
+                                        "{{ route('company/viewdocument', ['cardnumber' => 'PLACEHOLDER']) }}"
+                                        .replace('PLACEHOLDER', encodeURIComponent(cardNumber));
+                                    const viewDocLink =
+                                        '<a style="color: #f97424;" target="_blank" href="' + url + '">' +
+                                        '<img src="{{ asset('contract.png') }}" style="width: 50%;"></a>';
+
+                                    const cancelPolicyHtml = userTypeId == 1 ?
+                                        '<a style="color: #f97424; cursor:pointer;" onclick="return confirmCancel(' +
+                                        cardNumber + ');">' +
+                                        '<img src="{{ asset('ccc.png') }}" style="width: 50%;"></a>' : '';
+
+                                    const card = item.cards ? item.cards.card_number : item.id;
+
+                                    $('#rowsss').append(
+                                        '<tr>' +
+                                        '<td>' + (++x) + '</td>' +
+                                        '<td>' + card + '</td>' +
+                                        '<td>' + user + '</td>' +
+                                        '<td>' + offices + '</td>' +
+                                        '<td>' + item.insurance_name + '</td>' +
+                                        '<td>' + item.issuing_date + '</td>' +
+                                        '<td>' + item.insurance_installment + '</td>' +
+                                        '<td>' + item.insurance_tax + '</td>' +
+                                        '<td>' + item.insurance_stamp + '</td>' +
+                                        '<td>' + item.insurance_supervision + '</td>' +
+                                        '<td>' + item.insurance_version + '</td>' +
+                                        '<td>' + item.insurance_total + '</td>' +
+                                        '<td>' + item.insurance_day_from + '</td>' +
+                                        '<td>' + item.nsurance_day_to + '</td>' +
+                                        '<td>' + item.insurance_days_number + '</td>' +
+                                        '<td>' + (item.cars ? item.cars.name : item.cars_id) + '</td>' +
+                                        '<td>' + item.plate_number + '</td>' +
+                                        '<td>' + item.chassis_number + '</td>' +
+                                        '<td>' + item.motor_number + '</td>' +
+                                        '<td>' + viewDocLink + '</td>' +
+                                        '<td>' + cancelPolicyHtml + '</td>' +
+                                        '</tr>'
+                                    );
+                                });
+
+                                const footerHtml = '<tr>' +
+                                    '<th colspan="6" style="text-align:center;">الإجمالي</th>' +
+                                    '<th>' + totalInstallment.toFixed(3) + '</th>' +
+                                    '<th>' + totalTax.toFixed(3) + '</th>' +
+                                    '<th>' + totalStamp.toFixed(3) + '</th>' +
+                                    '<th>' + totalSupervision.toFixed(3) + '</th>' +
+                                    '<th>' + totalVersion.toFixed(3) + '</th>' +
+                                    '<th>' + totalInsurance.toFixed(3) + '</th>' +
+                                    '<th colspan="8"></th>' +
+                                    '</tr>';
+                                $('#table-footer').html(footerHtml);
+
+                                $('#datatable1').DataTable({
+                                    language: {
+                                        url: "{{ asset('Arabic.json') }}"
+                                    },
+                                    lengthMenu: [10, 20, 30, 50],
+                                    paging: true,
+                                    searching: true,
+                                    ordering: true,
+                                    dom: 'Blfrtip',
+                                    buttons: [{
+                                            extend: 'copyHtml5',
+                                            text: 'نسخ',
+                                            exportOptions: {
+                                                columns: ':visible'
+                                            }
+                                        },
+                                        {
+                                            extend: 'excelHtml5',
+                                            text: 'excel تصدير كـ ',
+                                            exportOptions: {
+                                                columns: ':visible'
+                                            },
+                                            title: 'تقرير المبيعات من ' + fromdate + ' إلى ' + todate
+                                        }
+                                    ]
+                                });
+                            } else {
+                                swal.fire("لايوجد مبيعات");
+                                $('#searchs').html("");
+                            }
+                        },
+                        error: function() {
+                            $('#loader-overlay').hide();
+                            swal.fire("حدث خطأ في الاتصال بالخادم");
+                        }
                     });
                 } else {
-                    swal.fire("لايوجد مبيعات");
+                    $('#loader-overlay').hide();
+                    swal.fire(" الرجاء قم باختيار خيار واحد علي الاقل   ");
                     $('#searchs').html("");
                 }
-            },
-            error: function() {
-                $('#loader-overlay').hide();
-                swal.fire("حدث خطأ في الاتصال بالخادم");
             }
-        });
-    } else {
-        $('#loader-overlay').hide();
-        swal.fire(" الرجاء قم باختيار خيار واحد علي الاقل   ");
-        $('#searchs').html("");
-    }
-}
-
-
         </script>
     @endsection
