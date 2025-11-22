@@ -117,10 +117,9 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
-    // Hide page loader and show table after AJAX request
+    // Hide page loader after AJAX request
     table.on('xhr', function() {
         $('#page-loader').hide();
-        tableContainer.show();
     });
 });
 </script>
