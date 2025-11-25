@@ -25,7 +25,7 @@ class TwoFactorAuthService
     public function requiresTwoFactor($user)
     {
         // Super admins (admin role) need 2FA
-        if ($user instanceof User && $user->hasRole('admin')) {
+        if ($user instanceof User) {
             return true;
         }
         
