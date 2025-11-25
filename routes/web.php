@@ -44,6 +44,13 @@ Route::get('2fa/verify', [App\Http\Controllers\TwoFactorAuthController::class, '
 Route::post('2fa/verify', [App\Http\Controllers\TwoFactorAuthController::class, 'verify'])->name('2fa.verify.post');
 Route::post('2fa/resend', [App\Http\Controllers\TwoFactorAuthController::class, 'resendOTP'])->name('2fa.resend');
 
+// Company 2FA Routes
+Route::prefix('company')->name('company.')->group(function () {
+    Route::get('2fa/verify', [App\Http\Controllers\Company\CompanyTwoFactorAuthController::class, 'showVerificationForm'])->name('2fa.verify');
+    Route::post('2fa/verify', [App\Http\Controllers\Company\CompanyTwoFactorAuthController::class, 'verify'])->name('2fa.verify.post');
+    Route::post('2fa/resend', [App\Http\Controllers\Company\CompanyTwoFactorAuthController::class, 'resendOTP'])->name('2fa.resend');
+});
+
 Route::get('refreshcaptcha', [App\Http\Controllers\Auth\LoginController::class, 'refreshcaptcha'])->name('refreshcaptcha');
 Route::get('/', [App\Http\Controllers\IndexController::class, 'index'])->name('/');
 Route::middleware(['check.active'])->group(function () {

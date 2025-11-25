@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use RealRashid\SweetAlert\Facades\Alert;
 use jeremykenedy\LaravelLogger\App\Http\Traits\ActivityLogger;
+use App\Services\TwoFactorAuthService;
 
 use function PHPUnit\Framework\isNull;
 
@@ -29,11 +30,13 @@ class CompanyloginController extends Controller
     use AuthenticatesUsers;
 
     protected $redirectTo = 'company/report/issuing';
+    protected $twoFactorAuth;
 
 
-    public function __construct()
+    public function __construct(TwoFactorAuthService $twoFactorAuth)
     {
         $this->middleware('guest')->except('logout');
+        $this->twoFactorAuth = $twoFactorAuth;
     }
 
 
@@ -125,16 +128,46 @@ class CompanyloginController extends Controller
 
             // Make sure the user is active
             if ($user->active && $this->attemptLogin($request)) {
-                // Send the normal successful login response
-
                 $guardName = $this->guard()->getName();
                 // Reset failed attempts counter on success
                 session(['failed_attempts_' . $guardName => 0]);
+
+                // Check if user requires 2FA (company admin with user_type_id = 1)
+                if ($this->twoFactorAuth->requiresTwoFactor($user)) {
+                    // Generate and send OTP
+                    $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'company_login');
+                    
+                    if ($otpResult['success']) {
+                        // Log successful login before 2FA
+                        ActivityLogger::activity("تسجيل دخول الشركة بنجاح - مطلوب التحقق بخطوتين");
+                        
+                        // Clear the current login session
+                        $this->guard()->logout();
+                        $request->session()->invalidate();
+                        $request->session()->regenerateToken();
+                        
+                        // Start new session for 2FA verification
+                        session(['company_2fa_user_id' => $user->id]);
+                        
+                        return redirect()->route('company.2fa.verify');
+                    } else {
+                        // Failed to send OTP
+                        $this->guard()->logout();
+                        return redirect()
+                            ->back()
+                            ->withInput($request->only($this->username(), 'remember'))
+                            ->withErrors(['username' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى. تأكد من صحة البريد الإلكتروني المسجل في النظام.']);
+                    }
+                }
+
+                // Send the normal successful login response for non-2FA users
+                ActivityLogger::activity("تسجيل دخول الشركة بنجاح");
 
                 return $this->sendLoginResponse($request);
             } else {
                 // Increment the failed login attempts and redirect back to the
                 // login form with an error message.
+                ActivityLogger::activity("فشل تسجيل دخول الشركة");
 
                 $this->incrementLoginAttempts($request);
                 $guardName = $this->guard()->getName();
@@ -149,6 +182,8 @@ class CompanyloginController extends Controller
         // If the login attempt was unsuccessful we will increment the number of attempts
         // to login and redirect the user back to the login form. Of course, when this
         // user surpasses their maximum number of attempts they will get locked out.
+        ActivityLogger::activity("فشل تسجيل دخول الشركة");
+
         $this->incrementLoginAttempts($request);
         $guardName = $this->guard()->getName();
         session(['failed_attempts_' . $guardName => session('failed_attempts_' . $guardName, 0) + 1]);

@@ -11,7 +11,8 @@ class UserOtp extends Model
     
     protected $fillable = [
         'user_id',
-        'type', // 'login', 'reset_password', etc.
+        'user_type', // 'user' or 'company_user'
+        'type', // 'login', 'company_login', 'reset_password', etc.
         'otp_code',
         'expires_at',
         'is_used',
@@ -25,6 +26,9 @@ class UserOtp extends Model
 
     public function user()
     {
+        if ($this->user_type === 'company_user') {
+            return $this->belongsTo(CompanyUser::class, 'user_id');
+        }
         return $this->belongsTo(User::class, 'user_id');
     }
 

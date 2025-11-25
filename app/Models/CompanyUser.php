@@ -15,6 +15,20 @@ class CompanyUser extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
     public $timestamps = false;
 
+    protected $fillable = [
+        'fullname',
+        'username', 
+        'email',
+        'password',
+        'active',
+        'companies_id',
+        'user_type_id',
+        'remember_token',
+        'two_factor_enabled',
+        'two_factor_code',
+        'two_factor_expires_at'
+    ];
+
     public function userType() {
         return $this->belongsTo(UserType::class);
     }

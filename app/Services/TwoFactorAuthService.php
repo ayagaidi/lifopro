@@ -50,14 +50,23 @@ class TwoFactorAuthService
         $expiresAt = Carbon::now()->addMinutes($expiresInMinutes);
 
         // Save OTP to database
-        $otp = UserOtp::create([
+        $otpData = [
             'user_id' => $user->id,
             'type' => $type,
             'otp_code' => $otpCode,
             'expires_at' => $expiresAt,
             'is_used' => false,
             'attempts' => 0,
-        ]);
+        ];
+
+        // Set user_type based on the user model
+        if ($user instanceof \App\Models\CompanyUser) {
+            $otpData['user_type'] = 'company_user';
+        } else {
+            $otpData['user_type'] = 'user';
+        }
+
+        $otp = UserOtp::create($otpData);
 
         // Send email with OTP
         try {
@@ -68,13 +77,13 @@ class TwoFactorAuthService
                 'otp_id' => $otp->id
             ];
         } catch (\Exception $e) {
-            dd($e);
+          
             // Log error and delete the OTP if email fails
             $otp->delete();
             Log::error('2FA Email sending failed: ' . $e->getMessage());
             return [
                 'success' => false,
-                'message' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى.'
+                'message' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى الرجاء التاكد من ان البريد الالكتروني موجود وصحيح.'
             ];
         }
     }
