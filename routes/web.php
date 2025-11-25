@@ -39,6 +39,11 @@ Route::get('/session-status', function () {
 
 Auth::routes(['register' => false]);
 
+// 2FA Routes
+Route::get('2fa/verify', [App\Http\Controllers\TwoFactorAuthController::class, 'showVerificationForm'])->name('2fa.verify');
+Route::post('2fa/verify', [App\Http\Controllers\TwoFactorAuthController::class, 'verify'])->name('2fa.verify.post');
+Route::post('2fa/resend', [App\Http\Controllers\TwoFactorAuthController::class, 'resendOTP'])->name('2fa.resend');
+
 Route::get('refreshcaptcha', [App\Http\Controllers\Auth\LoginController::class, 'refreshcaptcha'])->name('refreshcaptcha');
 Route::get('/', [App\Http\Controllers\IndexController::class, 'index'])->name('/');
 Route::middleware(['check.active'])->group(function () {

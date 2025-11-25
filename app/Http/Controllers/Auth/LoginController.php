@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use jeremykenedy\LaravelLogger\App\Http\Traits\ActivityLogger;
 use App\Models\ActivityLog;
+use App\Services\TwoFactorAuthService;
 
 class LoginController extends Controller
 {
@@ -25,6 +26,8 @@ class LoginController extends Controller
     protected $maxAttempts = 5; // Default is 5
     protected $decayMinutes = 2; 
 
+    protected $twoFactorAuth;
+
     /**
      * Where to redirect users after login.
      *
@@ -37,9 +40,10 @@ class LoginController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(TwoFactorAuthService $twoFactorAuth)
     {
         $this->middleware('guest')->except('logout');
+        $this->twoFactorAuth = $twoFactorAuth;
     }
 
     public function refreshCaptcha()
@@ -104,11 +108,39 @@ class LoginController extends Controller
 
             // Make sure the user is active
             if ($user->active && $this->attemptLogin($request)) {
-                // Send the normal successful login response
-                ActivityLogger::activity("تسجيل دخول بنجاح");
-
                 // Reset failed attempts counter on success
                 session(['failed_attempts_' . $guardName => 0]);
+
+                // Check if user requires 2FA (super admin with admin role)
+                if ($this->twoFactorAuth->requiresTwoFactor($user)) {
+                    // Generate and send OTP
+                    $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'login');
+                    
+                    if ($otpResult['success']) {
+                        // Log successful login before 2FA
+                        ActivityLogger::activity("تسجيل دخول بنجاح - مطلوب التحقق بخطوتين");
+                        
+                        // Clear the current login session
+                        $this->guard()->logout();
+                        $request->session()->invalidate();
+                        $request->session()->regenerateToken();
+                        
+                        // Start new session for 2FA verification
+                        session(['2fa_user_id' => $user->id]);
+                        
+                        return redirect()->route('2fa.verify');
+                    } else {
+                        // Failed to send OTP
+                        $this->guard()->logout();
+                        return redirect()
+                            ->back()
+                            ->withInput($request->only($this->username(), 'remember'))
+                            ->withErrors(['email' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى.']);
+                    }
+                }
+
+                // Send the normal successful login response for non-2FA users
+                ActivityLogger::activity("تسجيل دخول بنجاح");
 
                 return $this->sendLoginResponse($request);
             } else {
