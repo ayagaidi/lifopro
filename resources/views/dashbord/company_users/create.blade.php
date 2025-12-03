@@ -7,7 +7,7 @@
     <div class="row small-spacing">
         <div class="col-md-12">
             <div class="box-content ">
-                <h4 class="box-title"><a href="{{ route('company_users',$Company->id) }}"> الشركات </a>/اضافةمستخدمين شركة {{$Company->name}} </h4>
+                <h4 class="box-title"><a href="{{ route('company_users', $Company->id) }}"> الشركات </a>/اضافةمستخدمين شركة {{ $Company->name }} </h4>
             </div>
         </div>
         <div class="col-md-12">
@@ -80,6 +80,18 @@
                                 </div>
             
                             </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group  col-md-6">
+                            <label for="inputEmail" class="control-label">{{trans('users.email')}}</label>
+                            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" id="email" placeholder="{{trans('users.email')}}" >
+                            @error('email')
+                            <span class="invalid-feedback" style="color: red" role="alert">
+                                {{ $message }}
+                            </span>
+                        @enderror
+                            <div class="help-block with-errors"></div>
                         </div>
                     </div>
                     <div class="form-group" style="text-align: left">

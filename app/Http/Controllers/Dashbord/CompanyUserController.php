@@ -33,7 +33,6 @@ class CompanyUserController extends Controller
             ->with('Company', $Company);
     }
 
-
     public function company_users($comid)
     {
 
@@ -57,9 +56,7 @@ class CompanyUserController extends Controller
                 return '<a href="' . route('company_users/changepassord', $company_users_id) . '"><i  class="fa  fa-lock"> </i></a>';
             })
 
-
             ->rawColumns(['edit', 'changeStatus', 'changepassord'])
-
 
             ->make(true);
     }
@@ -111,7 +108,6 @@ class CompanyUserController extends Controller
             ->with('Company', $Company);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -135,24 +131,25 @@ class CompanyUserController extends Controller
             'user_type_id.required' => "اختر نوع المستخدم",
             'password_confirmation.required' => "قم بادخال تاكيد كلمة المرور  ",
 
+
         ];
         $this->validate($request, [
 
             'username' => 'required|string|max:255|unique:company_users', // Assuming users table stores company username
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => ['required'],
+            'email' => 'required|email|max:100|unique:company_users',
             'user_type_id' => ['required'],
-
 
         ], $messages);
         try {
             DB::transaction(function () use ($request, $comid) {
 
-
                 $company_users = new CompanyUser();
                 $company_users->username = $request->username;
                 $company_users->password = Hash::make($request->password);
                 $company_users->fullname = $request->username;
+                $company_users->email = $request->email;
 
                 $company_users->user_type_id = $request->user_type_id;
                 $company_users->companies_id =  $comid;
@@ -209,17 +206,14 @@ class CompanyUserController extends Controller
         $CompanyUser = CompanyUser::find($CompanyUser_id);
         $messages = [
             'username.required' => "ادخل  اسم المستخدم ",
-
-
+            'email.required' => "ادخل  البريد الألكتروني  ",
             'user_type_id.required' => "اختر نوع الحساب",
-
 
         ];
         $this->validate($request, [
             'username' => ['required', 'string', 'unique:company_users,username,' . $CompanyUser->id], // Exclude current car from unique validation
-
+            'email' => ['required', 'email', 'max:100', 'unique:company_users,email,' . $CompanyUser->id],
             'user_type_id' => 'required',
-
 
         ], $messages);
         try {
@@ -228,6 +222,7 @@ class CompanyUserController extends Controller
                 $CompanyUser = CompanyUser::find($CompanyUser_id);
 
                 $CompanyUser->username = $request->username;
+                $CompanyUser->email = $request->email;
                 $CompanyUser->user_type_id = $request->user_type_id;
 
                 $CompanyUser->save();
@@ -235,7 +230,7 @@ class CompanyUserController extends Controller
             Alert::success("تمت تعديل مستخدم شركة بنجاح");
             ActivityLogger::activity($request->name . "تمت تعديل  مستخدم سشركة بنجاح");
 
-            return redirect()->route('company_users', $CompanyUser->id);
+            return redirect()->route('company_users', $CompanyUser->companies_id);
         } catch (\Exception $e) {
 
             Alert::warning(" فشل تعديل   مستخدم شركة ");
@@ -262,8 +257,9 @@ class CompanyUserController extends Controller
 
         $CompanyUser_id = decrypt($id);
         $CompanyUser = CompanyUser::find($CompanyUser_id);
-        $messages = [
+        $messages =
 
+        [
             'new-password.required' => trans('users.new-password_r'),
             'new-password-confirm.required' => trans('users.new-password-confirm'),
         ];

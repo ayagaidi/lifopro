@@ -50,8 +50,20 @@
                         @enderror
                             <div class="help-block with-errors"></div>
                         </div>
-                       
+
                     </div>
+                    <div class="row">
+                    <div class="form-group  col-md-6">
+                        <label for="inputEmail" class="control-label">{{trans('users.email')}}</label>
+                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ $CompanyUser->email }}" id="email" placeholder="{{trans('users.email')}}" >
+                        @error('email')
+                        <span class="invalid-feedback" style="color: red" role="alert">
+                            {{ $message }}
+                        </span>
+                    @enderror
+                        <div class="help-block with-errors"></div>
+                    </div>
+                </div>
                     <div class="form-group" style="text-align: left">
                         <button type="submit"
                             class="btn btn-primary waves-effect waves-light">تعديل</button>
