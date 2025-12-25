@@ -807,11 +807,14 @@ class RequestsController extends Controller
                 $response = json_decode($bodyca->getContents());
                 ApiLog::create([
                     'user_name' => Auth::user()->username,
+                    'company_name' => $reques->companies ? $reques->companies->name : null,
+                    'office_name' => null,
                     'operation_type' => 'accept_request',
                     'execution_date' => now(),
                     'status' => $response->status == 8076 ? 'success' : 'failure',
                     'sent_data' => json_encode($body),
                     'received_data' => json_encode($response),
+                    'related_link' => route('cardrequests/company'),
                 ]);
                 ActivityLogger::activity("API Response for accept request: " . json_encode($response));
                 $code = $response->status;
@@ -885,11 +888,14 @@ class RequestsController extends Controller
             $reques->save();
             ApiLog::create([
                 'user_name' => Auth::user()->username,
+                'company_name' => $reques->companies ? $reques->companies->name : null,
+                'office_name' => null,
                 'operation_type' => 'reject_request',
                 'execution_date' => now(),
                 'status' => 'success',
                 'sent_data' => json_encode(['request_id' => $reques->id, 'request_number' => $reques->request_number]),
                 'received_data' => json_encode(['message' => 'Request rejected successfully']),
+                'related_link' => route('cardrequests/company'),
             ]);
             Alert::success("تمت عملية رفض   الطلب    بنجاح");
             ActivityLogger::activity("تمت عملية   رفض  الطلب  بنجاح");

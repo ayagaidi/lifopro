@@ -176,11 +176,14 @@ class LifoApiService
 
         ApiLog::create([
             'user_name' => $username ?? (Auth::check() ? Auth::user()->username : 'System'),
+            'company_name' => null,
+            'office_name' => null,
             'operation_type' => $operation_type,
             'execution_date' => now(),
             'status' => $status,
             'sent_data' => $data,
             'received_data' => $body,
+            'related_link' => null,
         ]);
     }
 
