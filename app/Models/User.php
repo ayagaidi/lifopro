@@ -58,7 +58,10 @@ class User extends Authenticatable
         // Log password change
         ActivityLog::create([
             'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور للمستخدم',
             'user_name' => $this->username ?? $this->email,
+            'performed_by' => $this->username ?? $this->email,
+            'target_user' => $this->username ?? $this->email,
             'activity_date' => now(),
             'status' => 'success',
             'reason' => null,

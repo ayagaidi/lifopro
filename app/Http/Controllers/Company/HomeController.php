@@ -369,7 +369,10 @@ public function indexx()
         // Log password change
         ActivityLog::create([
             'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور للمستخدم',
             'user_name' => $user->name ?? $user->username,
+            'performed_by' => Auth::user()->name ?? Auth::user()->username,
+            'target_user' => $user->name ?? $user->username,
             'activity_date' => now(),
             'status' => 'success',
             'reason' => null,

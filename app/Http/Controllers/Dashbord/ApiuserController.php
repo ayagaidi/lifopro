@@ -82,7 +82,10 @@ class ApiuserController extends Controller
                     // Log password change for API user
                     ActivityLog::create([
                         'activity_type' => 'تغيير كلمة المرور',
+                        'detailed_description' => 'تم إنشاء حساب API جديد',
                         'user_name' => $request->username,
+                        'performed_by' => Auth::user()->name ?? Auth::user()->username,
+                        'target_user' => $request->username,
                         'activity_date' => now(),
                         'status' => 'success',
                         'reason' => null,
