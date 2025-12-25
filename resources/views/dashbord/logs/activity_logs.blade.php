@@ -20,6 +20,12 @@
                     <input type="text" id="user_name" class="form-control" placeholder="اسم المستخدم">
                 </div>
                 <div class="col-md-2">
+                    <input type="text" id="performed_by" class="form-control" placeholder="قام بالعملية">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="target_user" class="form-control" placeholder="المستخدم المستهدف">
+                </div>
+                <div class="col-md-2">
                     <input type="text" id="activity_type" class="form-control" placeholder="نوع العملية">
                 </div>
                 <div class="col-md-2">
@@ -32,6 +38,9 @@
                 <div class="col-md-2">
                     <input type="date" id="start_date" class="form-control" placeholder="تاريخ البداية">
                 </div>
+            </div>
+            <br/>
+            <div class="row mb-3">
                 <div class="col-md-2">
                     <input type="date" id="end_date" class="form-control" placeholder="تاريخ النهاية">
                 </div>
@@ -55,7 +64,9 @@
                         <tr>
                             <th>#</th>
                             <th>اسم المستخدم</th>
-                            <th>نوع العملية</th>
+                            <th>قام بالعملية</th>
+                            <th>المستخدم المستهدف</th>
+                            <th>وصف العملية</th>
                             <th>تاريخ ووقت العملية</th>
                             <th>حالة التنفيذ</th>
                             <th>السبب</th>
@@ -78,6 +89,8 @@ $(document).ready(function() {
             url: '{{ route("logs/activity") }}',
             data: function(d) {
                 d.user_name = $('#user_name').val();
+                d.performed_by = $('#performed_by').val();
+                d.target_user = $('#target_user').val();
                 d.activity_type = $('#activity_type').val();
                 d.status = $('#status').val();
                 d.start_date = $('#start_date').val();
@@ -87,7 +100,9 @@ $(document).ready(function() {
         columns: [
             { data: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'user_name' },
-            { data: 'activity_type' },
+            { data: 'performed_by' },
+            { data: 'target_user' },
+            { data: 'detailed_description' },
             { data: 'activity_date' },
             { data: 'status', orderable: false },
             { data: 'reason' }
@@ -105,9 +120,14 @@ $(document).ready(function() {
     tableContainer.hide();
 
     $('#searchBtn').on('click', function() {
-        var hasFilters = $('#user_name').val().trim() !== '' || $('#activity_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        var hasFilters = $('#user_name').val().trim() !== '' || $('#performed_by').val().trim() !== '' || $('#target_user').val().trim() !== '' || $('#activity_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
         if (!hasFilters) {
-            alert('الرجاء تحديد معيار بحث واحد على الأقل.');
+            Swal.fire({
+                title: 'تحذير',
+                text: 'الرجاء تحديد معيار بحث واحد على الأقل.',
+                icon: 'warning',
+                confirmButtonText: 'حسناً'
+            });
             return;
         }
         // show loader

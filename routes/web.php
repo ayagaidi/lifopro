@@ -546,3 +546,7 @@ Route::namespace('Office')->group(function () {
 });
 
 });
+
+// Route::get('/insurance-card-display', function () {
+//     return view('insurance_card');
+// })->name('cardd');

@@ -19,6 +19,12 @@ class LogsController extends Controller
             if ($request->has('user_name') && !empty($request->user_name)) {
                 $query->where('user_name', 'like', '%' . $request->user_name . '%');
             }
+            if ($request->has('performed_by') && !empty($request->performed_by)) {
+                $query->where('performed_by', 'like', '%' . $request->performed_by . '%');
+            }
+            if ($request->has('target_user') && !empty($request->target_user)) {
+                $query->where('target_user', 'like', '%' . $request->target_user . '%');
+            }
             if ($request->has('activity_type') && !empty($request->activity_type)) {
                 $query->where('activity_type', 'like', '%' . $request->activity_type . '%');
             }
@@ -37,13 +43,16 @@ class LogsController extends Controller
                 ->editColumn('activity_date', function ($log) {
                     return $log->activity_date->format('Y-m-d H:i:s');
                 })
-->editColumn('status', function ($log) {
-    if ($log->status == 'success') {
-        return '<span class="badge" style="background-color:#28a745; color:white;">نجح</span>';
-    } else {
-        return '<span class="badge" style="background-color:#dc3545; color:white;">فشل</span>';
-    }
-})
+                ->editColumn('detailed_description', function ($log) {
+                    return $log->detailed_description ?? $log->activity_type;
+                })
+                ->editColumn('status', function ($log) {
+                    if ($log->status == 'success') {
+                        return '<span class="badge" style="background-color:#28a745; color:white;">نجح</span>';
+                    } else {
+                        return '<span class="badge" style="background-color:#dc3545; color:white;">فشل</span>';
+                    }
+                })
                 ->rawColumns(['status'])
                 ->make(true);
         }
@@ -60,6 +69,12 @@ class LogsController extends Controller
             if ($request->has('user_name') && !empty($request->user_name)) {
                 $query->where('user_name', 'like', '%' . $request->user_name . '%');
             }
+            if ($request->has('company_name') && !empty($request->company_name)) {
+                $query->where('company_name', 'like', '%' . $request->company_name . '%');
+            }
+            if ($request->has('office_name') && !empty($request->office_name)) {
+                $query->where('office_name', 'like', '%' . $request->office_name . '%');
+            }
             if ($request->has('operation_type') && !empty($request->operation_type)) {
                 $query->where('operation_type', 'like', '%' . $request->operation_type . '%');
             }
@@ -73,7 +88,7 @@ class LogsController extends Controller
                 $query->whereDate('execution_date', '<=', $request->end_date);
             }
 
-            return DataTables::of($query->select(['user_name', 'operation_type', 'execution_date', 'status', 'sent_data', 'received_data'])->limit(10000)->orderBy('execution_date', 'desc'))
+            return DataTables::of($query->select(['user_name', 'company_name', 'office_name', 'operation_type', 'execution_date', 'status', 'sent_data', 'received_data', 'related_link'])->limit(10000)->orderBy('execution_date', 'desc'))
                 ->addIndexColumn()
                 ->editColumn('execution_date', function ($log) {
                     return $log->execution_date->format('Y-m-d H:i:s');
@@ -85,9 +100,12 @@ class LogsController extends Controller
                     return '<pre style="max-width: 300px; overflow: auto;">' . json_encode($log->sent_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . '</pre>';
                 })
                 ->editColumn('received_data', function ($log) {
-                    return '<pre style="max-width: 300px; overflow: auto;">' . $log->received_data . '</pre>';
+                    return '<pre style="max-width: 300px; overflow: auto;">' . (is_array($log->received_data) ? json_encode($log->received_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $log->received_data) . '</pre>';
                 })
-                ->rawColumns(['status', 'sent_data', 'received_data'])
+                ->editColumn('related_link', function ($log) {
+                    return $log->related_link ? '<a href="' . $log->related_link . '" target="_blank" class="btn btn-sm btn-info">عرض</a>' : '-';
+                })
+                ->rawColumns(['status', 'sent_data', 'received_data', 'related_link'])
                 ->make(true);
         }
 
