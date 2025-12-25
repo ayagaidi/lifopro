@@ -210,7 +210,8 @@ class ApiuserController extends Controller
 
         
             try {
-                DB::transaction(function () use ($request,$apiuser_id) {
+                DB::transaction(function () use ($request,$apiuser_id, $Apiuser) {
+
                     $Apiuser->username = $request->username;
                     if($request->password)
                     {
