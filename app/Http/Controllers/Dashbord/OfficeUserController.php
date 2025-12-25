@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Hash;
 use RealRashid\SweetAlert\Facades\Alert;
 use jeremykenedy\LaravelLogger\App\Http\Traits\ActivityLogger;
 use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Auth;
+
 class OfficeUserController extends Controller
 {
     public function __construct()
@@ -179,11 +181,11 @@ class OfficeUserController extends Controller
             'activity_type' => 'تغيير كلمة المرور',
             'detailed_description' => 'تم تغيير كلمة المرور لمستخدم المكتب',
             'user_name' => $user->name ?? $user->username,
-            'performed_by' => Auth::user()->name ?? Auth::user()->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->name ?? $user->username,
             'activity_date' => now(),
             'status' => 'success',
-            'reason' => null,
+            'reason' => 'تحديث أمني',
         ]);
 
         Alert::success(trans('users.changesecc'));

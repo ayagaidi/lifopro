@@ -272,10 +272,13 @@ class HomeController extends Controller
         // Log password change
         ActivityLog::create([
             'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور لمستخدم المكتب',
             'user_name' => $user->name ?? $user->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
+            'target_user' => $user->name ?? $user->username,
             'activity_date' => now(),
             'status' => 'success',
-            'reason' => null,
+            'reason' => 'تحديث أمني',
         ]);
 
         Alert::success(trans('users.changesecc'));

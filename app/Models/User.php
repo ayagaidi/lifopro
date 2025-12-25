@@ -64,7 +64,7 @@ class User extends Authenticatable
             'target_user' => $this->username ?? $this->email,
             'activity_date' => now(),
             'status' => 'success',
-            'reason' => null,
+            'reason' => 'تحديث أمني',
         ]);
     }
 

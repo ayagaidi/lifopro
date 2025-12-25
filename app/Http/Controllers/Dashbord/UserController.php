@@ -271,10 +271,13 @@ class UserController extends Controller
         // Log password change
         ActivityLog::create([
             'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور للمستخدم',
             'user_name' => $user->name ?? $user->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
+            'target_user' => $user->name ?? $user->username,
             'activity_date' => now(),
             'status' => 'success',
-            'reason' => null,
+            'reason' => 'تحديث أمني',
         ]);
 
         ActivityLogger::activity(trans('users.changesecclogger'));
@@ -315,11 +318,11 @@ class UserController extends Controller
             'activity_type' => 'تغيير كلمة المرور',
             'detailed_description' => 'تم تغيير كلمة المرور للمستخدم',
             'user_name' => $user->name ?? $user->username,
-            'performed_by' => Auth::user()->name ?? Auth::user()->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->name ?? $user->username,
             'activity_date' => now(),
             'status' => 'success',
-            'reason' => null,
+            'reason' => 'تحديث أمني',
         ]);
 
         ActivityLogger::activity(trans('users.changesecclogger'));
