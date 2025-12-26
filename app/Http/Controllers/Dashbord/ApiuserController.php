@@ -73,6 +73,7 @@ class ApiuserController extends Controller
                 DB::transaction(function () use ($request) {
     
     
+                    
                     $Apiuser = new Apiuser();
                     $Apiuser->username = $request->username;
                     $Apiuser->password = encrypt($request->password);
