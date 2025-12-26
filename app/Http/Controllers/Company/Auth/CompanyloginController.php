@@ -133,32 +133,32 @@ class CompanyloginController extends Controller
                 session(['failed_attempts_' . $guardName => 0]);
 
                 // Check if user requires 2FA (company admin with user_type_id = 1)
-                if ($this->twoFactorAuth->requiresTwoFactor($user)) {
-                    // Generate and send OTP
-                    $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'company_login');
-                    
-                    if ($otpResult['success']) {
-                        // Log successful login before 2FA
-                        ActivityLogger::activity("تسجيل دخول الشركة بنجاح - مطلوب التحقق بخطوتين");
+                // if ($this->twoFactorAuth->requiresTwoFactor($user)) {
+                //     // Generate and send OTP
+                //     $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'company_login');
+                  
+                //     if ($otpResult['success']) {
+                //         // Log successful login before 2FA
+                //         ActivityLogger::activity("تسجيل دخول الشركة بنجاح - مطلوب التحقق بخطوتين");
                         
-                        // Clear the current login session
-                        $this->guard()->logout();
-                        $request->session()->invalidate();
-                        $request->session()->regenerateToken();
+                //         // Clear the current login session
+                //         $this->guard()->logout();
+                //         $request->session()->invalidate();
+                //         $request->session()->regenerateToken();
                         
-                        // Start new session for 2FA verification
-                        session(['company_2fa_user_id' => $user->id]);
+                //         // Start new session for 2FA verification
+                //         session(['company_2fa_user_id' => $user->id]);
                         
-                        return redirect()->route('company.2fa.verify');
-                    } else {
-                        // Failed to send OTP
-                        $this->guard()->logout();
-                        return redirect()
-                            ->back()
-                            ->withInput($request->only($this->username(), 'remember'))
-                            ->withErrors(['username' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى. تأكد من صحة البريد الإلكتروني المسجل في النظام.']);
-                    }
-                }
+                //         return redirect()->route('company.2fa.verify');
+                //     } else {
+                //         // Failed to send OTP
+                //         $this->guard()->logout();
+                //         return redirect()
+                //             ->back()
+                //             ->withInput($request->only($this->username(), 'remember'))
+                //             ->withErrors(['username' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى. تأكد من صحة البريد الإلكتروني المسجل في النظام.']);
+                //     }
+                // }
 
                 // Send the normal successful login response for non-2FA users
                 ActivityLogger::activity("تسجيل دخول الشركة بنجاح");

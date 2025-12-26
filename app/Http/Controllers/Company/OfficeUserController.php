@@ -8,6 +8,7 @@ use App\Models\OfficeUser;
 use App\Models\OfficeUserPermissions;
 use App\Models\OfficeUserRole;
 use App\Models\UserType;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -266,6 +267,19 @@ class OfficeUserController extends Controller
         $user = $OfficeUser;
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+        
+        // Log password change for office user
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور لحساب مستخدم المكتب',
+            'user_name' => $user->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
+            'target_user' => $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => 'تغيير كلمة المرور',
+        ]);
+        
         Alert::success(trans('users.changesecc'));
                 return redirect()->route('company/offices_users', $OfficeUser->offices_id);
 

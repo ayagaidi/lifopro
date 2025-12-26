@@ -8,6 +8,7 @@ use App\Models\CompanyUser;
 use App\Models\CompanyUserPermissions;
 use App\Models\CompanyUserRole;
 use App\Models\UserType;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -151,6 +152,19 @@ class CompanyUserController extends Controller
         $user = $CompanyUser;
         $user->password = Hash::make($request->input('new-password'));
         $user->save();
+        
+        // Log password change for API user
+        ActivityLog::create([
+            'activity_type' => 'تغيير كلمة المرور',
+            'detailed_description' => 'تم تغيير كلمة المرور لحساب مستخدم الشركة',
+            'user_name' => $user->username,
+            'performed_by' => Auth::user()->username ?? Auth::user()->username,
+            'target_user' => $user->username,
+            'activity_date' => now(),
+            'status' => 'success',
+            'reason' => 'تغيير كلمة المرور',
+        ]);
+        
         Alert::success(trans('users.changesecc'));
                    return redirect()->route('company/company_users');
 
