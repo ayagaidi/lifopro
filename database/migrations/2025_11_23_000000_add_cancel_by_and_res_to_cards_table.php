@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cards', function (Blueprint $table) {
-            $table->string('cancel_by')->nullable()->after('cardstautes_id');
-            $table->string('res')->nullable()->after('cancel_by');
+            if (!Schema::hasColumn('cards', 'cancel_by')) {
+                $table->string('cancel_by')->nullable()->after('cardstautes_id');
+            }
+            if (!Schema::hasColumn('cards', 'res')) {
+                $table->string('res')->nullable()->after('cancel_by');
+            }
         });
     }
 

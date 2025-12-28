@@ -10,10 +10,15 @@ use Yajra\DataTables\DataTables;
 
 class LogsController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
     public function activityLogs(Request $request)
     {
         if ($request->ajax()) {
-            $query = ActivityLog::query();
+            $query = ActivityLog::query()->whereNotNull('target_user');
 
             // Apply filters
             if ($request->has('user_name') && !empty($request->user_name)) {
@@ -37,8 +42,14 @@ class LogsController extends Controller
             if ($request->has('end_date') && !empty($request->end_date)) {
                 $query->whereDate('activity_date', '<=', $request->end_date);
             }
+            if ($request->has('company_name') && !empty($request->company_name)) {
+                $query->where('company_name', 'like', '%' . $request->company_name . '%');
+            }
+            if ($request->has('office_name') && !empty($request->office_name)) {
+                $query->where('office_name', 'like', '%' . $request->office_name . '%');
+            }
 
-            return DataTables::of($query->orderBy('activity_date', 'desc'))
+            return DataTables::of($query->orderBy('activity_date', 'desc')->limit(1))
                 ->addIndexColumn()
                 ->editColumn('activity_date', function ($log) {
                     return $log->activity_date->format('Y-m-d H:i:s');

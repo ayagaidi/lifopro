@@ -15,6 +15,8 @@ class ActivityLog extends Model
         'user_name',
         'performed_by',
         'target_user',
+        'company_name',
+        'office_name',
         'activity_date',
         'status',
         'reason',

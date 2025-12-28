@@ -16,16 +16,14 @@
         <div class="box-content">
             {{-- Search Filters --}}
             <div class="row mb-3">
-                <div class="col-md-2">
-                    <input type="text" id="user_name" class="form-control" placeholder="اسم المستخدم">
-                </div>
-                <div class="col-md-2">
+                
+                <div class="col-md-3">
                     <input type="text" id="company_name" class="form-control" placeholder="اسم الشركة">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <input type="text" id="office_name" class="form-control" placeholder="اسم المكتب">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <input type="text" id="operation_type" class="form-control" placeholder="نوع العملية">
                 </div>
                 <div class="col-md-2">
@@ -35,13 +33,14 @@
                         <option value="failure">فشل</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <input type="date" id="start_date" class="form-control" placeholder="تاريخ البداية">
-                </div>
+               
             </div>
             <br/>
             <div class="row mb-3">
-                <div class="col-md-2">
+                 <div class="col-md-3">
+                    <input type="date" id="start_date" class="form-control" placeholder="تاريخ البداية">
+                </div>
+                <div class="col-md-3">
                     <input type="date" id="end_date" class="form-control" placeholder="تاريخ النهاية">
                 </div>
                 <div class="col-md-2">
@@ -63,7 +62,6 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>اسم المستخدم</th>
                             <th>اسم الشركة</th>
                             <th>اسم المكتب</th>
                             <th>نوع العملية</th>
@@ -90,7 +88,6 @@ $(document).ready(function() {
         ajax: {
             url: '{{ route("logs/api") }}',
             data: function(d) {
-                d.user_name = $('#user_name').val();
                 d.company_name = $('#company_name').val();
                 d.office_name = $('#office_name').val();
                 d.operation_type = $('#operation_type').val();
@@ -101,7 +98,6 @@ $(document).ready(function() {
         },
         columns: [
             { data: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'user_name' },
             { data: 'company_name' },
             { data: 'office_name' },
             { data: 'operation_type' },
@@ -123,7 +119,7 @@ $(document).ready(function() {
     tableContainer.hide();
 
     $('#searchBtn').on('click', function() {
-        var hasFilters = $('#user_name').val().trim() !== '' || $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        var hasFilters =  $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
         if (!hasFilters) {
             Swal.fire({
                 title: 'تحذير',
