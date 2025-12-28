@@ -373,6 +373,8 @@ public function indexx()
             'user_name' => $user->name ?? $user->username,
             'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->name ?? $user->username,
+            'company_name' => $user->companies->name ?? null,
+            'office_name' => null, // Company users don't belong to an office
             'activity_date' => now(),
             'status' => 'success',
             'reason' => 'تحديث أمني',
