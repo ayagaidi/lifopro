@@ -807,7 +807,7 @@ class RequestsController extends Controller
                 $response = json_decode($bodyca->getContents());
                 ApiLog::create([
                     'user_name' => Auth::user()->username,
-                    'company_name' => $reques->companies ? $reques->companies->name : null,
+                    'company_name' => $reques->companies ? Auth::user()->username->companies->name : null,
                     'office_name' => null,
                     'operation_type' => 'accept_request',
                     'execution_date' => now(),
@@ -888,7 +888,7 @@ class RequestsController extends Controller
             $reques->save();
             ApiLog::create([
                 'user_name' => Auth::user()->username,
-                'company_name' => $reques->companies ? $reques->companies->name : null,
+                'company_name' => $reques->companies ? Auth::user()->username->companies->name : null,
                 'office_name' => null,
                 'operation_type' => 'reject_request',
                 'execution_date' => now(),
