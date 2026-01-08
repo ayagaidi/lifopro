@@ -111,33 +111,33 @@ class LoginController extends Controller
                 // Reset failed attempts counter on success
                 session(['failed_attempts_' . $guardName => 0]);
 
-                // Check if user requires 2FA (super admin with admin role)
-                if ($this->twoFactorAuth->requiresTwoFactor($user)) {
-                    // Generate and send OTP
-                    $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'login');
+                // // Check if user requires 2FA (super admin with admin role)
+                // if ($this->twoFactorAuth->requiresTwoFactor($user)) {
+                //     // Generate and send OTP
+                //     $otpResult = $this->twoFactorAuth->generateAndSendOTP($user, 'login');
                     
-                    if ($otpResult['success']) {
-                        // Log successful login before 2FA
-                        ActivityLogger::activity("تسجيل دخول بنجاح - مطلوب التحقق بخطوتين");
+                //     if ($otpResult['success']) {
+                //         // Log successful login before 2FA
+                //         ActivityLogger::activity("تسجيل دخول بنجاح - مطلوب التحقق بخطوتين");
                         
-                        // Clear the current login session
-                        $this->guard()->logout();
-                        $request->session()->invalidate();
-                        $request->session()->regenerateToken();
+                //         // Clear the current login session
+                //         $this->guard()->logout();
+                //         $request->session()->invalidate();
+                //         $request->session()->regenerateToken();
                         
-                        // Start new session for 2FA verification
-                        session(['2fa_user_id' => $user->id]);
+                //         // Start new session for 2FA verification
+                //         session(['2fa_user_id' => $user->id]);
                         
-                        return redirect()->route('2fa.verify');
-                    } else {
-                        // Failed to send OTP
-                        $this->guard()->logout();
-                        return redirect()
-                            ->back()
-                            ->withInput($request->only($this->username(), 'remember'))
-                            ->withErrors(['email' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى.']);
-                    }
-                }
+                //         return redirect()->route('2fa.verify');
+                //     } else {
+                //         // Failed to send OTP
+                //         $this->guard()->logout();
+                //         return redirect()
+                //             ->back()
+                //             ->withInput($request->only($this->username(), 'remember'))
+                //             ->withErrors(['email' => 'فشل في إرسال رمز التحقق. يرجى المحاولة مرة أخرى.']);
+                //     }
+                // }
 
                 // Send the normal successful login response for non-2FA users
                 ActivityLogger::activity("تسجيل دخول بنجاح");
