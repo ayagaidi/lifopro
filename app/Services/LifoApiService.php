@@ -226,21 +226,28 @@ class LifoApiService
             $officeUser = Auth::guard('officess')->user();
             $office_name = $officeUser->offices ? $officeUser->offices->name : null;
             $company_name = $officeUser->offices && $officeUser->offices->companies ? $officeUser->offices->companies->name : null;
+                          $office_user_name = $officeUser->username;
+
         } elseif (Auth::guard('companys')->check()) {
             // Company user is logged in
             $companyUser = Auth::guard('companys')->user();
             $company_name = $companyUser->companies ? $companyUser->companies->name : null;
+            $office_user_name =  null;
         } elseif (Auth::check()) {
             // Regular user is logged in
             $user = Auth::user();
             $company_name = $user->companies ? $user->companies->name : null;
             $office_name = $user->offices ? $user->offices->name : null;
+                        $office_user_name =  null;
+
         }
 
         ApiLog::create([
             'user_name' => $username ?? (Auth::check() ? Auth::user()->username : (Auth::guard('officess')->check() ? Auth::guard('officess')->user()->username : (Auth::guard('companys')->check() ? Auth::guard('companys')->user()->username : 'System'))),
             'company_name' => $company_name,
             'office_name' => $office_name,
+                                'office_user_name' => $office_user_name,
+
             'operation_type' => $operation_type,
             'execution_date' => now(),
             'status' => $status,
