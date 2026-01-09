@@ -174,16 +174,63 @@ class LifoApiService
             $stream->rewind();
         }
 
+        // Determine related link based on operation type
+        $related_link = null;
+        switch ($operation_type) {
+            case 'getAuth':
+                $related_link = route('login');
+                break;
+            case 'issuingPolicy':
+            case 'cancelPolicy':
+            case 'policystatus':
+                $related_link = route('home'); // Changed from policies.index to home
+                break;
+            case 'newrequestadmin':
+            case 'requeststatusadmin':
+            case 'addcardsadmin':
+            case 'newrequest':
+            case 'requeststatus':
+            case 'addcards':
+                $related_link = route('cardrequests');
+                break;
+            case 'postInsCompCertificateBook':
+            case 'printcard':
+                $related_link = route('cards.index');
+                break;
+            default:
+                $related_link = url('/');
+        }
+
+        // Determine company_name and office_name based on user type
+        $company_name = null;
+        $office_name = null;
+        
+        if (Auth::guard('officess')->check()) {
+            // Office user is logged in
+            $officeUser = Auth::guard('officess')->user();
+            $office_name = $officeUser->offices ? $officeUser->offices->name : null;
+            $company_name = $officeUser->offices && $officeUser->offices->companies ? $officeUser->offices->companies->name : null;
+        } elseif (Auth::guard('companys')->check()) {
+            // Company user is logged in
+            $companyUser = Auth::guard('companys')->user();
+            $company_name = $companyUser->companies ? $companyUser->companies->name : null;
+        } elseif (Auth::check()) {
+            // Regular user is logged in
+            $user = Auth::user();
+            $company_name = $user->companies ? $user->companies->name : null;
+            $office_name = $user->offices ? $user->offices->name : null;
+        }
+
         ApiLog::create([
-            'user_name' => $username ?? (Auth::check() ? Auth::user()->username : 'System'),
-                'company_name' => Auth::check() ? Auth::user()->companies->name : null,
-            'office_name' =>  Auth::user()->offices ? Auth::user()->offices->name : null,
+            'user_name' => $username ?? (Auth::check() ? Auth::user()->username : (Auth::guard('officess')->check() ? Auth::guard('officess')->user()->username : (Auth::guard('companys')->check() ? Auth::guard('companys')->user()->username : 'System'))),
+            'company_name' => $company_name,
+            'office_name' => $office_name,
             'operation_type' => $operation_type,
             'execution_date' => now(),
             'status' => $status,
             'sent_data' => $data,
             'received_data' => $body,
-            'related_link' => null,
+            'related_link' => $related_link,
         ]);
     }
 
