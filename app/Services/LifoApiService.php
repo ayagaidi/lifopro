@@ -176,8 +176,8 @@ class LifoApiService
 
         ApiLog::create([
             'user_name' => $username ?? (Auth::check() ? Auth::user()->username : 'System'),
-                'company_name' => Auth::check() ? Auth::user()->username->companies->name : null,
-            'office_name' =>  Auth::check() ? Auth::user()->offices->name : null,
+                'company_name' => Auth::check() ? Auth::user()->companies->name : null,
+            'office_name' =>  Auth::user()->offices ? Auth::user()->offices->name : null,
             'operation_type' => $operation_type,
             'execution_date' => now(),
             'status' => $status,
