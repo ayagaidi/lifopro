@@ -114,7 +114,7 @@ class LogsController extends Controller
                     return '<pre style="max-width: 300px; overflow: auto;">' . (is_array($log->received_data) ? json_encode($log->received_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) : $log->received_data) . '</pre>';
                 })
                 ->editColumn('related_link', function ($log) {
-                    return $log->related_link ? '<a href="' . $log->related_link . '" target="_blank" class="btn btn-sm btn-info">عرض</a>' : '-';
+                    return $log->related_link ? '<a href="' . $log->related_link . '" target="_blank" >'.$log->related_link .'</a>' : '-';
                 })
                 ->rawColumns(['status', 'sent_data', 'received_data', 'related_link'])
                 ->make(true);

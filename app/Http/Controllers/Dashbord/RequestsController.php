@@ -805,10 +805,25 @@ class RequestsController extends Controller
                 $newrequest = $lifos->postInsCompCertificateBook($headers, $body);
                 $bodyca = $newrequest->getBody();
                 $response = json_decode($bodyca->getContents());
+                
+                // Determine office_name and office_user_name based on user type
+                $office_name = null;
+                $office_user_name = null;
+                if (Auth::guard('officess')->check()) {
+                    $officeUser = Auth::guard('officess')->user();
+                    $office_name = $officeUser->offices ? $officeUser->offices->name : null;
+                    $office_user_name = $officeUser->username;
+                } elseif (Auth::check()) {
+                    $user = Auth::user();
+                    $office_name = $user->offices ? $user->offices->name : null;
+                    $office_user_name = $user->username;
+                }
+                
                 ApiLog::create([
                     'user_name' => Auth::user()->username,
                     'company_name' => $reques->companies ? Auth::user()->username->companies->name : null,
-                    'office_name' => null,
+                    'office_name' => $office_name,
+                    'office_user_name' => $office_user_name,
                     'operation_type' => 'accept_request',
                     'execution_date' => now(),
                     'status' => $response->status == 8076 ? 'success' : 'failure',
@@ -886,10 +901,24 @@ class RequestsController extends Controller
             $reques->request_statuses_id = 3;
             $reques->rejected_by = Auth::id();
             $reques->save();
+            // Determine office_name and office_user_name based on user type
+            $office_name = null;
+            $office_user_name = null;
+            if (Auth::guard('officess')->check()) {
+                $officeUser = Auth::guard('officess')->user();
+                $office_name = $officeUser->offices ? $officeUser->offices->name : null;
+                $office_user_name = $officeUser->username;
+            } elseif (Auth::check()) {
+                $user = Auth::user();
+                $office_name = $user->offices ? $user->offices->name : null;
+                $office_user_name = $user->username;
+            }
+            
             ApiLog::create([
                 'user_name' => Auth::user()->username,
                 'company_name' => $reques->companies ? Auth::user()->username->companies->name : null,
-                'office_name' => null,
+                'office_name' => $office_name,
+                'office_user_name' => $office_user_name,
                 'operation_type' => 'reject_request',
                 'execution_date' => now(),
                 'status' => 'success',

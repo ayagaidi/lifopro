@@ -13,6 +13,7 @@ class ApiLog extends Model
         'user_name',
         'company_name',
         'office_name',
+        'office_user_name',
         'operation_type',
         'execution_date',
         'status',
