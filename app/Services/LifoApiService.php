@@ -174,31 +174,47 @@ class LifoApiService
             $stream->rewind();
         }
 
-        // Determine related link based on operation type
+        // Determine related link based on operation type - use API endpoints
         $related_link = null;
         switch ($operation_type) {
             case 'getAuth':
-                $related_link = route('login');
+                $related_link = $this->url . 'OcUser/GetToken';
                 break;
             case 'issuingPolicy':
+                $related_link = $this->url . 'OcPolicy/NewPolicy';
+                break;
             case 'cancelPolicy':
+                $related_link = $this->url . 'OcPolicy/PolicyStatusChange';
+                break;
             case 'policystatus':
-                $related_link = route('home'); // Changed from policies.index to home
+                $related_link = $this->url . 'OcPolicy/OCPolStatus';
                 break;
             case 'newrequestadmin':
+                $related_link = $this->url . 'OcRequest/NewUORequest';
+                break;
             case 'requeststatusadmin':
+                $related_link = $this->url . 'OcRequest/UoRequestStatus';
+                break;
             case 'addcardsadmin':
+                $related_link = $this->url . 'OcRequest/UoOcSerialRequest';
+                break;
             case 'newrequest':
+                $related_link = $this->url . 'OcRequest/NewICRequest';
+                break;
             case 'requeststatus':
+                $related_link = $this->url . 'OcRequest/IcRequestStatus';
+                break;
             case 'addcards':
-                $related_link = route('cardrequests');
+                $related_link = $this->url . 'OcRequest/IcOcSerialRequest';
                 break;
             case 'postInsCompCertificateBook':
+                $related_link = $this->url . 'OrangeCardServices/PostInsCompCertificateBook';
+                break;
             case 'printcard':
-                $related_link = route('cards.index');
+                $related_link = $this->url . 'OcRequest/OCCertificate';
                 break;
             default:
-                $related_link = url('/');
+                $related_link = $this->url;
         }
 
         // Determine company_name and office_name based on user type
