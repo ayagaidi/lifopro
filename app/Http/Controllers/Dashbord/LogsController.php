@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Models\ApiLog;
+use App\Models\Office;
 use Yajra\DataTables\DataTables;
 
 class LogsController extends Controller
@@ -86,6 +87,9 @@ class LogsController extends Controller
             if ($request->has('office_name') && !empty($request->office_name)) {
                 $query->where('office_name', 'like', '%' . $request->office_name . '%');
             }
+            if ($request->has('office_user_name') && !empty($request->office_user_name)) {
+                $query->where('office_user_name', 'like', '%' . $request->office_user_name . '%');
+            }
             if ($request->has('operation_type') && !empty($request->operation_type)) {
                 $query->where('operation_type', 'like', '%' . $request->operation_type . '%');
             }
@@ -99,7 +103,7 @@ class LogsController extends Controller
                 $query->whereDate('execution_date', '<=', $request->end_date);
             }
 
-            return DataTables::of($query->select(['user_name', 'company_name', 'office_name', 'office_user_name', 'operation_type', 'execution_date', 'status', 'sent_data', 'received_data', 'related_link'])->limit(10000)->orderBy('execution_date', 'desc'))
+            return DataTables::of($query->select(['user_name', 'company_name', 'office_name', 'office_user_name', 'operation_type', 'execution_date', 'status', 'sent_data', 'received_data', 'related_link'])->orderBy('execution_date', 'desc'))
                 ->addIndexColumn()
                 ->editColumn('execution_date', function ($log) {
                     return $log->execution_date->format('Y-m-d H:i:s');
@@ -121,5 +125,15 @@ class LogsController extends Controller
         }
 
         return view('dashbord.logs.api_logs');
+    }
+
+    public function getOfficesByCompany(Request $request)
+    {
+        $companyName = $request->input('company_name');
+        $offices = Office::whereHas('companies', function($query) use ($companyName) {
+            $query->where('name', 'like', '%' . $companyName . '%');
+        })->get();
+
+        return response()->json($offices);
     }
 }

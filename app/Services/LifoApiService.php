@@ -243,7 +243,7 @@ class LifoApiService
         }
 
         ApiLog::create([
-            'user_name' => $username ?? (Auth::check() ? Auth::user()->username : (Auth::guard('officess')->check() ? Auth::guard('officess')->user()->username : (Auth::guard('companys')->check() ? Auth::guard('companys')->user()->username : 'System'))),
+            'user_name' => $username ?? (Auth::check() ? Auth::user()->username : (Auth::guard('officess')->check() ? Auth::guard('officess')->user()->username : (Auth::guard('companys')->check() ? Auth::guard('companys')->user()->username : (Auth::guard('admin')->check() ? Auth::guard('admin')->user()->username : 'System')))),
             'company_name' => $company_name,
             'office_name' => $office_name,
                                 'office_user_name' => $office_user_name,

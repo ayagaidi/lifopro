@@ -16,27 +16,55 @@
         <div class="box-content">
             {{-- Search Filters --}}
             <div class="row mb-3">
+                @php
+                    $companies = App\Models\Company::all();
+                @endphp
                 
                 <div class="col-md-3">
-                    <input type="text" id="company_name" class="form-control" placeholder="اسم الشركة">
+                    <select id="company_name" class="form-control">
+                        <option value="">اختر الشركة</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->name }}">{{ $company->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="office_name" class="form-control" placeholder="اسم المكتب">
+                    <select id="office_name" class="form-control">
+                        <option value="">اختر المكتب</option>
+                    </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="operation_type" class="form-control" placeholder="نوع العملية">
+                    <input type="text" id="office_user_name" class="form-control" placeholder="اسم مستخدم المكتب">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
+                    <select id="operation_type" class="form-control">
+                        <option value="">اختر نوع العملية</option>
+                        <option value="getAuth">getAuth - تسجيل الدخول</option>
+                        <option value="issuingPolicy">issuingPolicy - إصدار بوليصة</option>
+                        <option value="cancelPolicy">cancelPolicy - إلغاء بوليصة</option>
+                        <option value="policystatus">policystatus - حالة البوليصة</option>
+                        <option value="newrequestadmin">newrequestadmin - طلب جديد (أدمن)</option>
+                        <option value="requeststatusadmin">requeststatusadmin - حالة الطلب (أدمن)</option>
+                        <option value="addcardsadmin">addcardsadmin - إضافة بطاقات (أدمن)</option>
+                        <option value="newrequest">newrequest - طلب جديد</option>
+                        <option value="requeststatus">requeststatus - حالة الطلب</option>
+                        <option value="addcards">addcards - إضافة بطاقات</option>
+                        <option value="postInsCompCertificateBook">postInsCompCertificateBook - شهادة التأمين</option>
+                        <option value="printcard">printcard - طباعة البطاقة</option>
+                    </select>
+                </div>
+               
+               
+            </div>
+            <br/>
+            <div class="row mb-3">
+                 <div class="col-md-3">
                     <select id="status" class="form-control">
                         <option value="">جميع الحالات</option>
                         <option value="success">نجح</option>
                         <option value="failure">فشل</option>
                     </select>
                 </div>
-               
-            </div>
-            <br/>
-            <div class="row mb-3">
                  <div class="col-md-3">
                     <input type="date" id="start_date" class="form-control" placeholder="تاريخ البداية">
                 </div>
@@ -91,6 +119,7 @@ $(document).ready(function() {
             data: function(d) {
                 d.company_name = $('#company_name').val();
                 d.office_name = $('#office_name').val();
+                d.office_user_name = $('#office_user_name').val();
                 d.operation_type = $('#operation_type').val();
                 d.status = $('#status').val();
                 d.start_date = $('#start_date').val();
@@ -141,6 +170,28 @@ $(document).ready(function() {
     // Hide page loader after AJAX request
     table.on('xhr', function() {
         $('#page-loader').hide();
+    });
+
+    // Dynamic office loading based on company selection
+    $('#company_name').on('change', function() {
+        var companyName = $(this).val();
+        if (companyName) {
+            $.ajax({
+                url: '{{ route("logs/getOfficesByCompany") }}',
+                method: 'GET',
+                data: { company_name: companyName },
+                success: function(data) {
+                    var officeSelect = $('#office_name');
+                    officeSelect.empty();
+                    officeSelect.append('<option value="">اختر المكتب</option>');
+                    $.each(data, function(index, office) {
+                        officeSelect.append('<option value="' + office.name + '">' + office.name + '</option>');
+                    });
+                }
+            });
+        } else {
+            $('#office_name').empty().append('<option value="">اختر المكتب</option>');
+        }
     });
 });
 </script>

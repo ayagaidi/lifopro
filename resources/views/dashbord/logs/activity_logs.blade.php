@@ -16,6 +16,9 @@
         <div class="box-content">
             {{-- Search Filters --}}
             <div class="row mb-3">
+                @php
+                    $companies = App\Models\Company::all();
+                @endphp
 
                 <div class="col-md-2">
                     <input type="text" id="performed_by" class="form-control" placeholder="قام بالعملية">
@@ -24,10 +27,17 @@
                     <input type="text" id="target_user" class="form-control" placeholder="المستخدم المستهدف">
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="company_name" class="form-control" placeholder="اسم الشركة">
+                    <select id="company_name" class="form-control">
+                        <option value="">اختر الشركة</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->name }}">{{ $company->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="col-md-2">
-                    <input type="text" id="office_name" class="form-control" placeholder="اسم المكتب">
+                    <select id="office_name" class="form-control">
+                        <option value="">اختر المكتب</option>
+                    </select>
                 </div>
                 <div class="col-md-2">
                     <input type="text" id="activity_type" class="form-control" placeholder="نوع العملية">
@@ -148,6 +158,28 @@ $(document).ready(function() {
     // Hide page loader after AJAX request
     table.on('xhr', function() {
         $('#page-loader').hide();
+    });
+
+    // Dynamic office loading based on company selection
+    $('#company_name').on('change', function() {
+        var companyName = $(this).val();
+        if (companyName) {
+            $.ajax({
+                url: '{{ route("logs/getOfficesByCompany") }}',
+                method: 'GET',
+                data: { company_name: companyName },
+                success: function(data) {
+                    var officeSelect = $('#office_name');
+                    officeSelect.empty();
+                    officeSelect.append('<option value="">اختر المكتب</option>');
+                    $.each(data, function(index, office) {
+                        officeSelect.append('<option value="' + office.name + '">' + office.name + '</option>');
+                    });
+                }
+            });
+        } else {
+            $('#office_name').empty().append('<option value="">اختر المكتب</option>');
+        }
     });
 });
 </script>

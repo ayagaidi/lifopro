@@ -331,6 +331,7 @@ Route::get('/report/issuing/{year}/export-pdf', [App\Http\Controllers\Dashbord\R
 
     Route::get('logs/activity', [App\Http\Controllers\Dashbord\LogsController::class, 'activityLogs'])->name('logs/activity');
     Route::get('logs/api', [App\Http\Controllers\Dashbord\LogsController::class, 'apiLogs'])->name('logs/api');
+    Route::get('logs/getOfficesByCompany', [App\Http\Controllers\Dashbord\LogsController::class, 'getOfficesByCompany'])->name('logs/getOfficesByCompany');
 
 });
 
