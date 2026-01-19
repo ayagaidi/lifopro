@@ -120,6 +120,7 @@ $(document).ready(function() {
                             <th>اسم الشركة</th>
                             <th>اسم المكتب</th>
                             <th>اسم مستخدم المكتب</th>
+                            <th>اسم المستخدم</th>
                             <th>نوع العملية</th>
                             <th>تاريخ ووقت التنفيذ</th>
                             <th>حالة العملية</th>
@@ -158,6 +159,7 @@ $(document).ready(function() {
             { data: 'company_name' },
             { data: 'office_name' },
             { data: 'office_user_name' },
+            { data: 'user_name' },
             { data: 'operation_type' },
             { data: 'execution_date' },
             { data: 'status', orderable: false },
