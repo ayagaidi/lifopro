@@ -2,6 +2,33 @@
 @section('title', 'سجل واجهات الربط - API LOG')
 
 @section('content')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#company_name').select2({
+        placeholder: "اختر الشركة",
+        allowClear: true,
+        language: "ar"
+    });
+    $('#office_name').select2({
+        placeholder: "اختر المكتب",
+        allowClear: true,
+        language: "ar"
+    });
+    $('#operation_type').select2({
+        placeholder: "اختر نوع العملية",
+        allowClear: true,
+        language: "ar"
+    });
+    $('#status').select2({
+        placeholder: "جميع الحالات",
+        allowClear: true,
+        language: "ar"
+    });
+});
+</script>
 
 {{-- Page Level Loader --}}
 <div id="page-loader" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column;">
@@ -21,7 +48,7 @@
                 @endphp
                 
                 <div class="col-md-3">
-                    <select id="company_name" class="form-control">
+                    <select id="company_name" class="form-control select2">
                         <option value="">اختر الشركة</option>
                         @foreach($companies as $company)
                             <option value="{{ $company->name }}">{{ $company->name }}</option>
@@ -29,7 +56,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <select id="office_name" class="form-control">
+                    <select id="office_name" class="form-control select2">
                         <option value="">اختر المكتب</option>
                     </select>
                 </div>
@@ -37,7 +64,7 @@
                     <input type="text" id="office_user_name" class="form-control" placeholder="اسم مستخدم المكتب">
                 </div>
                 <div class="col-md-3">
-                    <select id="operation_type" class="form-control">
+                    <select id="operation_type" class="form-control select2">
                         <option value="">اختر نوع العملية</option>
                         <option value="getAuth">getAuth - تسجيل الدخول</option>
                         <option value="issuingPolicy">issuingPolicy - إصدار بوليصة</option>
@@ -59,7 +86,7 @@
             <br/>
             <div class="row mb-3">
                  <div class="col-md-3">
-                    <select id="status" class="form-control">
+                    <select id="status" class="form-control select2">
                         <option value="">جميع الحالات</option>
                         <option value="success">نجح</option>
                         <option value="failure">فشل</option>

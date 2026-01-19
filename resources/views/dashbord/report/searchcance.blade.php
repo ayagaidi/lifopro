@@ -2,6 +2,9 @@
 @section('title', 'تقرير البطاقات الملغية ')
 
 @section('content')
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <div class="row small-spacing">
@@ -114,19 +117,39 @@
                         </div>
 
                         <div class="form-group col-md-3">
-                            <label for="todate" class="control-label"> الي </label>
-                            <input name="todate" id="todate" type="date"
-                                class="form-control @error('todate') is-invalid @enderror wd-250" />
-                            @error('todate')
-                                <span class="invalid-feedback" style="color: red" role="alert">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
+                             <label for="todate" class="control-label"> الي </label>
+                             <input name="todate" id="todate" type="date"
+                                 class="form-control @error('todate') is-invalid @enderror wd-250" />
+                             @error('todate')
+                                 <span class="invalid-feedback" style="color: red" role="alert">
+                                     {{ $message }}
+                                 </span>
+                             @enderror
+                         </div>
 
-                        <div class="form-group col-md-12" style="text-align: left;">
-                            <button type="button" onclick="search()" class="btn btn-primary waves-effect waves-light">بحث</button>
-                        </div>
+                         <div class="form-group col-md-3">
+                             <label for="res" class="control-label">سبب الإلغاء</label>
+                             <select name="res" id="res"
+                                 class="form-control @error('res') is-invalid @enderror select2 wd-250"
+                                 data-placeholder="Choose one" data-parsley-class-handler="#slWrapper"
+                                 data-parsley-errors-container="#slErrorContainer">
+                                 <option value="">اختر سبب الإلغاء</option>
+                                 <option value="انتهاء الصلاحية">انتهاء الصلاحية</option>
+                                 <option value="فقدان البطاقة">فقدان البطاقة</option>
+                                 <option value="تلف البطاقة">تلف البطاقة</option>
+                                 <option value="طلب العميل">طلب العميل</option>
+                                 <option value="أخرى">أخرى</option>
+                             </select>
+                             @error('res')
+                                 <span class="invalid-feedback" style="color: red" role="alert">
+                                     {{ $message }}
+                                 </span>
+                             @enderror
+                         </div>
+
+                         <div class="form-group col-md-12" style="text-align: left;">
+                             <button type="button" onclick="search()" class="btn btn-primary waves-effect waves-light">بحث</button>
+                         </div>
                     </div>
                 </form>
             </div>
@@ -146,6 +169,15 @@
     </div>
 
     <script>
+        $(document).ready(function () {
+            // Initialize Select2 for dropdowns with search functionality
+            $('#companies_id, #offices_id, #company_users_id, #office_users_id, #res').select2({
+                placeholder: "اختر ...",
+                allowClear: true,
+                language: "ar"
+            });
+        });
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -162,7 +194,8 @@
                 request_number: $('#request_number').val(),
                 card_number: $('#card_number').val(),
                 fromdate: $('#fromdate').val(),
-                todate: $('#todate').val()
+                todate: $('#todate').val(),
+                res: $('#res').val()
             }).toString();
 
             $('#pdfLink').attr('href', '{{ route("report/cancelcards/pdf") }}' + '?' + params);
@@ -231,8 +264,9 @@
             var card_number = $('#card_number').val();
             var fromdate = $('#fromdate').val();
             var todate = $('#todate').val();
+            var res = $('#res').val();
 
-            if (companies_id || offices_id || company_users_id || office_users_id || fromdate || todate || request_number || card_number) {
+            if (companies_id || offices_id || company_users_id || office_users_id || fromdate || todate || request_number || card_number || res) {
                 $.ajax({
                     url: '../report/searchcacel',
                     type: 'GET',
@@ -245,6 +279,7 @@
                         card_number: card_number,
                         fromdate: fromdate,
                         todate: todate,
+                        res: res,
                     },
                     success: function(response) {
                         $('#loader-overlay').hide();

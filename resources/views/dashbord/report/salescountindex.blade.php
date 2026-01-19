@@ -3,6 +3,19 @@
 @section('title', 'تقرير عدد البطاقات المباعة')
 
 @section('content')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#companies_id').select2({
+        placeholder: "اختر الشركة ...",
+        allowClear: true,
+        language: "ar"
+    });
+});
+</script>
+
 <div class="row small-spacing">
     <div class="col-md-12">
         <div class="box-content">

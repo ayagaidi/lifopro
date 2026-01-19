@@ -2,7 +2,29 @@
 @section('title', 'إحصائيات إصدارات مستخدمي المكاتب')
 
 @section('content')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#companies_id').select2({
+        placeholder: "اختر الشركة ...",
+        allowClear: true,
+        language: "ar"
+    });
+    $('#offices_id').select2({
+        placeholder: "اختر المكتب ...",
+        allowClear: true,
+        language: "ar"
+    });
+    $('#office_users_id').select2({
+        placeholder: "اختر مستخدم المكتب ...",
+        allowClear: true,
+        language: "ar"
+    });
+});
+</script>
 
 <div class="row small-spacing">
     <div class="col-md-12">
@@ -30,7 +52,7 @@
                 <div class="row">
                     <div class="form-group col-md-3">
                         <label for="companies_id">الشركة:</label>
-                        <select name="companies_id" id="companies_id" class="form-control">
+                        <select name="companies_id" id="companies_id" class="form-control select2">
                             <option value="">جميع الشركات</option>
                             @foreach($companies as $company)
                                 <option value="{{ $company->id }}" {{ $request->companies_id == $company->id ? 'selected' : '' }}>{{ $company->name }}</option>
@@ -39,14 +61,14 @@
                     </div>
                     <div class="form-group col-md-3">
                         <label for="offices_id">المكتب:</label>
-                        <select name="offices_id" id="offices_id" class="form-control">
+                        <select name="offices_id" id="offices_id" class="form-control select2">
                             <option value="">جميع المكاتب</option>
                             
                         </select>
                     </div>
                     <div class="form-group col-md-3">
                         <label for="office_users_id">مستخدم المكتب:</label>
-                        <select name="office_users_id" id="office_users_id" class="form-control">
+                        <select name="office_users_id" id="office_users_id" class="form-control select2">
                             <option value="">جميع المستخدمين</option>
                       
                         </select>

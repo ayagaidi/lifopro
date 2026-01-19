@@ -3,6 +3,21 @@
 
 @section('content')
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+      $(document).ready(function() {
+        $('#companies_id').select2({
+
+            placeholder: "اختر الشركة",
+        });
+        $('#request_statuses_id').select2({
+            placeholder: "اختر حالة الطلب",
+        });
+    });
+</script>
+
 <div class="row small-spacing">
     <div class="col-md-12">
         <div class="box-content">
@@ -134,6 +149,8 @@
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
+
+  
 
     function isAtLeastOneSelected(...values) {
         return values.some(value => value !== '0' && value);

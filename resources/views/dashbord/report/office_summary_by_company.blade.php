@@ -210,6 +210,19 @@
     @section('title', 'التقرير المجمع للمكاتب حسب الشركة')
 
     @section('content')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+    $(document).ready(function() {
+        $('select[name="company_id"]').select2({
+            placeholder: "اختر الشركة ...",
+            allowClear: true,
+            language: "ar"
+        });
+    });
+    </script>
+    
     <div class="box-content">
         <h4 class="box-title">التقرير المجمع حسب المكاتب للشركة المختارة</h4>
 
@@ -226,7 +239,7 @@
                 </div>
                 <div class="form-group col-md-3">
                     <label>الشركة:</label>
-                    <select name="company_id" class="form-control" required>
+                    <select name="company_id" class="form-control select2" required>
                         <option value="">-- اختر الشركة --</option>
                         @foreach($companies as $company)
                             <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>

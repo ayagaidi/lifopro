@@ -2058,6 +2058,7 @@ class ReportController extends Controller
             'office_users_id' => 'nullable',
             'request_number' => 'nullable|string',
             'card_number' => 'nullable|string',
+            'res' => 'nullable|string',
         ]);
 
         $from = $request->filled('fromdate') ? Carbon::parse($request->fromdate)->startOfDay() : null;
@@ -2108,6 +2109,11 @@ class ReportController extends Controller
                 $from && $to,
                 fn($q) =>
                 $q->whereBetween('card_delete_date', [$from, $to])
+            )
+            ->when(
+                $request->res,
+                fn($q) =>
+                $q->where('res', $request->res)
             )
             ->get();
 
