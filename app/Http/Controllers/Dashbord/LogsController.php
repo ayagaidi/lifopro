@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ActivityLog;
 use App\Models\ApiLog;
 use App\Models\Office;
+use App\Models\OfficeUser;
 use Yajra\DataTables\DataTables;
 
 class LogsController extends Controller
@@ -49,6 +50,10 @@ class LogsController extends Controller
             if ($request->has('office_name') && !empty($request->office_name)) {
                 $query->where('office_name', 'like', '%' . $request->office_name . '%');
             }
+            if ($request->has('office_user_name') && !empty($request->office_user_name)) {
+                $query->where('office_user_name', 'like', '%' . $request->office_user_name . '%');
+            }
+            
 
             return DataTables::of($query->orderBy('activity_date', 'desc')->limit(1))
                 ->addIndexColumn()
@@ -135,5 +140,15 @@ class LogsController extends Controller
         })->get();
 
         return response()->json($offices);
+    }
+
+    public function getUsersByOffice(Request $request)
+    {
+        $officeName = $request->input('office_name');
+        $users = OfficeUser::whereHas('offices', function($query) use ($officeName) {
+            $query->where('name', $officeName);
+        })->get();
+
+        return response()->json($users);
     }
 }
