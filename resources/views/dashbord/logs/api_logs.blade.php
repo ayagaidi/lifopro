@@ -27,6 +27,11 @@ $(document).ready(function() {
         allowClear: true,
         language: "ar"
     });
+    $('#office_user_name').select2({
+        placeholder: "اسم مستخدم المكتب",
+        allowClear: true,
+        language: "ar"
+    });
 });
 </script>
 
@@ -61,7 +66,9 @@ $(document).ready(function() {
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <input type="text" id="office_user_name" class="form-control" placeholder="اسم مستخدم المكتب">
+                    <select id="office_user_name" class="form-control select2">
+                        <option value="">اسم مستخدم المكتب</option>
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <select id="operation_type" class="form-control select2">
@@ -179,7 +186,7 @@ $(document).ready(function() {
     tableContainer.hide();
 
     $('#searchBtn').on('click', function() {
-        var hasFilters =  $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        var hasFilters =  $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#office_user_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
         if (!hasFilters) {
             Swal.fire({
                 title: 'تحذير',
@@ -220,6 +227,28 @@ $(document).ready(function() {
             });
         } else {
             $('#office_name').empty().append('<option value="">اختر المكتب</option>');
+        }
+    });
+
+    // Dynamic office user loading based on office selection
+    $('#office_name').on('change', function() {
+        var officeName = $(this).val();
+        if (officeName) {
+            $.ajax({
+                url: '{{ route("logs/getUsersByOffice") }}',
+                method: 'GET',
+                data: { office_name: officeName },
+                success: function(data) {
+                    var userSelect = $('#office_user_name');
+                    userSelect.empty();
+                    userSelect.append('<option value="">اسم مستخدم المكتب</option>');
+                    $.each(data, function(index, user) {
+                        userSelect.append('<option value="' + user.username + '">' + user.username + '</option>');
+                    });
+                }
+            });
+        } else {
+            $('#office_user_name').empty().append('<option value="">اسم مستخدم المكتب</option>');
         }
     });
 });
