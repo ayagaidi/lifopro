@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use PHPUnit\Runner\Baseline\Issue;
 use RealRashid\SweetAlert\Facades\Alert;
 use App\Exports\IssuingsExport;
+use App\Models\Country;
 use Maatwebsite\Excel\Facades\Excel;
 use niklasravnsborg\LaravelPdf\Facades\Pdf as PDF;
 
@@ -2353,6 +2354,167 @@ class ReportController extends Controller
         }
     }
 
+    /**
+     * Print card with dynamic parameters
+     */
+    public function printCard(Request $request)
+    {
+        $cardId = $request->get('card_id');
+        $cardNumber = $request->get('card_number');
+        $testMode = $request->get('test', false);
+        
+        // Fetch data from database
+        $card = null;
+        $issuing = null;
+        $company = null;
+        $office = null;
+        $car = null;
+        
+        if ($cardId) {
+            $card = Card::find($cardId);
+            $issuing = \App\Models\Issuing::where('cards_id', $cardId)->first();
+        } elseif ($cardNumber) {
+            $card = Card::where('card_number', $cardNumber)->first();
+            if ($card) {
+                $issuing = \App\Models\Issuing::where('cards_id', $card->id)->first();
+            }
+        }
+        
+        if ($issuing) {
+            $company = Company::find($issuing->companies_id);
+            $office = Office::find($issuing->offices_id);
+            $car = \App\Models\Car::find($issuing->cars_id);
+        }
+        
+         // Format dates
+        $startDate = $issuing->insurance_day_from ?? now();
+        $endDate = $issuing->insurance_day_to ?? now()->addDays(15);
+        
+        $startDayName = date('l', strtotime($startDate));
+        $endDayName = date('l', strtotime($endDate));
+        
+        // Convert day names to Arabic
+        $daysMap = [
+            'Saturday' => 'السبت',
+            'Sunday' => 'الأحد',
+            'Monday' => 'الاثنين',
+            'Tuesday' => 'الثلاثاء',
+            'Wednesday' => 'الأربعاء',
+            'Thursday' => 'الخميس',
+            'Friday' => 'الجمعة'
+        ];
+        
+        // Convert month numbers to Arabic month names
+        $arabicMonths = [
+            '01' => 'يناير',
+            '02' => 'فبراير', 
+            '03' => 'مارس',
+            '04' => 'أبريل',
+            '05' => 'مايو',
+            '06' => 'يونيو',
+            '07' => 'يوليو',
+            '08' => 'أغسطس',
+            '09' => 'سبتمبر',
+            '10' => 'أكتوبر',
+            '11' => 'نوفمبر',
+            '12' => 'ديسمبر'
+        ];
+        
+        // Function to convert date to Arabic format
+        $convertToArabicDate = function($date) use ($arabicMonths) {
+            $dateObj = strtotime($date);
+            $day = date('d', $dateObj);
+            $month = date('m', $dateObj);
+            $year = date('Y', $dateObj);
+            return $day . '/' . $arabicMonths[$month] . '/' . $year;
+        };
+        
+        // Fetch all active countries from database
+        $allCountries = Country::where('active', 1)->get();
+        
+        // Get the issuing's countries (could be a single country or multiple via symbol)
+        $issuingCountry = $issuing->countries ?? null;
+        $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
+        
+        // Build countries array with checked status
+        $countries = [];
+        foreach ($allCountries as $country) {
+            // Check if this country should be enabled
+            // If the issuing has a country with symbol like "TUN,DZA", enable those countries
+            $isEnabled = false;
+            if ($issuingCountrySymbol) {
+                $symbols = explode(',', $issuingCountrySymbol);
+                $isEnabled = in_array(trim($country->symbol), $symbols);
+            }
+            $countries[$country->symbol] = $isEnabled;
+        }
+        
+        // Also add hardcoded countries if not in database
+        // No fallback - only countries specified in issuing will be shown
+        $hardcodedCountries = [];
+        foreach ($hardcodedCountries as $symbol => $enabled) {
+            if (!isset($countries[$symbol])) {
+                $countries[$symbol] = $enabled;
+            }
+        }
+        
+        $data = [
+            'test_mode' => $testMode,
+            'card_number' => $card->card_number ?? $cardNumber ?? 'LBY/000000',
+            
+            // Unified Office Info
+            'unified_office_name' => 'المكتب الموحد Libyan',
+            'unified_office_address' => 'شارع جمال القاسمي بجانب جامع امبارك باب بن غشير',
+            'unified_office_box' => 'ميدان الجزائر 4784',
+            'unified_office_phone' => '+218213632518',
+            'unified_office_email' => 'lub@insurancefed.ly',
+            
+            // Insurance Company Info
+            'insurance_company' => $company->name ?? 'شركة التأمين',
+            'company_address' => $company->address ?? 'طرابلس',
+            'company_box' => $company->pob ?? 'صندوق البريد',
+            'company_phone' => $company->phone ?? '0000000000',
+            'company_email' => $company->email ?? 'info@company.com',
+            
+            // Beneficiary Info
+            'beneficiary_name' => $issuing->insurance_name ?? 'اسم المؤمن له',
+            'beneficiary_address' => $issuing->address ?? 'العنوان',
+            'beneficiary_phone' => $issuing->phone ?? '0000000000',
+            
+            // Vehicle Info
+            'vehicle_type' => $car->name ?? ($issuing->vehicle_type ?? 'نوع المركبة'),
+            'vehicle_nationality' => 'الليبية',
+            'manufacturing_year' => $issuing->year_made ?? date('Y'),
+            'chassis_number' => $issuing->chassis_number ?? 'رقم الهيكل',
+            'plate_number' => $issuing->plate_number ?? 'رقم اللوحة',
+            'engine_number' => $issuing->motor_number ?? 'رقم المحرك',
+            'usage_purpose' => $issuing->usage_purpose ?? 'خاصة',
+            
+             // Insurance Period
+            'insurance_start_time' => '00:00',
+            'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
+            'insurance_start_date' => $convertToArabicDate($startDate),
+            'insurance_end_time' => '23:59',
+            'insurance_end_day' => $daysMap[$endDayName] ?? 'الأربعاء',
+            'insurance_end_date' => $convertToArabicDate($endDate),
+            
+            // Countries - dynamic from database
+            'countries' => $countries,
+            
+            // Office Info
+            'office_info' => [],
+            
+            // Financial
+            'total_premium' => number_format($issuing->insurance_total ?? 0, 2),
+            'issue_date' => $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
+            'issue_year' => date('Y', strtotime($issuing->issuing_date ?? now())),
+            'issue_month' => $arabicMonths[date('m', strtotime($issuing->issuing_date ?? now()))],
+            'issue_day' => date('d', strtotime($issuing->issuing_date ?? now())),
+            'issue_weekday' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
+        ];
+        
+        return view('card', $data);
+    }
 
     public function stockpdf()
     {

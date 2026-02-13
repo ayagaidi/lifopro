@@ -376,6 +376,7 @@
                     <th>رقم الهيكل</th>
                     <th>رقم المحرك</th>
                     <th class="view">عرض الوثيقة</th>
+                    <th class="view">طباعة البطاقة</th>
                   </tr>
                 </thead>
                 <tbody id="allRows"></tbody>
@@ -468,6 +469,7 @@
                     '<th>رقم الهيكل</th>' +
                     '<th>رقم المحرك</th>' +
                     '<th class="view">عرض الوثيقة</th>' +
+                    '<th class="view">طباعة البطاقة</th>' +
                   '</tr>' +
                 '</thead>' +
                 '<tbody id="rowsss"></tbody>' +
@@ -604,6 +606,7 @@
           '<td>' + (item.chassis_number ?? '-') + '</td>' +
           '<td>' + (item.motor_number ?? '-') + '</td>' +
           '<td class="view">' + docLink + '</td>' +
+          '<td class="view"><a style="color:#28a745;" target="_blank" href="{{ route('print-card') }}?card_number=' + (item.cards?.card_number || item.cards_id || '') + '&beneficiary_name=' + encodeURIComponent(item.insurance_name || '') + '&beneficiary_address=' + encodeURIComponent(item.address || '') + '&vehicle_type=' + encodeURIComponent(item.cars?.name || '') + '&chassis_number=' + encodeURIComponent(item.chassis_number || '') + '&plate_number=' + encodeURIComponent(item.plate_number || '') + '&engine_number=' + encodeURIComponent(item.motor_number || '') + '&insurance_start_date=' + (item.insurance_day_from || '') + '&insurance_end_date=' + (item.insurance_day_to || '') + '&total_premium=' + (item.insurance_total || '0.00') + '&test=true"><img src="{{ asset('maximize.png') }}" style="width:50%;" title="طباعة البطاقة"></a></td>' +
         '</tr>';
 
       return {
