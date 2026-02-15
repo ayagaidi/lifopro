@@ -192,30 +192,33 @@
         .warning {
             color: red;
             font-weight: bold;
-            border-top: 1px dashed red;
             margin-top: 10px;
             padding-top: 5px;
         }
+
         .date-container {
-    display: flex;
-    flex-direction: row-reverse; /* Aligns items from right to left */
-    justify-content: space-between;
-    align-items: center;
-    direction: rtl;
-    width: 100%;
-    font-family: Arial, sans-serif; /* Use a font similar to your image */
-    font-weight: bold;
-    font-size: 1.1rem;
-}
+            display: flex;
+            flex-direction: row-reverse;
+            /* Aligns items from right to left */
+            justify-content: space-between;
+            align-items: center;
+            direction: rtl;
+            width: 100%;
+            font-family: Arial, sans-serif;
+            /* Use a font similar to your image */
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
-.date-item {
-    display: flex;
-    gap: 10px; /* Space between the label and the value */
-}
+        .date-item {
+            display: flex;
+            gap: 10px;
+            /* Space between the label and the value */
+        }
 
-.value {
-    /* Optional: style the dynamic values differently if needed */
-}
+        .value {
+            /* Optional: style the dynamic values differently if needed */
+        }
     </style>
 </head>
 
@@ -276,19 +279,19 @@
             </tr>
         </table>
 
-         <table>
-             <tr>
-                 <td class="bg-gray" width="15%">نوع المركبة</td>
-                 <td>{{ $vehicle_type ?? 'نوع المركبة' }}</td>
-                 <td class="bg-gray" width="15%">جنسية المركبة</td>
-                 <td>{{ $vehicle_nationality ?? 'الجنسية' }}</td>
-             </tr>
-             <tr>
-                 <td class="bg-gray">سنة الصنع</td>
-                 <td>{{ $manufacturing_year ?? '2025' }}</td>
-                 <td class="bg-gray">رقم الهيكل (الشاسيه)</td>
-                 <td>{{ $chassis_number ?? 'رقم الهيكل' }}</td>
-             </tr>
+        <table>
+            <tr>
+                <td class="bg-gray" width="15%">نوع المركبة</td>
+                <td>{{ $vehicle_type ?? 'نوع المركبة' }}</td>
+                <td class="bg-gray" width="15%">جنسية المركبة</td>
+                <td>{{ $vehicle_nationality ?? 'الجنسية' }}</td>
+            </tr>
+            <tr>
+                <td class="bg-gray">سنة الصنع</td>
+                <td>{{ $manufacturing_year ?? '2025' }}</td>
+                <td class="bg-gray">رقم الهيكل (الشاسيه)</td>
+                <td>{{ $chassis_number ?? 'رقم الهيكل' }}</td>
+            </tr>
             <tr>
                 <td class="bg-gray">رقم اللوحة</td>
                 <td>{{ $plate_number ?? 'رقم اللوحة' }}</td>
@@ -301,58 +304,61 @@
             </tr>
         </table>
 
-         @php
-             // Function to convert date with numeric month to Arabic month format
-             function convertToArabicDate($date) {
-                 if (empty($date)) return $date;
-                 
-                 $arabicMonths = [
-                     '01' => 'يناير',
-                     '02' => 'فبراير', 
-                     '03' => 'مارس',
-                     '04' => 'أبريل',
-                     '05' => 'مايو',
-                     '06' => 'يونيو',
-                     '07' => 'يوليو',
-                     '08' => 'أغسطس',
-                     '09' => 'سبتمبر',
-                     '10' => 'أكتوبر',
-                     '11' => 'نوفمبر',
-                     '12' => 'ديسمبر'
-                 ];
-                 
-                 // Check if date matches d/m/Y or dd/mm/yyyy format
-                 if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $date, $matches)) {
-                     $day = $matches[1];
-                     $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
-                     $year = $matches[3];
-                     $arabicMonth = $arabicMonths[$month] ?? $month;
-                     return $day . '/' . $arabicMonth . '/' . $year;
-                 }
-                 
-                 return $date;
-             }
-         @endphp
-         
-         <table>
-             <tr class="bg-gray" style="text-align: center;">
-                 <td rowspan="2" width="15%" style="vertical-align: middle;">سريان التأمين</td>
-                 <td>من الساعة</td>
-                 <td>{{ $insurance_start_time ?? '00:00' }}</td>
-                 <td>يوم</td>
-                 <td>{{ $insurance_start_day ?? 'يوم السبت' }}</td>
-                 <td>الموافق</td>
-                 <td>{{ convertToArabicDate($insurance_start_date ?? '05/يوليو/2025') }}</td>
-             </tr>
-             <tr class="bg-gray" style="text-align: center;">
-                 <td>إلى الساعة</td>
-                 <td>{{ $insurance_end_time ?? '23:59' }}</td>
-                 <td>يوم</td>
-                 <td>{{ $insurance_end_day ?? 'الأحد' }}</td>
-                 <td>الموافق</td>
-                 <td>{{ convertToArabicDate($insurance_end_date ?? '31/ديسمبر/2025') }}</td>
-             </tr>
-         </table>
+        @php
+            // Function to convert date with numeric month to Arabic month format
+            function convertToArabicDate($date)
+            {
+                if (empty($date)) {
+                    return $date;
+                }
+
+                $arabicMonths = [
+                    '01' => 'يناير',
+                    '02' => 'فبراير',
+                    '03' => 'مارس',
+                    '04' => 'أبريل',
+                    '05' => 'مايو',
+                    '06' => 'يونيو',
+                    '07' => 'يوليو',
+                    '08' => 'أغسطس',
+                    '09' => 'سبتمبر',
+                    '10' => 'أكتوبر',
+                    '11' => 'نوفمبر',
+                    '12' => 'ديسمبر',
+                ];
+
+                // Check if date matches d/m/Y or dd/mm/yyyy format
+                if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $date, $matches)) {
+                    $day = $matches[1];
+                    $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+                    $year = $matches[3];
+                    $arabicMonth = $arabicMonths[$month] ?? $month;
+                    return $day . '/' . $arabicMonth . '/' . $year;
+                }
+
+                return $date;
+            }
+        @endphp
+
+        <table>
+            <tr class="bg-gray" style="text-align: center;">
+                <td rowspan="2" width="15%" style="vertical-align: middle;">سريان التأمين</td>
+                <td>من الساعة</td>
+                <td>{{ $insurance_start_time ?? '00:00' }}</td>
+                <td>يوم</td>
+                <td>{{ $insurance_start_day ?? 'يوم السبت' }}</td>
+                <td>الموافق</td>
+                <td>{{ convertToArabicDate($insurance_start_date ?? '05/يوليو/2025') }}</td>
+            </tr>
+            <tr class="bg-gray" style="text-align: center;">
+                <td>إلى الساعة</td>
+                <td>{{ $insurance_end_time ?? '23:59' }}</td>
+                <td>يوم</td>
+                <td>{{ $insurance_end_day ?? 'الأحد' }}</td>
+                <td>الموافق</td>
+                <td>{{ convertToArabicDate($insurance_end_date ?? '31/ديسمبر/2025') }}</td>
+            </tr>
+        </table>
 
         <div class="countries-title">البلاد التي تسري فيها البطاقة</div>
         <div class="countries-grid">
@@ -463,57 +469,64 @@
                 </li>
                 <li>لا يحق للمؤمن له إلغاء هذه البطاقة .
                 </li>
-                <li> يحق للمؤمن الرجوع على المؤمن له بما أداه من تعويضات في حالة مخالفة المؤمن له للقوانين النافذة في البلد المصدر للبطاقة و / أو البلد المزار. </li>
+                <li> يحق للمؤمن الرجوع على المؤمن له بما أداه من تعويضات في حالة مخالفة المؤمن له للقوانين النافذة في
+                    البلد المصدر للبطاقة و / أو البلد المزار. </li>
             </ol>
         </div>
 
-         <div class="footer">
-             <strong>إجمالي القسط والرسوم ( شامل الرسوم والضرائب الحكومية ): {{ $total_premium ?? '0.00' }}
-                 د.ل</strong><br>
-                 <strong>تقوم الشركة المصدرة للبطاقة بمحاسبة مصلحة الضرائب على الرسوم المستحقة.</strong><br>
-     
-<div class="date-container">
-    
-    
-    
-  
+        <div class="footer">
+            <strong>إجمالي القسط والرسوم ( شامل الرسوم والضرائب الحكومية ): {{ $total_premium ?? '0.00' }}
+                د.ل</strong><br>
+            <strong>تقوم الشركة المصدرة للبطاقة بمحاسبة مصلحة الضرائب على الرسوم المستحقة.</strong><br>
 
-    <div class="date-item">
-        <span class="label">سنة :</span>
-        <span class="value">{{ $issue_year ?? '2025' }}</span>
-    </div>
-    <div class="date-item">
-        <span class="label">من شهر :</span>
-        <span class="value">{{ $issue_month ?? 'يوليو' }}</span>
-    </div>
+            <div class="date-container">
 
 
-    <div class="date-item">
-        <span class="label">الموافق :</span>
-        <span class="value">{{ $issue_weekday ?? 'يوم السبت' }}</span>
-    </div>
-
-    
-    <div class="date-item">
-        <span class="label">تحريراً في يوم :</span>
-        <span class="value">{{ $issue_day ?? '05' }}</span>
-    </div>
-</div>
+                <div class="date-item">
+                    <span class="label">الساعة :</span>
+                    <span class="value">{{ $issue_time ?? '09:00 ص' }}</span>
+                </div>
 
 
+                <div class="date-item">
+                    <span class="label">سنة :</span>
+                    <span class="value">{{ $issue_year ?? '2025' }}</span>
+                </div>
+                <div class="date-item">
+                    <span class="label">من شهر :</span>
+                    <span class="value">{{ $issue_month ?? 'يوليو' }}</span>
+                </div>
 
-         </div>
+
+                <div class="date-item">
+                    <span class="label">الموافق :</span>
+                    <span class="value">{{ $issue_weekday ?? 'يوم السبت' }}</span>
+                </div>
+
+
+                <div class="date-item">
+                    <span class="label">تحريراً في يوم :</span>
+                    <span class="value">{{ $issue_day ?? '05' }}</span>
+                </div>
+             
+            </div>
+
+
+
+        </div>
 
         <div class="warning">
-              <strong style="text-align: left !important;">هام : أي كشط أو شطب أو تعديل في هذه الصفحة يبطل البطاقة وتعد لاغية</strong>
-          
+            <strong style="text-align: left !important;">هام : أي كشط أو شطب أو تعديل في هذه الصفحة يبطل البطاقة وتعد
+                لاغية</strong>
+
         </div>
-         
-            <div class="warning" style="text-align: center !important;border-top:none !important">
+
+        <div class="warning" style="text-align: center !important;border-top:none !important">
             @if ($test_mode ?? false)
-                <small style="text-align: center !important;">This docuemnt is generated for testing puropose only. This is not a valid documen</small>
+                <small style="text-align: center !important;">This docuemnt is generated for testing puropose only. This
+                    is not a valid documen</small>
             @endif
-            </div>
+        </div>
     </div>
 
 </body>

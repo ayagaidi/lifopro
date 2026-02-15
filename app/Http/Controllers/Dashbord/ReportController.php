@@ -2511,6 +2511,7 @@ class ReportController extends Controller
             'issue_month' => $arabicMonths[date('m', strtotime($issuing->issuing_date ?? now()))],
             'issue_day' => date('d', strtotime($issuing->issuing_date ?? now())),
             'issue_weekday' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
+            'issue_time' => str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date ?? now()))),
             
             // Free day (تحريـراً في يوم :)
             'free_day' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
