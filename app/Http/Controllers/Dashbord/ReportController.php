@@ -2386,9 +2386,9 @@ class ReportController extends Controller
             $car = \App\Models\Car::find($issuing->cars_id);
         }
         
-         // Format dates
-        $startDate = $issuing->insurance_day_from ?? now();
-        $endDate = $issuing->insurance_day_to ?? now()->addDays(15);
+         // Format dates - use request parameters if provided, fallback to database or default
+        $startDate = $request->get('insurance_start_date') ?? ($issuing->insurance_day_from ?? now());
+        $endDate = $request->get('insurance_end_date') ?? ($issuing->insurance_day_to ?? now()->addDays(15));
         
         $startDayName = date('l', strtotime($startDate));
         $endDayName = date('l', strtotime($endDate));
@@ -2460,7 +2460,7 @@ class ReportController extends Controller
         
         $data = [
             'test_mode' => $testMode,
-            'card_number' => $card->card_number ?? $cardNumber ?? 'LBY/000000',
+            'card_number' => $request->get('card_number') ?? $card->card_number ?? $cardNumber ?? 'LBY/000000',
             
             // Unified Office Info
             'unified_office_name' => 'المكتب الموحد Libyan',
@@ -2477,17 +2477,17 @@ class ReportController extends Controller
             'company_email' => $company->email ?? 'info@company.com',
             
             // Beneficiary Info
-            'beneficiary_name' => $issuing->insurance_name ?? 'اسم المؤمن له',
-            'beneficiary_address' => $issuing->address ?? 'العنوان',
+            'beneficiary_name' => $request->get('beneficiary_name') ?? $issuing->insurance_name ?? 'اسم المؤمن له',
+            'beneficiary_address' => $request->get('beneficiary_address') ?? $issuing->address ?? 'العنوان',
             'beneficiary_phone' => $issuing->phone ?? '0000000000',
             
             // Vehicle Info
-            'vehicle_type' => $car->name ?? ($issuing->vehicle_type ?? 'نوع المركبة'),
+            'vehicle_type' => $request->get('vehicle_type') ?? $car->name ?? ($issuing->vehicle_type ?? 'نوع المركبة'),
             'vehicle_nationality' => 'الليبية',
             'manufacturing_year' => $issuing->year_made ?? date('Y'),
-            'chassis_number' => $issuing->chassis_number ?? 'رقم الهيكل',
-            'plate_number' => $issuing->plate_number ?? 'رقم اللوحة',
-            'engine_number' => $issuing->motor_number ?? 'رقم المحرك',
+            'chassis_number' => $request->get('chassis_number') ?? $issuing->chassis_number ?? 'رقم الهيكل',
+            'plate_number' => $request->get('plate_number') ?? $issuing->plate_number ?? 'رقم اللوحة',
+            'engine_number' => $request->get('engine_number') ?? $issuing->motor_number ?? 'رقم المحرك',
             'usage_purpose' => $issuing->usage_purpose ?? 'خاصة',
             
              // Insurance Period
@@ -2505,12 +2505,15 @@ class ReportController extends Controller
             'office_info' => [],
             
             // Financial
-            'total_premium' => number_format($issuing->insurance_total ?? 0, 2),
+            'total_premium' => $request->get('total_premium') ?? number_format($issuing->insurance_total ?? 0, 2),
             'issue_date' => $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
             'issue_year' => date('Y', strtotime($issuing->issuing_date ?? now())),
             'issue_month' => $arabicMonths[date('m', strtotime($issuing->issuing_date ?? now()))],
             'issue_day' => date('d', strtotime($issuing->issuing_date ?? now())),
             'issue_weekday' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
+            
+            // Free day (تحريـراً في يوم :)
+            'free_day' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
         ];
         
         return view('card', $data);

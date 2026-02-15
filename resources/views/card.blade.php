@@ -196,6 +196,26 @@
             margin-top: 10px;
             padding-top: 5px;
         }
+        .date-container {
+    display: flex;
+    flex-direction: row-reverse; /* Aligns items from right to left */
+    justify-content: space-between;
+    align-items: center;
+    direction: rtl;
+    width: 100%;
+    font-family: Arial, sans-serif; /* Use a font similar to your image */
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.date-item {
+    display: flex;
+    gap: 10px; /* Space between the label and the value */
+}
+
+.value {
+    /* Optional: style the dynamic values differently if needed */
+}
     </style>
 </head>
 
@@ -451,11 +471,37 @@
              <strong>إجمالي القسط والرسوم ( شامل الرسوم والضرائب الحكومية ): {{ $total_premium ?? '0.00' }}
                  د.ل</strong><br>
                  <strong>تقوم الشركة المصدرة للبطاقة بمحاسبة مصلحة الضرائب على الرسوم المستحقة.</strong><br>
-             <span>سنة : {{ $issue_year ?? '2025' }}</span><br>
-             <span>من شهر : {{ $issue_month ?? 'يوليو' }}</span><br>
-             <span>الموافق : {{ $issue_day ?? '05' }}</span><br>
-             <span>يوم : {{ $issue_weekday ?? 'يوم السبت' }}</span><br>
-             <span>تحريـراً في يوم :</span>
+     
+<div class="date-container">
+    
+    
+    
+  
+
+    <div class="date-item">
+        <span class="label">سنة :</span>
+        <span class="value">{{ $issue_year ?? '2025' }}</span>
+    </div>
+    <div class="date-item">
+        <span class="label">من شهر :</span>
+        <span class="value">{{ $issue_month ?? 'يوليو' }}</span>
+    </div>
+
+
+    <div class="date-item">
+        <span class="label">الموافق :</span>
+        <span class="value">{{ $issue_weekday ?? 'يوم السبت' }}</span>
+    </div>
+
+    
+    <div class="date-item">
+        <span class="label">تحريراً في يوم :</span>
+        <span class="value">{{ $issue_day ?? '05' }}</span>
+    </div>
+</div>
+
+
+
          </div>
 
         <div class="warning">
