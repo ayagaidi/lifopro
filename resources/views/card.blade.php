@@ -199,13 +199,11 @@
         .date-container {
             display: flex;
             flex-direction: row-reverse;
-            /* Aligns items from right to left */
             justify-content: space-between;
             align-items: center;
             direction: rtl;
             width: 100%;
             font-family: Arial, sans-serif;
-            /* Use a font similar to your image */
             font-weight: bold;
             font-size: 1.1rem;
         }
@@ -213,11 +211,6 @@
         .date-item {
             display: flex;
             gap: 10px;
-            /* Space between the label and the value */
-        }
-
-        .value {
-            /* Optional: style the dynamic values differently if needed */
         }
     </style>
 </head>
@@ -305,29 +298,14 @@
         </table>
 
         @php
-            // Function to convert date with numeric month to Arabic month format
             function convertToArabicDate($date)
             {
-                if (empty($date)) {
-                    return $date;
-                }
-
+                if (empty($date)) return $date;
                 $arabicMonths = [
-                    '01' => 'يناير',
-                    '02' => 'فبراير',
-                    '03' => 'مارس',
-                    '04' => 'أبريل',
-                    '05' => 'مايو',
-                    '06' => 'يونيو',
-                    '07' => 'يوليو',
-                    '08' => 'أغسطس',
-                    '09' => 'سبتمبر',
-                    '10' => 'أكتوبر',
-                    '11' => 'نوفمبر',
-                    '12' => 'ديسمبر',
+                    '01' => 'يناير', '02' => 'فبراير', '03' => 'مارس', '04' => 'أبريل',
+                    '05' => 'مايو', '06' => 'يونيو', '07' => 'يوليو', '08' => 'أغسطس',
+                    '09' => 'سبتمبر', '10' => 'أكتوبر', '11' => 'نوفمبر', '12' => 'ديسمبر',
                 ];
-
-                // Check if date matches d/m/Y or dd/mm/yyyy format
                 if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $date, $matches)) {
                     $day = $matches[1];
                     $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
@@ -335,7 +313,6 @@
                     $arabicMonth = $arabicMonths[$month] ?? $month;
                     return $day . '/' . $arabicMonth . '/' . $year;
                 }
-
                 return $date;
             }
         @endphp
@@ -363,59 +340,34 @@
         <div class="countries-title">البلاد التي تسري فيها البطاقة</div>
         <div class="countries-grid">
             @php
-                // Country name translations
                 $countryNames = [
-                    'OMN' => 'عمان',
-                    'OM' => 'عمان',
-                    'IRQ' => 'العراق',
-                    'SYR' => 'سوريا',
-                    'DZA' => 'الجزائر',
-                    'ALG' => 'الجزائر',
-                    'TUN' => 'تونس',
-                    'TND' => 'تونس',
-                    'BHR' => 'البحرين',
-                    'UAE' => 'الإمارات',
-                    'ARE' => 'الإمارات',
-                    'JOR' => 'الأردن',
-                    'YEM' => 'اليمن',
-                    'EGY' => 'مصر',
-                    'LBY' => 'ليبيا',
-                    'LIB' => 'ليبيا',
-                    'LBN' => 'لبنان',
-                    'KWT' => 'الكويت',
-                    'QAT' => 'قطر',
+                    'OMN' => 'عمان', 'IRQ' => 'العراق', 'SYR' => 'سوريا',
+                    'DZA' => 'الجزائر', 'TUN' => 'تونس', 'BHR' => 'البحرين',
+                    'UAE' => 'الإمارات', 'JOR' => 'الأردن', 'YEM' => 'اليمن',
+                    'EGY' => 'مصر', 'LBY' => 'ليبيا', 'LBN' => 'لبنان',
+                    'KWT' => 'الكويت', 'QAT' => 'قطر',
                 ];
 
-                // Default countries to show with their enabled status
                 $defaultCountries = [
-                    'OMN' => false,
-                    'IRQ' => false,
-                    'SYR' => false,
-                    'DZA' => false,
-                    'TUN' => false,
-                    'BHR' => false,
-                    'UAE' => false,
-                    'JOR' => false,
-                    'YEM' => false,
-                    'EGY' => false,
-                    'LBY' => false,
-                    'LBN' => false,
-                    'KWT' => false,
-                    'QAT' => false,
+                    'OMN' => false, 'IRQ' => false, 'SYR' => false,
+                    'DZA' => true, 'TUN' => true, 'BHR' => false,
+                    'UAE' => false, 'JOR' => false, 'YEM' => false,
+                    'EGY' => false, 'LBY' => false, 'LBN' => false,
+                    'KWT' => false, 'QAT' => false,
                 ];
 
-                // Merge with passed countries data
                 $displayCountries = $defaultCountries;
                 if (isset($countries) && is_array($countries)) {
                     foreach ($countries as $symbol => $enabled) {
-                        $displayCountries[$symbol] = $enabled;
+                        if(isset($displayCountries[$symbol])) {
+                            $displayCountries[$symbol] = $enabled;
+                        }
                     }
                 }
             @endphp
             @foreach ($displayCountries as $symbol => $enabled)
-                @php $countryName = $countryNames[$symbol] ?? $symbol; @endphp
                 <div class="country-item">
-                    <input type="checkbox" {{ $enabled ? 'checked' : '' }}> {{ $countryName }}
+                    <input type="checkbox" {{ $enabled ? 'checked' : '' }}> {{ $countryNames[$symbol] ?? $symbol }}
                 </div>
             @endforeach
         </div>
@@ -426,7 +378,7 @@
                 <td width="45%">عناوين المكاتب الموحدة التي يرجع إليها حامل البطاقة في حالة حدوث حادث او غيره</td>
                 <td width="45%">بيان مختصر عن نوعية التغطيات طبقا لقوانين اللزامي في البلد العربية</td>
             </tr>
-            @if ($office_info ?? [])
+            @if (!empty($office_info))
                 @foreach ($office_info as $office)
                     <tr style="font-size: 9px;">
                         <td>{{ $office['country'] ?? '' }}</td>
@@ -437,15 +389,13 @@
             @else
                 <tr style="font-size: 9px;">
                     <td>تونس</td>
-                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />smg.buat@buat.com.tn
-                        21671845124+</td>
+                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />smg.buat@buat.com.tn 21671845124+</td>
                     <td>الأضرار الجسمانية بقيمة محددة والمادية غير محددة</td>
                 </tr>
                 <tr style="font-size: 9px;">
                     <td>الجزائر</td>
-                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />bua.algerie@gmail.com
-                        21321609295+</td>
-                    <td> الأضرار البدنية بقيمة محدده والضرارالمادية بقيمة غير محددة</td>
+                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />bua.algerie@gmail.com 21321609295+</td>
+                    <td>الأضرار البدنية بقيمة محدده والضرارالمادية بقيمة غير محددة</td>
                 </tr>
             @endif
         </table>
@@ -453,41 +403,24 @@
         <div class="instructions">
             <h4>إرشادات وشروط عامة:</h4>
             <ol>
-                <li> يقصد بلفظ سيارة (مركبة) كل مركبة ألية يلزم القانون في البلد المصدر للبطاقة و/أو البلد المزار بوجوب
-                    إبرام مالكها لوثيقة التأمين اللزامي له.</li>
-                <li>تغطي هذه البطاقة أضرار الشخص الثالث (الغير) الناجمة عن الحوادث التي تسببها المركبة المؤمنة وفقا
-                    لقانون البلد المزار، ول تضمن الضرار اللحقة بها أيا كان سببها. </li>
-                <li>الة زيارة المركبة المؤمن عليها بموجب هذه البطاقة لي بلد عربي تشمله هذه البطاقة فإن المكتب الموحد في
-                    هذا البلد يتلقي المطالبات الناجمة عن حوادث المركبات التي تقع في الدولة الكائن فيها هذا المكيلتزم
-                    المؤمن له بالتصال بالمكتب الموحد في البلد الذي وقع فيه الحادث،وفي حالة وقوع الحادث في المنطقة
-                    الحدودية (المسافة الجغرافية الواقعة فيما بين الحدود الرسمية لبلدين متاجورين) التصال بالمكتب المو4.
-                    التابع للبلد الذي خرجت منه المركبة أو المكتب الموحد في بلد السلطة الرسمية التي تتولي السيطرة
-                    والتحقيق في الحادث. ويعتبر المكتب الموحد موطنا مختارا لكافة المكاتب العربية الموحدة الخرى والشركات
-                    العضاء به.</li>
-                <li> في حالة إنتهاء مدة هذه البطاقة أثناء تواجد المؤمن له في البلد المزار فإن عليه الحصول علي وثيقة
-                    تأمين محلية من البلد المذكو.
-                </li>
-                <li>لا يحق للمؤمن له إلغاء هذه البطاقة .
-                </li>
-                <li> يحق للمؤمن الرجوع على المؤمن له بما أداه من تعويضات في حالة مخالفة المؤمن له للقوانين النافذة في
-                    البلد المصدر للبطاقة و / أو البلد المزار. </li>
+                <li>يقصد بلفظ سيارة (مركبة) كل مركبة ألية يلزم القانون في البلد المصدر للبطاقة و/أو البلد المزار بوجوب إبرام مالكها لوثيقة التأمين اللزامي له.</li>
+                <li>تغطي هذه البطاقة أضرار الشخص الثالث (الغير) الناجمة عن الحوادث التي تسببها المركبة المؤمنة وفقا لقانون البلد المزار، ولا تضمن الأضرار اللاحقة بها أيا كان سببها.</li>
+                <li>في حالة زيارة المركبة المؤمن عليها بموجب هذه البطاقة لأي بلد عربي تشمله هذه البطاقة فإن المكتب الموحد في هذا البلد يتلقى المطالبات الناجمة عن حوادث المركبات...</li>
+                <li>في حالة إنتهاء مدة هذه البطاقة أثناء تواجد المؤمن له في البلد المزار فإن عليه الحصول علي وثيقة تأمين محلية.</li>
+                <li>لا يحق للمؤمن له إلغاء هذه البطاقة.</li>
+                <li>يحق للمؤمن الرجوع على المؤمن له بما أداه من تعويضات في حالة مخالفة القوانين النافذة.</li>
             </ol>
         </div>
 
         <div class="footer">
-            <strong>إجمالي القسط والرسوم ( شامل الرسوم والضرائب الحكومية ): {{ $total_premium ?? '0.00' }}
-                د.ل</strong><br>
+            <strong>إجمالي القسط والرسوم ( شامل الرسوم والضرائب الحكومية ): {{ $total_premium ?? '0.00' }} د.ل</strong><br>
             <strong>تقوم الشركة المصدرة للبطاقة بمحاسبة مصلحة الضرائب على الرسوم المستحقة.</strong><br>
 
             <div class="date-container">
-
-
                 <div class="date-item">
                     <span class="label">الساعة :</span>
                     <span class="value">{{ $issue_time ?? '09:00 ص' }}</span>
                 </div>
-
-
                 <div class="date-item">
                     <span class="label">سنة :</span>
                     <span class="value">{{ $issue_year ?? '2025' }}</span>
@@ -496,39 +429,27 @@
                     <span class="label">من شهر :</span>
                     <span class="value">{{ $issue_month ?? 'يوليو' }}</span>
                 </div>
-
-
                 <div class="date-item">
                     <span class="label">الموافق :</span>
                     <span class="value">{{ $issue_weekday ?? 'يوم السبت' }}</span>
                 </div>
-
-
                 <div class="date-item">
                     <span class="label">تحريراً في يوم :</span>
                     <span class="value">{{ $issue_day ?? '05' }}</span>
                 </div>
-             
             </div>
-
-
-
         </div>
 
         <div class="warning">
-            <strong style="text-align: left !important;">هام : أي كشط أو شطب أو تعديل في هذه الصفحة يبطل البطاقة وتعد
-                لاغية</strong>
-
+            <strong>هام : أي كشط أو شطب أو تعديل في هذه الصفحة يبطل البطاقة وتعد لاغية</strong>
         </div>
 
         <div class="warning" style="text-align: center !important;border-top:none !important">
             @if ($test_mode ?? false)
-                <small style="text-align: center !important;">This docuemnt is generated for testing puropose only. This
-                    is not a valid documen</small>
+                <small>This document is generated for testing purpose only. This is not a valid document</small>
             @endif
         </div>
     </div>
 
 </body>
-
 </html>

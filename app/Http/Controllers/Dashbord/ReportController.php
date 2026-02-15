@@ -2491,10 +2491,10 @@ class ReportController extends Controller
             'usage_purpose' => $issuing->usage_purpose ?? 'خاصة',
             
              // Insurance Period
-            'insurance_start_time' => '00:00',
+            'insurance_start_time' => date('H:i', strtotime($issuing->insurance_day_from ?? '00:00')),
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
             'insurance_start_date' => $convertToArabicDate($startDate),
-            'insurance_end_time' => '23:59',
+            'insurance_end_time' => date('H:i', strtotime($issuing->nsurance_day_to ?? '23:59')),
             'insurance_end_day' => $daysMap[$endDayName] ?? 'الأربعاء',
             'insurance_end_date' => $convertToArabicDate($endDate),
             
