@@ -148,6 +148,7 @@ class CompanyController extends Controller
             'regions_id' => 'nullable|integer|exists:regions,id', // Assuming regions table
             'cities_id' => 'nullable|integer|exists:cities,id', // Assuming cities table
             'address' => 'required|string|max:255',
+            'pob' => 'nullable|string|max:255',
             'username' => 'required|string|max:255|unique:company_users', // Assuming users table stores company username
             'password' => 'required|string|min:8|confirmed',
             'img' => 'nullable',
@@ -168,6 +169,7 @@ class CompanyController extends Controller
                 $companies->regions_id = $request->regions_id;
                 $companies->cities_id = $request->cities_id;
                 $companies->address = $request->address;
+                $companies->pob = $request->pob;
 
                 if($request->file('img')){
 
@@ -310,7 +312,7 @@ class CompanyController extends Controller
             'regions_id.required' => "اخترالمنطقة",
 
         ];
-        $this->validate($request, [
+         $this->validate($request, [
             'name' => ['required', 'string', 'unique:companies,name,' . $company->id], // Exclude current car from unique validation
 
             'phonenumber' => 'required|string|max:255',
@@ -323,14 +325,16 @@ class CompanyController extends Controller
             'regions_id' => 'nullable|integer|exists:regions,id', // Assuming regions table
             'cities_id' => 'nullable|integer|exists:cities,id', // Assuming cities table
             'address' => 'required|string|max:255',
-          
+            'pob' => 'nullable|string|max:255',
+           
+ 
 
         ], $messages);
         try {
             DB::transaction(function () use ($request,$id) {
 
                 $company_id = decrypt($id);
-                $companies = Company::find($company_id);
+                 $companies = Company::find($company_id);
                 $companies->name = $request->name;
                 $companies->phonenumber = $request->phonenumber;
                 $companies->code = $request->code;
@@ -341,6 +345,7 @@ class CompanyController extends Controller
                 $companies->regions_id = $request->regions_id;
                 $companies->cities_id = $request->cities_id;
                 $companies->address = $request->address;
+                $companies->pob = $request->pob;
                
                 if (!$request->file('img')) {
                 } else {

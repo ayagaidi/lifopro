@@ -2473,13 +2473,13 @@ class ReportController extends Controller
             'insurance_company' => $company->name ?? 'شركة التأمين',
             'company_address' => $company->address ?? 'طرابلس',
             'company_box' => $company->pob ?? 'صندوق البريد',
-            'company_phone' => $company->phone ?? '0000000000',
+            'company_phone' => $company->phonenumber ?? '0217140010',
             'company_email' => $company->email ?? 'info@company.com',
             
             // Beneficiary Info
             'beneficiary_name' => $request->get('beneficiary_name') ?? $issuing->insurance_name ?? 'اسم المؤمن له',
-            'beneficiary_address' => $request->get('beneficiary_address') ?? $issuing->address ?? 'العنوان',
-            'beneficiary_phone' => $issuing->phone ?? '0000000000',
+            'beneficiary_address' => $request->get('beneficiary_address') ?? $issuing->insurance_location ?? 'العنوان',
+            'beneficiary_phone' => $issuing->insurance_phone ?? '0000000000',
             
             // Vehicle Info
             'vehicle_type' => $request->get('vehicle_type') ?? $car->name ?? ($issuing->vehicle_type ?? 'نوع المركبة'),

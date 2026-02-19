@@ -199,8 +199,8 @@
               
 
                     </div>
-                    <div class="row">
-                       
+                     <div class="row">
+                        
                         <div class="form-group  col-md-4">
                             <label for="inputName" class="control-label"> العنوان </label>
                             <input type="text" name="address"
@@ -212,7 +212,19 @@
                                 </span>
                             @enderror
                         </div>
-                      
+
+                        <div class="form-group  col-md-4">
+                            <label for="inputName" class="control-label"> صندوق البريد </label>
+                            <input type="text" name="pob"
+                                class="form-control @error('pob') is-invalid @enderror" value="{{ old('pob') }}"
+                                id="pob" placeholder=" صندوق البريد  ">
+                            @error('pob')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+                       
                     </div>
 
                     <div class="row">

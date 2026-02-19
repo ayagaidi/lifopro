@@ -10,6 +10,7 @@ class Company extends Model
     use HasFactory;
     public $timestamps = false;
 
+    protected $fillable = ['pob'];
 
     public function cities() {
         return $this->belongsTo(City::class);

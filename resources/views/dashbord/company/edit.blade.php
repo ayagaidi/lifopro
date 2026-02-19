@@ -179,7 +179,7 @@
 
 
                     </div>
-                    <div class="row">
+                     <div class="row">
 
                         <div class="form-group  col-md-4">
                             <label for="inputName" class="control-label"> العنوان </label>
@@ -187,6 +187,18 @@
                                 class="form-control @error('address') is-invalid @enderror"
                                 value="{{ $companyy->address }}" id="address" placeholder=" العنوان  ">
                             @error('address')
+                                <span class="invalid-feedback" style="color: red" role="alert">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+                        </div>
+
+                        <div class="form-group  col-md-4">
+                            <label for="inputName" class="control-label"> صندوق البريد </label>
+                            <input type="text" name="pob"
+                                class="form-control @error('pob') is-invalid @enderror"
+                                value="{{ $companyy->pob }}" id="pob" placeholder=" صندوق البريد  ">
+                            @error('pob')
                                 <span class="invalid-feedback" style="color: red" role="alert">
                                     {{ $message }}
                                 </span>
