@@ -269,12 +269,17 @@
                         
                     @endcan
 
-                    @can('purposeofuses-list')
+                     @can('purposeofuses-list')
                     <li><a href="{{ route('purposeofuses') }}">غرض الاستعمال  </a></li>
 
 
                 @endcan
-             
+                
+                <!-- Card Field Visibility Management -->
+                @can('card-field-visibility-list')
+                 <li><a href="{{ route('dashbord.card_field_visibility.index') }}">{{ trans('app.card-field-visibility-list') }}</a></li>
+                @endcan
+              
                         </ul>
                     </li>
 

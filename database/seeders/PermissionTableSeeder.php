@@ -37,6 +37,7 @@ class PermissionTableSeeder extends Seeder
             'report-list',
             'activity-list',
             'role-list',
+            'card-field-visibility-list',
 
 'companySummary',
           

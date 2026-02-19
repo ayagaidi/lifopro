@@ -338,6 +338,12 @@ Route::get('/report/issuing/{year}/export-pdf', [App\Http\Controllers\Dashbord\R
     Route::get('logs/getOfficesByCompany', [App\Http\Controllers\Dashbord\LogsController::class, 'getOfficesByCompany'])->name('logs/getOfficesByCompany');
     Route::get('logs/getUsersByOffice', [App\Http\Controllers\Dashbord\LogsController::class, 'getUsersByOffice'])->name('logs/getUsersByOffice');
 
+    // Card Field Visibility Routes
+    Route::get('card-field-visibility', [App\Http\Controllers\Dashbord\CardFieldVisibilityController::class, 'index'])->name('dashbord.card_field_visibility.index');
+    Route::post('card-field-visibility/update-all', [App\Http\Controllers\Dashbord\CardFieldVisibilityController::class, 'updateAll'])->name('dashbord.card_field_visibility.updateAll');
+    Route::post('card-field-visibility/update/{id}', [App\Http\Controllers\Dashbord\CardFieldVisibilityController::class, 'update'])->name('dashbord.card_field_visibility.update');
+    Route::post('card-field-visibility/reorder', [App\Http\Controllers\Dashbord\CardFieldVisibilityController::class, 'reorder'])->name('dashbord.card_field_visibility.reorder');
+
 });
 
 

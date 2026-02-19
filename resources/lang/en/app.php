@@ -42,6 +42,7 @@ return [
     'report-list'=>'ادارة التقارير',
     'activity-list'=>'السجلات',
     'role-list'=>'الصلاحيات',
+    'card-field-visibility-list'=>'إعدادات رؤية حقول البطاقة',
     'companySummary'=>'تقرير المجمع للشركات',
     'reortstatic'=>'ادارة الاحصائيات'
 

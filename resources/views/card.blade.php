@@ -273,28 +273,58 @@
         </table>
 
         <table>
-            <tr>
-                <td class="bg-gray" width="15%">نوع المركبة</td>
-                <td>{{ $vehicle_type ?? 'نوع المركبة' }}</td>
-                <td class="bg-gray" width="15%">جنسية المركبة</td>
-                <td>{{ $vehicle_nationality ?? 'الجنسية' }}</td>
-            </tr>
-            <tr>
-                <td class="bg-gray">سنة الصنع</td>
-                <td>{{ $manufacturing_year ?? '2025' }}</td>
-                <td class="bg-gray">رقم الهيكل (الشاسيه)</td>
-                <td>{{ $chassis_number ?? 'رقم الهيكل' }}</td>
-            </tr>
-            <tr>
-                <td class="bg-gray">رقم اللوحة</td>
-                <td>{{ $plate_number ?? 'رقم اللوحة' }}</td>
-                <td class="bg-gray">رقم المحرك (الموتور)</td>
-                <td>{{ $engine_number ?? 'رقم المحرك' }}</td>
-            </tr>
-            <tr>
-                <td class="bg-gray">الغرض من الإستعمال</td>
-                <td colspan="3">{{ $usage_purpose ?? 'خاصة' }}</td>
-            </tr>
+            @php
+                // Get visible fields from database
+                $visibleFields = [];
+                try {
+                    $visibleFields = \App\Models\CardFieldVisibility::getVisibleFields();
+                } catch (\Exception $e) {
+                    // Default fields if table doesn't exist or error
+                    $visibleFields = [
+                        (object)['field_name' => 'vehicle_type', 'field_label' => 'نوع المركبة', 'visible' => true],
+                        (object)['field_name' => 'vehicle_nationality', 'field_label' => 'جنسية المركبة', 'visible' => true],
+                        (object)['field_name' => 'manufacturing_year', 'field_label' => 'سنة الصنع', 'visible' => true],
+                        (object)['field_name' => 'chassis_number', 'field_label' => 'رقم الهيكل (الشاسيه)', 'visible' => true],
+                        (object)['field_name' => 'plate_number', 'field_label' => 'رقم اللوحة', 'visible' => true],
+                        (object)['field_name' => 'engine_number', 'field_label' => 'رقم المحرك (الموتور)', 'visible' => true],
+                        (object)['field_name' => 'usage_purpose', 'field_label' => 'الغرض من الإستعمال', 'visible' => true],
+                    ];
+                }
+
+                // Group fields into rows of 2 fields each
+                $fieldRows = array_chunk($visibleFields->toArray(), 2);
+            @endphp
+
+            @foreach ($fieldRows as $row)
+                <tr>
+                    @foreach ($row as $field)
+                        <td class="bg-gray" width="15%">{{ $field['field_label'] }}</td>
+                        <td>
+                            @if ($field['field_name'] == 'usage_purpose')
+                                {{ $usage_purpose ?? 'خاصة' }}
+                            @elseif ($field['field_name'] == 'vehicle_type')
+                                {{ $vehicle_type ?? 'نوع المركبة' }}
+                            @elseif ($field['field_name'] == 'vehicle_nationality')
+                                {{ $vehicle_nationality ?? 'الجنسية' }}
+                            @elseif ($field['field_name'] == 'manufacturing_year')
+                                {{ $manufacturing_year ?? '2025' }}
+                            @elseif ($field['field_name'] == 'chassis_number')
+                                {{ $chassis_number ?? 'رقم الهيكل' }}
+                            @elseif ($field['field_name'] == 'plate_number')
+                                {{ $plate_number ?? 'رقم اللوحة' }}
+                            @elseif ($field['field_name'] == 'engine_number')
+                                {{ $engine_number ?? 'رقم المحرك' }}
+                            @else
+                                {{ isset($$field['field_name']) ? $$field['field_name'] : '' }}
+                            @endif
+                        </td>
+                    @endforeach
+                    {{-- Add colspan if row has only 1 field --}}
+                    @if (count($row) == 1)
+                        <td colspan="2"></td>
+                    @endif
+                </tr>
+            @endforeach
         </table>
 
         @php
