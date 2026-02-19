@@ -2517,19 +2517,7 @@ class ReportController extends Controller
             'free_day' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
         ];
         
-        // Generate PDF
-        $pdf = \PDF::loadView('card', $data, [], [
-            'format'      => 'A4',
-            'orientation' => 'P',
-            'default_font'=> 'amiri',
-            'instanceConfigurator' => function ($mpdf) {
-                $mpdf->autoScriptToLang = true;
-                $mpdf->autoLangToFont   = true;
-                $mpdf->SetDirectionality('rtl');
-            },
-        ]);
-        
-        return $pdf->download('insurance-card-' . ($data['card_number'] ?? 'unknown') . '.pdf');
+        return view('card', $data);
     }
 
     public function stockpdf()

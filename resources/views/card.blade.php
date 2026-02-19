@@ -5,7 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بطاقة التأمين العربية الموحدة - ليبيا</title>
-
+    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
+    <script>
+        // Auto-print when page loads
+        window.onload = function() {
+            @if (($test_mode ?? false) == false)
+                // Only auto-print if not in test mode
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            @endif
+        };
+    </script>
     <style>
         @page {
             size: A4;
@@ -236,10 +247,8 @@
             </div>
             <div class="qr-section">
                 <div class="qr-code">
-                    {{-- QR Code - External API call removed to prevent timeout --}}
-                    <div style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; background: #fff;">
-                        <span style="font-size: 10px;">QR Code</span>
-                    </div>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data={{ urlencode($card_number ?? 'LBY000000') }}"
+                        alt="QR">
                 </div>
             </div>
 
