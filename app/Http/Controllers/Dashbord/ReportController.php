@@ -2362,6 +2362,7 @@ class ReportController extends Controller
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
+        $generatePdf = $request->get('pdf', false);
         
         // Fetch data from database
         $card = null;
@@ -2429,30 +2430,39 @@ class ReportController extends Controller
             return $day . '/' . $arabicMonths[$month] . '/' . $year;
         };
         
-        // Fetch all active countries from database
-        $allCountries = Country::where('active', 1)->get();
-        
-        // Get the issuing's countries (could be a single country or multiple via symbol)
-        $issuingCountry = $issuing->countries ?? null;
-        $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
-        
-        // Build countries array with checked status
+        // Build countries array with default values if no issuing data
         $countries = [];
-        foreach ($allCountries as $country) {
-            // Check if this country should be enabled
-            // If the issuing has a country with symbol like "TUN,DZA", enable those countries
-            $isEnabled = false;
-            if ($issuingCountrySymbol) {
-                $symbols = explode(',', $issuingCountrySymbol);
-                $isEnabled = in_array(trim($country->symbol), $symbols);
+        $defaultCountries = [
+            'OMN' => false, 'IRQ' => false, 'SYR' => false,
+            'DZA' => true, 'TUN' => true, 'BHR' => false,
+            'UAE' => false, 'JOR' => false, 'YEM' => false,
+            'EGY' => false, 'LBY' => false, 'LBN' => false,
+            'KWT' => false, 'QAT' => false,
+        ];
+        
+        if ($issuing && $issuing->countries) {
+            // Fetch all active countries from database
+            $allCountries = Country::where('active', 1)->get();
+            
+            // Get the issuing's countries (could be a single country or multiple via symbol)
+            $issuingCountry = $issuing->countries ?? null;
+            $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
+            
+            foreach ($allCountries as $country) {
+                $isEnabled = false;
+                if ($issuingCountrySymbol) {
+                    $symbols = explode(',', $issuingCountrySymbol);
+                    $isEnabled = in_array(trim($country->symbol), $symbols);
+                }
+                $countries[$country->symbol] = $isEnabled;
             }
-            $countries[$country->symbol] = $isEnabled;
+        } else {
+            // Use default countries if no data from database
+            $countries = $defaultCountries;
         }
         
         // Also add hardcoded countries if not in database
-        // No fallback - only countries specified in issuing will be shown
-        $hardcodedCountries = [];
-        foreach ($hardcodedCountries as $symbol => $enabled) {
+        foreach ($defaultCountries as $symbol => $enabled) {
             if (!isset($countries[$symbol])) {
                 $countries[$symbol] = $enabled;
             }
@@ -2460,7 +2470,7 @@ class ReportController extends Controller
         
         $data = [
             'test_mode' => $testMode,
-            'card_number' => $request->get('card_number') ?? $card->card_number ?? $cardNumber ?? 'LBY/000000',
+            'card_number' => $request->get('card_number') ?? ($card->card_number ?? $cardNumber ?? 'LBY/000000'),
             
             // Unified Office Info
             'unified_office_name' => 'المكتب الموحد Libyan',
@@ -2470,52 +2480,76 @@ class ReportController extends Controller
             'unified_office_email' => 'lub@insurancefed.ly',
             
             // Insurance Company Info
-            'insurance_company' => $company->name ?? 'شركة التأمين',
-            'company_address' => $company->address ?? 'طرابلس',
-            'company_box' => $company->pob ?? 'صندوق البريد',
-            'company_phone' => $company->phonenumber ?? '0217140010',
-            'company_email' => $company->email ?? 'info@company.com',
+            'insurance_company' => $company ? $company->name : 'شركة التأمين',
+            'company_address' => $company ? $company->address : 'طرابلس',
+            'company_box' => $company ? $company->pob : 'صندوق البريد',
+            'company_phone' => $company ? $company->phonenumber : '0217140010',
+            'company_email' => $company ? $company->email : 'info@company.com',
             
             // Beneficiary Info
-            'beneficiary_name' => $request->get('beneficiary_name') ?? $issuing->insurance_name ?? 'اسم المؤمن له',
-            'beneficiary_address' => $request->get('beneficiary_address') ?? $issuing->insurance_location ?? 'العنوان',
-            'beneficiary_phone' => $issuing->insurance_phone ?? '0000000000',
+            'beneficiary_name' => $request->get('beneficiary_name') ?? ($issuing ? $issuing->insurance_name : 'اسم المؤمن له'),
+            'beneficiary_address' => $request->get('beneficiary_address') ?? ($issuing ? $issuing->insurance_location : 'العنوان'),
+            'beneficiary_phone' => $issuing ? $issuing->insurance_phone : '0000000000',
             
             // Vehicle Info
-            'vehicle_type' => $request->get('vehicle_type') ?? $car->name ?? ($issuing->vehicle_type ?? 'نوع المركبة'),
+            'vehicle_type' => $request->get('vehicle_type') ?? ($car ? $car->name : ($issuing ? $issuing->vehicle_type : 'نوع المركبة')),
             'vehicle_nationality' => 'الليبية',
-            'manufacturing_year' => $issuing->year_made ?? date('Y'),
-            'chassis_number' => $request->get('chassis_number') ?? $issuing->chassis_number ?? 'رقم الهيكل',
-            'plate_number' => $request->get('plate_number') ?? $issuing->plate_number ?? 'رقم اللوحة',
-            'engine_number' => $request->get('engine_number') ?? $issuing->motor_number ?? 'رقم المحرك',
-            'usage_purpose' => $issuing->usage_purpose ?? 'خاصة',
+            'manufacturing_year' => $issuing ? $issuing->year_made : date('Y'),
+            'chassis_number' => $request->get('chassis_number') ?? ($issuing ? $issuing->chassis_number : 'رقم الهيكل'),
+            'plate_number' => $request->get('plate_number') ?? ($issuing ? $issuing->plate_number : 'رقم اللوحة'),
+            'engine_number' => $request->get('engine_number') ?? ($issuing ? $issuing->motor_number : 'رقم المحرك'),
+            'usage_purpose' => $issuing ? $issuing->usage_purpose : 'خاصة',
             
              // Insurance Period
-            'insurance_start_time' => date('H:i', strtotime($issuing->insurance_day_from ?? '00:00')),
+            'insurance_start_time' => $issuing && $issuing->insurance_day_from ? date('H:i', strtotime($issuing->insurance_day_from)) : '00:00',
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
             'insurance_start_date' => $convertToArabicDate($startDate),
-            'insurance_end_time' => date('H:i', strtotime($issuing->nsurance_day_to ?? '23:59')),
+            'insurance_end_time' => $issuing && $issuing->nsurance_day_to ? date('H:i', strtotime($issuing->nsurance_day_to)) : '23:59',
             'insurance_end_day' => $daysMap[$endDayName] ?? 'الأربعاء',
             'insurance_end_date' => $convertToArabicDate($endDate),
             
-            // Countries - dynamic from database
+            // Countries - dynamic from database or default
             'countries' => $countries,
             
             // Office Info
             'office_info' => [],
             
             // Financial
-            'total_premium' => $request->get('total_premium') ?? number_format($issuing->insurance_total ?? 0, 2),
-            'issue_date' => $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
-            'issue_year' => date('Y', strtotime($issuing->issuing_date ?? now())),
-            'issue_month' => $arabicMonths[date('m', strtotime($issuing->issuing_date ?? now()))],
-            'issue_day' => date('d', strtotime($issuing->issuing_date ?? now())),
-            'issue_weekday' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
-            'issue_time' => str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date ?? now()))),
+            'total_premium' => $request->get('total_premium') ?? ($issuing ? number_format($issuing->insurance_total ?? 0, 2) : '0.00'),
+            'issue_date' => $issuing && $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
+            'issue_year' => $issuing && $issuing->issuing_date ? date('Y', strtotime($issuing->issuing_date)) : date('Y'),
+            'issue_month' => $arabicMonths[ $issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m') ],
+            'issue_day' => $issuing && $issuing->issuing_date ? date('d', strtotime($issuing->issuing_date)) : date('d'),
+            'issue_weekday' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'issue_time' => $issuing && $issuing->issuing_date ? str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date))) : str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A')),
             
             // Free day (تحريـراً في يوم :)
-            'free_day' => $daysMap[date('l', strtotime($issuing->issuing_date ?? now()))] ?? 'السبت',
+            'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
         ];
+        
+        if ($generatePdf) {
+            // Generate PDF
+            $html = view('card', $data)->render();
+            
+            $mpdf = new Mpdf([
+                'mode' => 'utf-8',
+                'format' => 'A4',
+                'margin_left' => 0,
+                'margin_right' => 0,
+                'margin_top' => 0,
+                'margin_bottom' => 0,
+                'margin_header' => 0,
+                'margin_footer' => 0,
+                'orientation' => 'portrait'
+            ]);
+            
+            $mpdf->WriteHTML($html);
+            
+            $filename = 'card-' . ($data['card_number'] ?? 'test') . '.pdf';
+            
+            // Download the PDF
+            return $mpdf->Output($filename, 'D');
+        }
         
         return view('card', $data);
     }
