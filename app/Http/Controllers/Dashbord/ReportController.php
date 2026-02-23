@@ -2362,7 +2362,6 @@ class ReportController extends Controller
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
-        $generatePdf = $request->get('pdf', false);
         
         // Fetch data from database
         $card = null;
@@ -2527,29 +2526,7 @@ class ReportController extends Controller
             'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
         ];
         
-        if ($generatePdf) {
-            // Generate PDF
-            $html = view('card', $data)->render();
-            
-            $mpdf = new Mpdf([
-                'mode' => 'utf-8',
-                'format' => 'A4',
-                'margin_left' => 0,
-                'margin_right' => 0,
-                'margin_top' => 0,
-                'margin_bottom' => 0,
-                'margin_header' => 0,
-                'margin_footer' => 0,
-                'orientation' => 'portrait'
-            ]);
-            
-            $mpdf->WriteHTML($html);
-            
-            $filename = 'card-' . ($data['card_number'] ?? 'test') . '.pdf';
-            
-            // Download the PDF
-            return $mpdf->Output($filename, 'D');
-        }
+      
         
         return view('card', $data);
     }
