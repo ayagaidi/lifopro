@@ -57,6 +57,7 @@ Route::prefix('company')->name('company.')->group(function () {
 Route::get('refreshcaptcha', [App\Http\Controllers\Auth\LoginController::class, 'refreshcaptcha'])->name('refreshcaptcha');
 Route::get('/', [App\Http\Controllers\IndexController::class, 'index'])->name('/');
 Route::get('print-card', [App\Http\Controllers\Dashbord\ReportController::class, 'printCard'])->name('print-card');
+Route::get('print-card-pdf', [App\Http\Controllers\Dashbord\ReportController::class, 'printCardPdf'])->name('print-card-pdf');
 
 Route::middleware(['check.active'])->group(function () {
 Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
