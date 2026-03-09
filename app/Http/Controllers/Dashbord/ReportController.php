@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashbord;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\Offices;
 use App\Models\Apiuser;
-use App\Models\card;
+use App\Models\Card;
 use App\Models\Company;
 use App\Models\CompanyUser;
 use App\Models\issuing;
