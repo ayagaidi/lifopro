@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Dashbord;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\Offices;
 use App\Models\Apiuser;
-use App\Models\Card;
+use App\Models\card;
 use App\Models\Company;
 use App\Models\CompanyUser;
 use App\Models\issuing;
@@ -2383,7 +2383,7 @@ class ReportController extends Controller
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
-            $car = \App\Models\Car::find($issuing->cars_id);
+            $car = \App\Models\car::find($issuing->cars_id);
         }
         
          // Format dates - use request parameters if provided, fallback to database or default
@@ -2563,7 +2563,7 @@ class ReportController extends Controller
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
-            $car = \App\Models\Car::find($issuing->cars_id);
+            $car = \App\Models\car::find($issuing->cars_id);
         }
         
         // Format dates
@@ -2770,7 +2770,7 @@ class ReportController extends Controller
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
-            $car = \App\Models\Car::find($issuing->cars_id);
+            $car = \App\Models\car::find($issuing->cars_id);
         }
         
         // Format dates
