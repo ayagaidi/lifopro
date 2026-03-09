@@ -2372,11 +2372,11 @@ class ReportController extends Controller
         
         if ($cardId) {
             $card = Card::find($cardId);
-            $issuing = \App\Models\Issuing::where('cards_id', $cardId)->first();
+            $issuing = \App\Models\issuing::where('cards_id', $cardId)->first();
         } elseif ($cardNumber) {
             $card = Card::where('card_number', $cardNumber)->first();
             if ($card) {
-                $issuing = \App\Models\Issuing::where('cards_id', $card->id)->first();
+                $issuing = \App\Models\issuing::where('cards_id', $card->id)->first();
             }
         }
         
