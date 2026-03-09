@@ -2537,8 +2537,8 @@ class ReportController extends Controller
      */
 
     public function printCardPdf(Request $request)
-
     {
+        // Get all the data using the same logic as printCard
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
@@ -2566,7 +2566,7 @@ class ReportController extends Controller
             $car = \App\Models\Car::find($issuing->cars_id);
         }
         
-         // Format dates - use request parameters if provided, fallback to database or default
+        // Format dates
         $startDate = $request->get('insurance_start_date') ?? ($issuing->insurance_day_from ?? now());
         $endDate = $request->get('insurance_end_date') ?? ($issuing->insurance_day_to ?? now()->addDays(15));
         
@@ -2609,7 +2609,7 @@ class ReportController extends Controller
             return $day . '/' . $arabicMonths[$month] . '/' . $year;
         };
         
-        // Build countries array with default values if no issuing data
+        // Build countries array
         $countries = [];
         $defaultCountries = [
             'OMN' => false, 'IRQ' => false, 'SYR' => false,
@@ -2620,10 +2620,7 @@ class ReportController extends Controller
         ];
         
         if ($issuing && $issuing->countries) {
-            // Fetch all active countries from database
             $allCountries = Country::where('active', 1)->get();
-            
-            // Get the issuing's countries (could be a single country or multiple via symbol)
             $issuingCountry = $issuing->countries ?? null;
             $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
             
@@ -2636,11 +2633,9 @@ class ReportController extends Controller
                 $countries[$country->symbol] = $isEnabled;
             }
         } else {
-            // Use default countries if no data from database
             $countries = $defaultCountries;
         }
         
-        // Also add hardcoded countries if not in database
         foreach ($defaultCountries as $symbol => $enabled) {
             if (!isset($countries[$symbol])) {
                 $countries[$symbol] = $enabled;
@@ -2679,15 +2674,15 @@ class ReportController extends Controller
             'engine_number' => $request->get('engine_number') ?? ($issuing ? $issuing->motor_number : 'رقم المحرك'),
             'usage_purpose' => $issuing ? $issuing->usage_purpose : 'خاصة',
             
-             // Insurance Period
+            // Insurance Period
             'insurance_start_time' => $issuing && $issuing->insurance_day_from ? date('H:i', strtotime($issuing->insurance_day_from)) : '00:00',
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
             'insurance_start_date' => $convertToArabicDate($startDate),
             'insurance_end_time' => $issuing && $issuing->nsurance_day_to ? date('H:i', strtotime($issuing->nsurance_day_to)) : '23:59',
-            'insurance_end_day' => $daysMap[$endDayName] ?? 'الأربعاء',
+            'insurance_end_day' => $daysMap[$endDayName] ?? 'الأحد',
             'insurance_end_date' => $convertToArabicDate($endDate),
             
-            // Countries - dynamic from database or default
+            // Countries
             'countries' => $countries,
             
             // Office Info
@@ -2702,13 +2697,51 @@ class ReportController extends Controller
             'issue_weekday' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
             'issue_time' => $issuing && $issuing->issuing_date ? str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date))) : str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A')),
             
-            // Free day (تحريـراً في يوم :)
+            // Free day
             'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
         ];
         
-      
+        // Create mPDF instance with optimal settings for Arabic RTL
+        $tempDir = storage_path('app/mpdf-temp');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
         
-        return view('card-pdf', $data);
+        $mpdf = new Mpdf([
+            'format' => 'A4',
+            'mode' => 'utf-8',
+            'direction' => 'rtl',
+            'default_font' => 'amiri',
+            'tempDir' => $tempDir,
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'margin_header' => 0,
+            'margin_footer' => 0,
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+        ]);
+        
+        $mpdf->autoScriptToLang = true;
+        $mpdf->autoLangToFont = true;
+        $mpdf->SetDirectionality('rtl');
+        $mpdf->SetDisplayMode('fullpage');
+        $mpdf->shrink_tables_to_fit = 1;
+        
+        // Get the HTML content from the view
+        $html = view('card-pdf', $data)->render();
+        
+        // Write HTML to PDF
+        $mpdf->WriteHTML($html);
+        
+        // Generate filename
+        $filename = 'insurance_card_' . ($data['card_number'] ?? 'document') . '.pdf';
+        
+        // Output as download
+        return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
     }
     public function printCardPdfold(Request $request)
     {
