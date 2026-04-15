@@ -785,7 +785,6 @@ class RequestsController extends Controller
 
                 $RQ_USER_ID = Apiuser::where('companies_id', $reques->companies_id)->first();
                 $cards_number = $reques->cards_number;
-
                 $get_cards_data = Card::whereNull('companies_id')->limit($cards_number)->get();
                 $formattedData = $get_cards_data->map(function ($card) {
                     return [
@@ -819,9 +818,11 @@ class RequestsController extends Controller
                     $office_user_name = $user->username;
                 }
                 
+                dd($response);
+                $companies_name=$reques->companies ? $reques->companies->name : null;
                 ApiLog::create([
                     'user_name' => Auth::user()->username,
-                    'company_name' => $reques->companies ? Auth::user()->username->companies->name : null,
+                    'company_name' => $companies_name ? Auth::user()->username->companies->name : null,
                     'office_name' => $office_name,
                     'office_user_name' => $office_user_name,
                     'operation_type' => 'accept_request',
@@ -833,6 +834,7 @@ class RequestsController extends Controller
                 ]);
                 ActivityLogger::activity("API Response for accept request: " . json_encode($response));
                 $code = $response->status;
+
 
 
                 if ($code == 8076) {
@@ -867,6 +869,7 @@ class RequestsController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
+                dd($e->getMessage()),
                 'status' => 'error',
                 'message' => $e->getMessage() . "فشل تنزيل بطاقات"
             ]);
