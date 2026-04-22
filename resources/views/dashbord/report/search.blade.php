@@ -575,7 +575,7 @@
       const cars = item.cars ? (item.cars.name ?? item.cars_id) : (item.cars_id ?? '-');
 
       const cardNumberForRoute = item.cards_id; // غيّرها لو مسارك يعتمد card_number
-      const baseUrl = "{{ route('viewdocument', ['cardnumber' => 'PLACEHOLDER']) }}";
+      const baseUrl = "{{ route('print-card', ['card_id' => 'PLACEHOLDER']) }}";
       const url     = baseUrl.replace('PLACEHOLDER', encodeURIComponent(cardNumberForRoute));
       const docLink =
         '<a style="color:#f97424;" target="_blank" href="'+url+'">' +

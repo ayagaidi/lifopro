@@ -5,19 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بطاقة التأمين العربية الموحدة - ليبيا</title>
-    <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
-    <script>
-        // Auto-print when page loads
+    {{-- <script>
         window.onload = function() {
-            @if (env('TEST_MODE', false) == false)
-                // Only auto-print if not in test mode
-                setTimeout(function() {
-                    window.print();
-                }, 500);
-            @endif
+            setTimeout(function() {
+                window.print();
+            }, 500);
         };
-    </script>
+    </script> --}}
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet">
+
+
     <style>
+        body {
+            font-family: 'Cairo', Arial, sans-serif;
+
+            direction: rtl;
+            unicode-bidi: embed;
+            text-align: right;
+        }
+
         @page {
             size: A4;
             margin: 0;
@@ -32,7 +39,7 @@
         }
 
         .container {
-            width: 800px;
+            width: 794px;
             margin: auto;
             background-color: #fff;
             border: 2px solid #000;
@@ -213,16 +220,17 @@
             gap: 10px;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
 
     <div class="container">
-        @if (env('TEST_MODE', false))
-            <div class="watermark">Test Document</div>
-            <div class="header-top">
-                This document is generated for testing purposes only. This is not a valid document.
-            </div>
+        @if ($test_mode ?? false)
+        <div class="watermark">Test Document</div>
+        <div class="header-top">
+            This document is generated for testing purposes only. This is not a valid document.
+        </div>
         @endif
 
         <div class="main-header">
@@ -274,77 +282,77 @@
 
         <table>
             @php
-                // Get visible fields from database
-                $visibleFields = [];
-                try {
-                    $visibleFields = \App\Models\CardFieldVisibility::getVisibleFields();
-                } catch (\Exception $e) {
-                    // Default fields if table doesn't exist or error
-                    $visibleFields = [
-                        (object)['field_name' => 'vehicle_type', 'field_label' => 'نوع المركبة', 'visible' => true],
-                        (object)['field_name' => 'vehicle_nationality', 'field_label' => 'جنسية المركبة', 'visible' => true],
-                        (object)['field_name' => 'manufacturing_year', 'field_label' => 'سنة الصنع', 'visible' => true],
-                        (object)['field_name' => 'chassis_number', 'field_label' => 'رقم الهيكل (الشاسيه)', 'visible' => true],
-                        (object)['field_name' => 'plate_number', 'field_label' => 'رقم اللوحة', 'visible' => true],
-                        (object)['field_name' => 'engine_number', 'field_label' => 'رقم المحرك (الموتور)', 'visible' => true],
-                        (object)['field_name' => 'usage_purpose', 'field_label' => 'الغرض من الإستعمال', 'visible' => true],
-                    ];
-                }
+            // Get visible fields from database
+            $visibleFields = [];
+            try {
+            $visibleFields = \App\Models\CardFieldVisibility::getVisibleFields();
+            } catch (\Exception $e) {
+            // Default fields if table doesn't exist or error
+            $visibleFields = [
+            (object)['field_name' => 'vehicle_type', 'field_label' => 'نوع المركبة', 'visible' => true],
+            (object)['field_name' => 'vehicle_nationality', 'field_label' => 'جنسية المركبة', 'visible' => true],
+            (object)['field_name' => 'manufacturing_year', 'field_label' => 'سنة الصنع', 'visible' => true],
+            (object)['field_name' => 'chassis_number', 'field_label' => 'رقم الهيكل (الشاسيه)', 'visible' => true],
+            (object)['field_name' => 'plate_number', 'field_label' => 'رقم اللوحة', 'visible' => true],
+            (object)['field_name' => 'engine_number', 'field_label' => 'رقم المحرك (الموتور)', 'visible' => true],
+            (object)['field_name' => 'usage_purpose', 'field_label' => 'الغرض من الإستعمال', 'visible' => true],
+            ];
+            }
 
-                // Group fields into rows of 2 fields each
-                $fieldRows = array_chunk($visibleFields->toArray(), 2);
+            // Group fields into rows of 2 fields each
+            $fieldRows = array_chunk($visibleFields->toArray(), 2);
             @endphp
 
             @foreach ($fieldRows as $row)
-                <tr>
-                    @foreach ($row as $field)
-                        <td class="bg-gray" width="15%">{{ $field['field_label'] }}</td>
-                        <td>
-                            @if ($field['field_name'] == 'usage_purpose')
-                                {{ $usage_purpose ?? 'خاصة' }}
-                            @elseif ($field['field_name'] == 'vehicle_type')
-                                {{ $vehicle_type ?? 'نوع المركبة' }}
-                            @elseif ($field['field_name'] == 'vehicle_nationality')
-                                {{ $vehicle_nationality ?? 'الجنسية' }}
-                            @elseif ($field['field_name'] == 'manufacturing_year')
-                                {{ $manufacturing_year ?? '2025' }}
-                            @elseif ($field['field_name'] == 'chassis_number')
-                                {{ $chassis_number ?? 'رقم الهيكل' }}
-                            @elseif ($field['field_name'] == 'plate_number')
-                                {{ $plate_number ?? 'رقم اللوحة' }}
-                            @elseif ($field['field_name'] == 'engine_number')
-                                {{ $engine_number ?? 'رقم المحرك' }}
-                            @else
-                                {{ isset($$field['field_name']) ? $$field['field_name'] : '' }}
-                            @endif
-                        </td>
-                    @endforeach
-                    {{-- Add colspan if row has only 1 field --}}
-                    @if (count($row) == 1)
-                        <td colspan="2"></td>
+            <tr>
+                @foreach ($row as $field)
+                <td class="bg-gray" width="15%">{{ $field['field_label'] }}</td>
+                <td>
+                    @if ($field['field_name'] == 'usage_purpose')
+                    {{ $usage_purpose ?? 'خاصة' }}
+                    @elseif ($field['field_name'] == 'vehicle_type')
+                    {{ $vehicle_type ?? 'نوع المركبة' }}
+                    @elseif ($field['field_name'] == 'vehicle_nationality')
+                    {{ $vehicle_nationality ?? 'الجنسية' }}
+                    @elseif ($field['field_name'] == 'manufacturing_year')
+                    {{ $manufacturing_year ?? '2025' }}
+                    @elseif ($field['field_name'] == 'chassis_number')
+                    {{ $chassis_number ?? 'رقم الهيكل' }}
+                    @elseif ($field['field_name'] == 'plate_number')
+                    {{ $plate_number ?? 'رقم اللوحة' }}
+                    @elseif ($field['field_name'] == 'engine_number')
+                    {{ $engine_number ?? 'رقم المحرك' }}
+                    @else
+                    {{ isset($$field['field_name']) ? $$field['field_name'] : '' }}
                     @endif
-                </tr>
+                </td>
+                @endforeach
+                {{-- Add colspan if row has only 1 field --}}
+                @if (count($row) == 1)
+                <td colspan="2"></td>
+                @endif
+            </tr>
             @endforeach
         </table>
 
         @php
-            function convertToArabicDate($date)
-            {
-                if (empty($date)) return $date;
-                $arabicMonths = [
-                    '01' => 'يناير', '02' => 'فبراير', '03' => 'مارس', '04' => 'أبريل',
-                    '05' => 'مايو', '06' => 'يونيو', '07' => 'يوليو', '08' => 'أغسطس',
-                    '09' => 'سبتمبر', '10' => 'أكتوبر', '11' => 'نوفمبر', '12' => 'ديسمبر',
-                ];
-                if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $date, $matches)) {
-                    $day = $matches[1];
-                    $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
-                    $year = $matches[3];
-                    $arabicMonth = $arabicMonths[$month] ?? $month;
-                    return $day . '/' . $arabicMonth . '/' . $year;
-                }
-                return $date;
-            }
+        function convertToArabicDate($date)
+        {
+        if (empty($date)) return $date;
+        $arabicMonths = [
+        '01' => 'يناير', '02' => 'فبراير', '03' => 'مارس', '04' => 'أبريل',
+        '05' => 'مايو', '06' => 'يونيو', '07' => 'يوليو', '08' => 'أغسطس',
+        '09' => 'سبتمبر', '10' => 'أكتوبر', '11' => 'نوفمبر', '12' => 'ديسمبر',
+        ];
+        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $date, $matches)) {
+        $day = $matches[1];
+        $month = str_pad($matches[2], 2, '0', STR_PAD_LEFT);
+        $year = $matches[3];
+        $arabicMonth = $arabicMonths[$month] ?? $month;
+        return $day . '/' . $arabicMonth . '/' . $year;
+        }
+        return $date;
+        }
         @endphp
 
         <table>
@@ -370,35 +378,35 @@
         <div class="countries-title">البلاد التي تسري فيها البطاقة</div>
         <div class="countries-grid">
             @php
-                $countryNames = [
-                    'OMN' => 'عمان', 'IRQ' => 'العراق', 'SYR' => 'سوريا',
-                    'DZA' => 'الجزائر', 'TUN' => 'تونس', 'BHR' => 'البحرين',
-                    'UAE' => 'الإمارات', 'JOR' => 'الأردن', 'YEM' => 'اليمن',
-                    'EGY' => 'مصر', 'LBY' => 'ليبيا', 'LBN' => 'لبنان',
-                    'KWT' => 'الكويت', 'QAT' => 'قطر',
-                ];
+            $countryNames = [
+            'OMN' => 'عمان', 'IRQ' => 'العراق', 'SYR' => 'سوريا',
+            'DZA' => 'الجزائر', 'TUN' => 'تونس', 'BHR' => 'البحرين',
+            'UAE' => 'الإمارات', 'JOR' => 'الأردن', 'YEM' => 'اليمن',
+            'EGY' => 'مصر', 'LBY' => 'ليبيا', 'LBN' => 'لبنان',
+            'KWT' => 'الكويت', 'QAT' => 'قطر',
+            ];
 
-                $defaultCountries = [
-                    'OMN' => false, 'IRQ' => false, 'SYR' => false,
-                    'DZA' => true, 'TUN' => true, 'BHR' => false,
-                    'UAE' => false, 'JOR' => false, 'YEM' => false,
-                    'EGY' => false, 'LBY' => false, 'LBN' => false,
-                    'KWT' => false, 'QAT' => false,
-                ];
+            $defaultCountries = [
+            'OMN' => false, 'IRQ' => false, 'SYR' => false,
+            'DZA' => true, 'TUN' => true, 'BHR' => false,
+            'UAE' => false, 'JOR' => false, 'YEM' => false,
+            'EGY' => false, 'LBY' => false, 'LBN' => false,
+            'KWT' => false, 'QAT' => false,
+            ];
 
-                $displayCountries = $defaultCountries;
-                if (isset($countries) && is_array($countries)) {
-                    foreach ($countries as $symbol => $enabled) {
-                        if(isset($displayCountries[$symbol])) {
-                            $displayCountries[$symbol] = $enabled;
-                        }
-                    }
-                }
+            $displayCountries = $defaultCountries;
+            if (isset($countries) && is_array($countries)) {
+            foreach ($countries as $symbol => $enabled) {
+            if(isset($displayCountries[$symbol])) {
+            $displayCountries[$symbol] = $enabled;
+            }
+            }
+            }
             @endphp
             @foreach ($displayCountries as $symbol => $enabled)
-                <div class="country-item">
-                    <input type="checkbox" {{ $enabled ? 'checked' : '' }}> {{ $countryNames[$symbol] ?? $symbol }}
-                </div>
+            <div class="country-item">
+                <input type="checkbox" {{ $enabled ? 'checked' : '' }}> {{ $countryNames[$symbol] ?? $symbol }}
+            </div>
             @endforeach
         </div>
 
@@ -409,24 +417,24 @@
                 <td width="45%">بيان مختصر عن نوعية التغطيات طبقا لقوانين اللزامي في البلد العربية</td>
             </tr>
             @if (!empty($office_info))
-                @foreach ($office_info as $office)
-                    <tr style="font-size: 9px;">
-                        <td>{{ $office['country'] ?? '' }}</td>
-                        <td>{{ $office['address'] ?? '' }}</td>
-                        <td>{{ $office['coverage'] ?? '' }}</td>
-                    </tr>
-                @endforeach
+            @foreach ($office_info as $office)
+            <tr style="font-size: 9px;">
+                <td>{{ $office['country'] ?? '' }}</td>
+                <td>{{ $office['address'] ?? '' }}</td>
+                <td>{{ $office['coverage'] ?? '' }}</td>
+            </tr>
+            @endforeach
             @else
-                <tr style="font-size: 9px;">
-                    <td>تونس</td>
-                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />smg.buat@buat.com.tn 21671845124+</td>
-                    <td>الأضرار الجسمانية بقيمة محددة والمادية غير محددة</td>
-                </tr>
-                <tr style="font-size: 9px;">
-                    <td>الجزائر</td>
-                    <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />bua.algerie@gmail.com 21321609295+</td>
-                    <td>الأضرار البدنية بقيمة محدده والضرارالمادية بقيمة غير محددة</td>
-                </tr>
+            <tr style="font-size: 9px;">
+                <td>تونس</td>
+                <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />smg.buat@buat.com.tn 21671845124+</td>
+                <td>الأضرار الجسمانية بقيمة محددة والمادية غير محددة</td>
+            </tr>
+            <tr style="font-size: 9px;">
+                <td>الجزائر</td>
+                <td>إقامة شعباني / واد حيدرة. -حيدرة 16033 الجزائر ++21321604507 <br />bua.algerie@gmail.com 21321609295+</td>
+                <td>الأضرار البدنية بقيمة محدده والضرارالمادية بقيمة غير محددة</td>
+            </tr>
             @endif
         </table>
 
@@ -475,11 +483,35 @@
         </div>
 
         <div class="warning" style="text-align: center !important;border-top:none !important">
-            @if (env('TEST_MODE', false))
-                <small>This document is generated for testing purpose only. This is not a valid document</small>
+            @if ($test_mode ?? false)
+            <small>This document is generated for testing purpose only. This is not a valid document</small>
             @endif
         </div>
     </div>
 
+    <script>
+        window.onload = function() {
+            const element = document.querySelector('.container');
+
+            html2pdf().set({
+                margin: 0,
+                filename: 'insurance-card.pdf',
+                image: {
+                    type: 'jpeg',
+                    quality: 1
+                },
+                html2canvas: {
+                    scale: 4, // مهم للجودة العالية
+                    useCORS: true
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                }
+            }).from(element).save();
+        };
+    </script>
 </body>
+
 </html>

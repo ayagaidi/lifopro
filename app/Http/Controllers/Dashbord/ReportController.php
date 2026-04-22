@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Dashbord;
 
+use App\Exports\IssuingsExport;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\Offices;
-use App\Models\Apiuser;
 use App\Models\Card;
 use App\Models\Company;
 use App\Models\CompanyUser;
+use App\Models\Country;
+use App\Models\InsuranceClause;
 use App\Models\issuing;
 use App\Models\Office;
 use App\Models\OfficeUser;
@@ -18,16 +20,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use PHPUnit\Runner\Baseline\Issue;
-use RealRashid\SweetAlert\Facades\Alert;
-use App\Exports\IssuingsExport;
-use App\Models\Country;
-use Maatwebsite\Excel\Facades\Excel;
-use niklasravnsborg\LaravelPdf\Facades\Pdf as PDF;
-
-use Illuminate\Support\Facades\DB;
-use Mpdf\Mpdf;
+use Illuminate\Support\Facades\Log;
 use Mpdf\HTMLParserMode;
+use Mpdf\Mpdf;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class ReportController extends Controller
 {
@@ -40,16 +36,15 @@ class ReportController extends Controller
     {
         $this->middleware('auth');
     }
+
     public function indexsummaryarchives()
     {
 
-
         $Company = Company::get();
+
         return view('dashbord.report.searchsummaryarchev')
             ->with('Company', $Company);
     }
-
-
 
     public function searchbychives(Request $request)
     {
@@ -63,7 +58,7 @@ class ReportController extends Controller
             'offices.companies',
             'company_users',
             'office_users',
-            'cars'
+            'cars',
         ])
             ->whereDate('issuing_date', '<', $startOfYear);
 
@@ -96,7 +91,7 @@ class ReportController extends Controller
         });
 
         $issuing->when($request->filled('insurance_name'), function ($query) use ($request) {
-            $query->where('insurance_name', 'like', '%' . $request->insurance_name . '%');
+            $query->where('insurance_name', 'like', '%'.$request->insurance_name.'%');
         });
 
         $issuing->when($request->filled('plate_number'), function ($query) use ($request) {
@@ -142,13 +137,11 @@ class ReportController extends Controller
         ]);
     }
 
-
-
     public function searchbychivespdf(Request $request)
     {
         $messages = [
-            'fromdate.required' => "اختر الفترة من  ",
-            'todate.required' => "اختر الفترة الي  ",
+            'fromdate.required' => 'اختر الفترة من  ',
+            'todate.required' => 'اختر الفترة الي  ',
         ];
 
         $this->validate($request, [
@@ -163,7 +156,8 @@ class ReportController extends Controller
 
         // تحقق من أن التواريخ لا تقع في السنة الحالية أو بعدها
         if ($from >= $startOfCurrentYear || $to >= $startOfCurrentYear) {
-            Alert::warning("يجب اختيار تاريخ قبل السنة الحالية فقط");
+            Alert::warning('يجب اختيار تاريخ قبل السنة الحالية فقط');
+
             return redirect()->back();
         }
 
@@ -178,12 +172,12 @@ class ReportController extends Controller
             'office_users',
             'users',
             'cars',
-            'countries'
+            'countries',
         ])
             ->whereDate('issuing_date', '<', $startOfCurrentYear);
 
         // تطبيق الفلاتر
-        if (!empty($request->companies_id)) {
+        if (! empty($request->companies_id)) {
             $issuing->where(function ($query) use ($request) {
                 $query->where('companies_id', $request->companies_id)
                     ->orWhereHas('offices', function ($q) use ($request) {
@@ -192,33 +186,33 @@ class ReportController extends Controller
             });
         }
 
-        if (!empty($request->offices_id)) {
+        if (! empty($request->offices_id)) {
             $issuing->where('offices_id', $request->offices_id);
         }
 
-        if (!empty($request->company_users_id)) {
+        if (! empty($request->company_users_id)) {
             $issuing->where('company_users_id', $request->company_users_id);
         }
 
-        if (!empty($request->office_users_id)) {
+        if (! empty($request->office_users_id)) {
             $issuing->where('office_users_id', $request->office_users_id);
         }
 
-        if (!empty($request->card_number)) {
+        if (! empty($request->card_number)) {
             $issuing->whereHas('cards', function ($query) use ($request) {
                 $query->where('card_number', $request->card_number);
             });
         }
 
-        if (!empty($request->insurance_name)) {
-            $issuing->where('insurance_name', 'like', '%' . $request->insurance_name . '%');
+        if (! empty($request->insurance_name)) {
+            $issuing->where('insurance_name', 'like', '%'.$request->insurance_name.'%');
         }
 
-        if (!empty($request->plate_number)) {
+        if (! empty($request->plate_number)) {
             $issuing->where('plate_number', $request->plate_number);
         }
 
-        if (!empty($request->chassis_number)) {
+        if (! empty($request->chassis_number)) {
             $issuing->where('chassis_number', $request->chassis_number);
         }
 
@@ -229,7 +223,8 @@ class ReportController extends Controller
         $results = $issuing->orderBy('created_at', 'DESC')->get();
 
         if ($results->isEmpty()) {
-            Alert::warning("لايوجد بطاقات");
+            Alert::warning('لايوجد بطاقات');
+
             return redirect()->back();
         }
 
@@ -242,10 +237,6 @@ class ReportController extends Controller
             ->with('total', $total);
     }
 
-
-
-
-
     /**
      * Show the application dashboard.
      *
@@ -254,8 +245,8 @@ class ReportController extends Controller
     public function indexsummary()
     {
 
-
         $Company = Company::get();
+
         return view('dashbord.report.searchsummary')
             ->with('Company', $Company);
     }
@@ -266,13 +257,15 @@ class ReportController extends Controller
     public function indexsummaryByYear($year)
     {
         $Company = Company::get();
+
         return view('dashbord.report.searchsummary', compact('Company', 'year'));
     }
+
     public function index(Request $request)
     {
 
-
         $Company = Company::get();
+
         return view('dashbord.report.search')
             ->with('Company', $Company);
     }
@@ -297,6 +290,7 @@ class ReportController extends Controller
     public function indexByYear($year)
     {
         $Company = Company::get();
+
         return view('dashbord.report.search', compact('Company', 'year'));
     }
 
@@ -328,14 +322,14 @@ class ReportController extends Controller
                 'offices.companies:id,name',
                 'company_users:id,username',
                 'office_users:id,username',
-                'cars:id,name'
+                'cars:id,name',
             ])
             ->select([
                 'id', 'cards_id', 'companies_id', 'offices_id', 'company_users_id', 'office_users_id',
                 'insurance_name', 'issuing_date', 'insurance_installment', 'insurance_tax',
                 'insurance_stamp', 'insurance_supervision', 'insurance_version', 'insurance_total',
                 'insurance_day_from', 'nsurance_day_to', 'insurance_days_number', 'plate_number',
-                'chassis_number', 'motor_number', 'cars_id', 'created_at'
+                'chassis_number', 'motor_number', 'cars_id', 'created_at',
             ])
             ->whereBetween('issuing_date', [$from, $to]);
 
@@ -348,28 +342,28 @@ class ReportController extends Controller
             });
         });
 
-        $query->when($request->filled('offices_id'), fn($q) => $q->where('offices_id', $request->offices_id));
-        $query->when($request->filled('company_users_id'), fn($q) => $q->where('company_users_id', $request->company_users_id));
-        $query->when($request->filled('office_users_id'), fn($q) => $q->where('office_users_id', $request->office_users_id));
+        $query->when($request->filled('offices_id'), fn ($q) => $q->where('offices_id', $request->offices_id));
+        $query->when($request->filled('company_users_id'), fn ($q) => $q->where('company_users_id', $request->company_users_id));
+        $query->when($request->filled('office_users_id'), fn ($q) => $q->where('office_users_id', $request->office_users_id));
         $query->when($request->filled('card_number'), function ($q) use ($request) {
-            $q->whereHas('cards', fn($q2) => $q2->where('card_number', $request->card_number));
+            $q->whereHas('cards', fn ($q2) => $q2->where('card_number', $request->card_number));
         });
-        $query->when($request->filled('insurance_name'), fn($q) => $q->where('insurance_name', 'like', '%' . $request->insurance_name . '%'));
-        $query->when($request->filled('plate_number'), fn($q) => $q->where('plate_number', $request->plate_number));
-        $query->when($request->filled('chassis_number'), fn($q) => $q->where('chassis_number', $request->chassis_number));
+        $query->when($request->filled('insurance_name'), fn ($q) => $q->where('insurance_name', 'like', '%'.$request->insurance_name.'%'));
+        $query->when($request->filled('plate_number'), fn ($q) => $q->where('plate_number', $request->plate_number));
+        $query->when($request->filled('chassis_number'), fn ($q) => $q->where('chassis_number', $request->chassis_number));
 
         // Pagination
         $perPage = $request->get('per_page', 20);
         $results = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
-        $totals = $query->clone()->selectRaw("
+        $totals = $query->clone()->selectRaw('
             SUM(insurance_installment) as total_installment,
             SUM(insurance_tax) as total_tax,
             SUM(insurance_stamp) as total_stamp,
             SUM(insurance_supervision) as total_supervision,
             SUM(insurance_version) as total_version,
             SUM(insurance_total) as total_insurance
-        ")->first();
+        ')->first();
 
         if ($results->isEmpty()) {
             return response()->json([
@@ -394,10 +388,6 @@ class ReportController extends Controller
         ]);
     }
 
-
-
-
-
     // {
     //     $from = Carbon::parse($request->fromdate)->startOfDay();
     //     $to = Carbon::parse($request->todate)->endOfDay();
@@ -415,11 +405,11 @@ class ReportController extends Controller
 
     //     $query = Issuing::query()
     //         ->with([
-    //             'cards:id,card_number,id', 
-    //             'companies:id,name', 
-    //             'offices:id,name,companies_id', 
+    //             'cards:id,card_number,id',
+    //             'companies:id,name',
+    //             'offices:id,name,companies_id',
     //             'offices.companies:id,name',
-    //             'company_users:id,username', 
+    //             'company_users:id,username',
     //             'office_users:id,username',
     //             'cars:id,name'
     //         ])
@@ -452,7 +442,7 @@ class ReportController extends Controller
     //     $query->when($request->filled('chassis_number'), fn($q) => $q->where('chassis_number', $request->chassis_number));
 
     //       // ✅ استخدم paginate بدل get()
-    // $perPage = $request->get('per_page', 20);   
+    // $perPage = $request->get('per_page', 20);
     // $results = $query->orderBy('created_at', 'desc')->paginate($perPage);
     // $totals = $query->clone()->selectRaw("
     //     SUM(insurance_installment) as total_installment,
@@ -493,16 +483,14 @@ class ReportController extends Controller
     //     // ]);
     // }public function searchby(Request $request)
 
-
-
     public function searchby(Request $request)
     {
         $from = Carbon::parse($request->fromdate)->startOfDay();
-        $to   = Carbon::parse($request->todate)->endOfDay();
+        $to = Carbon::parse($request->todate)->endOfDay();
 
         // تقييد البحث بالسنة الحالية أو القادمة
         $currentYearStart = Carbon::now()->startOfYear();
-        $nextYearEnd      = Carbon::now()->addYear()->endOfYear();
+        $nextYearEnd = Carbon::now()->addYear()->endOfYear();
 
         if ($from->lt($currentYearStart) || $to->gt($nextYearEnd)) {
             return response()->json([
@@ -520,7 +508,7 @@ class ReportController extends Controller
                 'offices.companies:id,name',
                 'company_users:id,username',
                 'office_users:id,username',
-                'cars:id,name'
+                'cars:id,name',
             ])
             ->select([
                 'id',
@@ -544,7 +532,7 @@ class ReportController extends Controller
                 'chassis_number',
                 'motor_number',
                 'cars_id',
-                'created_at'
+                'created_at',
             ])
             ->whereBetween('issuing_date', [$from, $to]);
 
@@ -557,15 +545,15 @@ class ReportController extends Controller
             });
         });
 
-        $query->when($request->filled('offices_id'), fn($q) => $q->where('offices_id', $request->offices_id));
-        $query->when($request->filled('company_users_id'), fn($q) => $q->where('company_users_id', $request->company_users_id));
-        $query->when($request->filled('office_users_id'), fn($q) => $q->where('office_users_id', $request->office_users_id));
+        $query->when($request->filled('offices_id'), fn ($q) => $q->where('offices_id', $request->offices_id));
+        $query->when($request->filled('company_users_id'), fn ($q) => $q->where('company_users_id', $request->company_users_id));
+        $query->when($request->filled('office_users_id'), fn ($q) => $q->where('office_users_id', $request->office_users_id));
         $query->when($request->filled('card_number'), function ($q) use ($request) {
-            $q->whereHas('cards', fn($q2) => $q2->where('card_number', $request->card_number));
+            $q->whereHas('cards', fn ($q2) => $q2->where('card_number', $request->card_number));
         });
-        $query->when($request->filled('insurance_name'), fn($q) => $q->where('insurance_name', 'like', '%' . $request->insurance_name . '%'));
-        $query->when($request->filled('plate_number'), fn($q) => $q->where('plate_number', $request->plate_number));
-        $query->when($request->filled('chassis_number'), fn($q) => $q->where('chassis_number', $request->chassis_number));
+        $query->when($request->filled('insurance_name'), fn ($q) => $q->where('insurance_name', 'like', '%'.$request->insurance_name.'%'));
+        $query->when($request->filled('plate_number'), fn ($q) => $q->where('plate_number', $request->plate_number));
+        $query->when($request->filled('chassis_number'), fn ($q) => $q->where('chassis_number', $request->chassis_number));
 
         // ====== حد منطقي للطباعة/الإظهار دفعة واحدة ======
         $maxPrintLimit = (int) env('PRINT_MAX_LIMIT', 100000);   // سقف صارم
@@ -579,18 +567,18 @@ class ReportController extends Controller
         $countQuery->when($request->filled('companies_id'), function ($q) use ($request) {
             $q->where(function ($sub) use ($request) {
                 $sub->where('companies_id', $request->companies_id)
-                    ->orWhereHas('offices', fn($q2) => $q2->where('companies_id', $request->companies_id));
+                    ->orWhereHas('offices', fn ($q2) => $q2->where('companies_id', $request->companies_id));
             });
         });
-        $countQuery->when($request->filled('offices_id'), fn($q) => $q->where('offices_id', $request->offices_id));
-        $countQuery->when($request->filled('company_users_id'), fn($q) => $q->where('company_users_id', $request->company_users_id));
-        $countQuery->when($request->filled('office_users_id'), fn($q) => $q->where('office_users_id', $request->office_users_id));
+        $countQuery->when($request->filled('offices_id'), fn ($q) => $q->where('offices_id', $request->offices_id));
+        $countQuery->when($request->filled('company_users_id'), fn ($q) => $q->where('company_users_id', $request->company_users_id));
+        $countQuery->when($request->filled('office_users_id'), fn ($q) => $q->where('office_users_id', $request->office_users_id));
         $countQuery->when($request->filled('card_number'), function ($q) use ($request) {
-            $q->whereHas('cards', fn($q2) => $q2->where('card_number', $request->card_number));
+            $q->whereHas('cards', fn ($q2) => $q2->where('card_number', $request->card_number));
         });
-        $countQuery->when($request->filled('insurance_name'), fn($q) => $q->where('insurance_name', 'like', '%' . $request->insurance_name . '%'));
-        $countQuery->when($request->filled('plate_number'), fn($q) => $q->where('plate_number', $request->plate_number));
-        $countQuery->when($request->filled('chassis_number'), fn($q) => $q->where('chassis_number', $request->chassis_number));
+        $countQuery->when($request->filled('insurance_name'), fn ($q) => $q->where('insurance_name', 'like', '%'.$request->insurance_name.'%'));
+        $countQuery->when($request->filled('plate_number'), fn ($q) => $q->where('plate_number', $request->plate_number));
+        $countQuery->when($request->filled('chassis_number'), fn ($q) => $q->where('chassis_number', $request->chassis_number));
 
         $count = $countQuery->count();
 
@@ -604,14 +592,14 @@ class ReportController extends Controller
             return response()->json([
                 'code' => 4,
                 'status' => false,
-                'message' => "عدد النتائج كبير جداً ($count). الحد الأقصى للإظهار/الطباعة دفعة واحدة هو {$maxPrintLimit}. " .
+                'message' => "عدد النتائج كبير جداً ($count). الحد الأقصى للإظهار/الطباعة دفعة واحدة هو {$maxPrintLimit}. ".
                     "يرجى تقليص الفترة. مثال: من {$from->format('Y-m-d')} إلى {$suggestTo} (حوالي {$suggestDays} يوم).",
                 'meta' => [
                     'count' => $count,
                     'max_limit' => $maxPrintLimit,
                     'suggest_to' => $suggestTo,
                     'suggest_days' => $suggestDays,
-                ]
+                ],
             ], 400);
         }
 
@@ -619,14 +607,14 @@ class ReportController extends Controller
         $results = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // اجماليات مبنية على نفس الفلترة
-        $totals = (clone $countQuery)->selectRaw("
+        $totals = (clone $countQuery)->selectRaw('
         SUM(insurance_installment) as total_installment,
         SUM(insurance_tax) as total_tax,
         SUM(insurance_stamp) as total_stamp,
         SUM(insurance_supervision) as total_supervision,
         SUM(insurance_version) as total_version,
         SUM(insurance_total) as total_insurance
-    ")->first();
+    ')->first();
 
         if ($results->isEmpty()) {
             return response()->json([
@@ -658,26 +646,22 @@ class ReportController extends Controller
         ]);
     }
 
-
-
-
-
     public function exportXlsx(Request $request)
     {
         // (اختياري) إعادة استخدام قيد السنة الحالية/القادمة
         $from = \Carbon\Carbon::parse($request->fromdate)->startOfDay();
-        $to   = \Carbon\Carbon::parse($request->todate)->endOfDay();
+        $to = \Carbon\Carbon::parse($request->todate)->endOfDay();
 
         $currentYearStart = now()->startOfYear();
-        $nextYearEnd      = now()->addYear()->endOfYear();
+        $nextYearEnd = now()->addYear()->endOfYear();
 
         if ($from->lt($currentYearStart) || $to->gt($nextYearEnd)) {
             return back()->with('error', 'التاريخ يجب أن يكون ضمن السنة الحالية أو السنة القادمة فقط');
         }
 
         $fromStr = $request->fromdate ? str_replace('-', '', $request->fromdate) : '';
-        $toStr   = $request->todate   ? str_replace('-', '', $request->todate)   : '';
-        $name    = $fromStr && $toStr ? "sales_all_{$fromStr}_{$toStr}.xlsx" : "sales_all.xlsx";
+        $toStr = $request->todate ? str_replace('-', '', $request->todate) : '';
+        $name = $fromStr && $toStr ? "sales_all_{$fromStr}_{$toStr}.xlsx" : 'sales_all.xlsx';
 
         return (new IssuingsExport($request))->download($name);
     }
@@ -732,7 +716,7 @@ class ReportController extends Controller
     //             'instanceConfigurator' => function ($mpdf) {
     //                 $mpdf->autoScriptToLang = true;
     //                 $mpdf->autoLangToFont   = true;
-    //                 $mpdf->SetDirectionality('rtl'); // وثّقها mPDF هنا. 
+    //                 $mpdf->SetDirectionality('rtl'); // وثّقها mPDF هنا.
     //             },
     //         ]
     //     );
@@ -749,8 +733,6 @@ class ReportController extends Controller
     //         return $filters;
     //     }
 
-
-
     // private function baseQuery(array $filters)
     //     {
     //         $q = Issuing::with(['offices.companies','company_users','office_users','cards','cars'])
@@ -763,10 +745,8 @@ class ReportController extends Controller
     //             ->when(isset($filters['plate_number'])      && $filters['plate_number']      !== null, fn($qq)=>$qq->where('plate_number','like',"%{$filters['plate_number']}%"))
     //             ->when(isset($filters['chassis_number'])    && $filters['chassis_number']    !== null, fn($qq)=>$qq->where('chassis_number','like',"%{$filters['chassis_number']}%"));
 
-
     //         return $q;
     //     }
-
 
     //     public function exportAllPdf(Request $request)
     //     {
@@ -783,7 +763,6 @@ class ReportController extends Controller
     //             'chassis_number','plate_number','company_users_id','fromdate','todate'
     //         ]));
 
-
     // $from = Carbon::parse($filters['fromdate'])->startOfDay();
     // $to   = Carbon::parse($filters['todate'])->endOfDay();
 
@@ -791,10 +770,6 @@ class ReportController extends Controller
     //     ->whereBetween('issuing_date', [$from, $to])
     //     ->orderBy('issuing_date', 'asc')
     //     ->get();
-
-
-
-
 
     //      $totals = [
     //     'total_installment' => $rows->sum('insurance_installment'),
@@ -834,43 +809,44 @@ class ReportController extends Controller
     //         return $pdf->download("sales_all_{$meta['from']}_{$meta['to']}.pdf");
     //     }
 
-
-
-
     private function cleanFilters(array $filters): array
     {
         array_walk($filters, function (&$v) {
-            if (is_string($v)) $v = trim($v);
-            if ($v === '' || $v === ' ') $v = null;
+            if (is_string($v)) {
+                $v = trim($v);
+            }
+            if ($v === '' || $v === ' ') {
+                $v = null;
+            }
         });
+
         return $filters;
     }
 
     private function baseQuery(array $filters)
     {
         $q = Issuing::with(['offices.companies', 'company_users', 'office_users', 'cards', 'cars'])
-            ->when(isset($filters['companies_id'])      && $filters['companies_id']      !== null, fn($qq) => $qq->where('companies_id',      $filters['companies_id']))
-            ->when(isset($filters['company_users_id'])  && $filters['company_users_id']  !== null, fn($qq) => $qq->where('company_users_id',  $filters['company_users_id']))
-            ->when(isset($filters['offices_id'])        && $filters['offices_id']        !== null, fn($qq) => $qq->where('offices_id',        $filters['offices_id']))
-            ->when(isset($filters['office_users_id'])   && $filters['office_users_id']   !== null, fn($qq) => $qq->where('office_users_id',   $filters['office_users_id']))
-            ->when(isset($filters['insurance_name'])    && $filters['insurance_name']    !== null, fn($qq) => $qq->where('insurance_name', 'like', "%{$filters['insurance_name']}%"))
-            ->when(isset($filters['card_number'])       && $filters['card_number']       !== null, fn($qq) => $qq->whereHas('cards', fn($w) => $w->where('card_number', 'like', "%{$filters['card_number']}%")))
-            ->when(isset($filters['plate_number'])      && $filters['plate_number']      !== null, fn($qq) => $qq->where('plate_number', 'like', "%{$filters['plate_number']}%"))
-            ->when(isset($filters['chassis_number'])    && $filters['chassis_number']    !== null, fn($qq) => $qq->where('chassis_number', 'like', "%{$filters['chassis_number']}%"));
+            ->when(isset($filters['companies_id']) && $filters['companies_id'] !== null, fn ($qq) => $qq->where('companies_id', $filters['companies_id']))
+            ->when(isset($filters['company_users_id']) && $filters['company_users_id'] !== null, fn ($qq) => $qq->where('company_users_id', $filters['company_users_id']))
+            ->when(isset($filters['offices_id']) && $filters['offices_id'] !== null, fn ($qq) => $qq->where('offices_id', $filters['offices_id']))
+            ->when(isset($filters['office_users_id']) && $filters['office_users_id'] !== null, fn ($qq) => $qq->where('office_users_id', $filters['office_users_id']))
+            ->when(isset($filters['insurance_name']) && $filters['insurance_name'] !== null, fn ($qq) => $qq->where('insurance_name', 'like', "%{$filters['insurance_name']}%"))
+            ->when(isset($filters['card_number']) && $filters['card_number'] !== null, fn ($qq) => $qq->whereHas('cards', fn ($w) => $w->where('card_number', 'like', "%{$filters['card_number']}%")))
+            ->when(isset($filters['plate_number']) && $filters['plate_number'] !== null, fn ($qq) => $qq->where('plate_number', 'like', "%{$filters['plate_number']}%"))
+            ->when(isset($filters['chassis_number']) && $filters['chassis_number'] !== null, fn ($qq) => $qq->where('chassis_number', 'like', "%{$filters['chassis_number']}%"));
 
         return $q;
     }
-
 
     public function exportAllPdf(Request $request)
     {
         // 1) التحقق الأساسي من التواريخ
         $request->validate([
             'fromdate' => ['required', 'date'],
-            'todate'   => ['required', 'date', 'after_or_equal:fromdate'],
+            'todate' => ['required', 'date', 'after_or_equal:fromdate'],
         ], [], [
             'fromdate' => 'تاريخ البدء',
-            'todate'   => 'تاريخ النهاية',
+            'todate' => 'تاريخ النهاية',
         ]);
 
         // 2) تنظيف الفلاتر (حسب طريقتك)
@@ -884,11 +860,11 @@ class ReportController extends Controller
             'plate_number',
             'company_users_id',
             'fromdate',
-            'todate'
+            'todate',
         ]));
 
         $from = Carbon::parse($filters['fromdate'])->startOfDay();
-        $to   = Carbon::parse($filters['todate'])->endOfDay();
+        $to = Carbon::parse($filters['todate'])->endOfDay();
 
         // 3) بناء الاستعلام الأساسي مرة واحدة
         $baseQuery = $this->baseQuery($filters)->whereBetween('issuing_date', [$from, $to]);
@@ -900,6 +876,7 @@ class ReportController extends Controller
         if ($count === 0) {
             // لا توجد بيانات ضمن الفترة
             Alert::info('لا توجد بيانات', 'لا توجد سجلات ضمن الفترة المحددة.')->persistent('حسنًا');
+
             return redirect()->back()->withInput();
 
             // throw ValidationException::withMessages([
@@ -913,6 +890,7 @@ class ReportController extends Controller
                 'البيانات كبيرة',
                 "الفترة المختارة تحتوي {$count} سجلًا، والحد الأقصى المسموح به للتصدير هو {$MAX_ROWS}. الرجاء اختيار مدة أقصر."
             )->persistent('حسنًا');
+
             return redirect()->back()->withInput();
 
             // throw ValidationException::withMessages([
@@ -921,21 +899,21 @@ class ReportController extends Controller
         }
 
         // 5) إجماليات باستخدام SUM() بدون تحميل كل الصفوف للذاكرة
-        $totals = (clone $baseQuery)->selectRaw("
+        $totals = (clone $baseQuery)->selectRaw('
             COALESCE(SUM(insurance_installment),0) AS total_installment,
             COALESCE(SUM(insurance_tax),0)         AS total_tax,
             COALESCE(SUM(insurance_stamp),0)       AS total_stamp,
             COALESCE(SUM(insurance_supervision),0) AS total_supervision,
             COALESCE(SUM(insurance_version),0)     AS total_version,
             COALESCE(SUM(insurance_total),0)       AS total_insurance
-        ")->first()->toArray();
+        ')->first()->toArray();
 
         // 6) بيانات إضافية للهيدر
         $meta = [
-            'from'       => $filters['fromdate'],
-            'to'         => $filters['todate'],
-            'username'   => auth()->user()->username ?? '',
-            'today'      => now('Africa/Tripoli')->format('Y-m-d'),
+            'from' => $filters['fromdate'],
+            'to' => $filters['todate'],
+            'username' => auth()->user()->username ?? '',
+            'today' => now('Africa/Tripoli')->format('Y-m-d'),
             'rows_count' => $count,
         ];
 
@@ -947,23 +925,23 @@ class ReportController extends Controller
 
         // 8) مجلد مؤقت لـ mPDF لتقليل الضغط على الذاكرة
         $tempDir = storage_path('app/mpdf-temp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             @mkdir($tempDir, 0775, true);
         }
 
         // 9) تهيئة mPDF
         $mpdf = new Mpdf([
-            'format'        => 'A4',
-            'orientation'   => 'L',
-            'default_font'  => 'amiri',
-            'tempDir'       => $tempDir,
-            'margin_left'   => 10,
-            'margin_right'  => 10,
-            'margin_top'    => 10,
+            'format' => 'A4',
+            'orientation' => 'L',
+            'default_font' => 'amiri',
+            'tempDir' => $tempDir,
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
             'margin_bottom' => 10,
         ]);
         $mpdf->autoScriptToLang = true;
-        $mpdf->autoLangToFont   = true;
+        $mpdf->autoLangToFont = true;
         $mpdf->SetDirectionality('rtl');
 
         // 10) الهيدر المشترك لكل الصفحات
@@ -986,8 +964,8 @@ class ReportController extends Controller
 
                 // جسم الصفحة: صفوف هذه الدفعة فقط
                 $bodyHtml = view('dashbord.report.issuing_all_pdf_rows', [
-                    'rows'   => $chunk,
-                    'meta'   => $meta,
+                    'rows' => $chunk,
+                    'meta' => $meta,
                     'totals' => $totals,
                 ])->render();
 
@@ -997,9 +975,10 @@ class ReportController extends Controller
 
         // 13) إخراج كملف تنزيل
         $filename = "sales_all_{$meta['from']}_{$meta['to']}.pdf";
+
         return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
@@ -1010,10 +989,10 @@ class ReportController extends Controller
         // 1) التحقق الأساسي من التواريخ
         $request->validate([
             'fromdate' => ['required', 'date'],
-            'todate'   => ['required', 'date', 'after_or_equal:fromdate'],
+            'todate' => ['required', 'date', 'after_or_equal:fromdate'],
         ], [], [
             'fromdate' => 'تاريخ البدء',
-            'todate'   => 'تاريخ النهاية',
+            'todate' => 'تاريخ النهاية',
         ]);
 
         // 2) تنظيف الفلاتر (حسب طريقتك)
@@ -1027,11 +1006,11 @@ class ReportController extends Controller
             'plate_number',
             'company_users_id',
             'fromdate',
-            'todate'
+            'todate',
         ]));
 
         $from = Carbon::parse($filters['fromdate'])->startOfDay();
-        $to   = Carbon::parse($filters['todate'])->endOfDay();
+        $to = Carbon::parse($filters['todate'])->endOfDay();
 
         // Ensure dates are within the specified year
         $yearStart = Carbon::createFromDate($year, 1, 1)->startOfYear();
@@ -1039,6 +1018,7 @@ class ReportController extends Controller
 
         if ($from->lt($yearStart) || $to->gt($yearEnd)) {
             Alert::warning('التواريخ يجب أن تكون ضمن السنة المحددة.');
+
             return redirect()->back()->withInput();
         }
 
@@ -1052,6 +1032,7 @@ class ReportController extends Controller
         if ($count === 0) {
             // لا توجد بيانات ضمن الفترة
             Alert::info('لا توجد بيانات', 'لا توجد سجلات ضمن الفترة المحددة.')->persistent('حسنًا');
+
             return redirect()->back()->withInput();
         }
 
@@ -1061,27 +1042,28 @@ class ReportController extends Controller
                 'البيانات كبيرة',
                 "الفترة المختارة تحتوي {$count} سجلًا، والحد الأقصى المسموح به للتصدير هو {$MAX_ROWS}. الرجاء اختيار مدة أقصر."
             )->persistent('حسنًا');
+
             return redirect()->back()->withInput();
         }
 
         // 5) إجماليات باستخدام SUM() بدون تحميل كل الصفوف للذاكرة
-        $totals = (clone $baseQuery)->selectRaw("
+        $totals = (clone $baseQuery)->selectRaw('
             COALESCE(SUM(insurance_installment),0) AS total_installment,
             COALESCE(SUM(insurance_tax),0)         AS total_tax,
             COALESCE(SUM(insurance_stamp),0)       AS total_stamp,
             COALESCE(SUM(insurance_supervision),0) AS total_supervision,
             COALESCE(SUM(insurance_version),0)     AS total_version,
             COALESCE(SUM(insurance_total),0)       AS total_insurance
-        ")->first()->toArray();
+        ')->first()->toArray();
 
         // 6) بيانات إضافية للهيدر
         $meta = [
-            'from'       => $filters['fromdate'],
-            'to'         => $filters['todate'],
-            'username'   => auth()->user()->username ?? '',
-            'today'      => now('Africa/Tripoli')->format('Y-m-d'),
+            'from' => $filters['fromdate'],
+            'to' => $filters['todate'],
+            'username' => auth()->user()->username ?? '',
+            'today' => now('Africa/Tripoli')->format('Y-m-d'),
             'rows_count' => $count,
-            'year'       => $year,
+            'year' => $year,
         ];
 
         // 7) إعدادات للتعامل مع ذاكرة/وقت التنفيذ
@@ -1092,23 +1074,23 @@ class ReportController extends Controller
 
         // 8) مجلد مؤقت لـ mPDF لتقليل الضغط على الذاكرة
         $tempDir = storage_path('app/mpdf-temp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             @mkdir($tempDir, 0775, true);
         }
 
         // 9) تهيئة mPDF
         $mpdf = new Mpdf([
-            'format'        => 'A4',
-            'orientation'   => 'L',
-            'default_font'  => 'amiri',
-            'tempDir'       => $tempDir,
-            'margin_left'   => 10,
-            'margin_right'  => 10,
-            'margin_top'    => 10,
+            'format' => 'A4',
+            'orientation' => 'L',
+            'default_font' => 'amiri',
+            'tempDir' => $tempDir,
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
             'margin_bottom' => 10,
         ]);
         $mpdf->autoScriptToLang = true;
-        $mpdf->autoLangToFont   = true;
+        $mpdf->autoLangToFont = true;
         $mpdf->SetDirectionality('rtl');
 
         // 10) الهيدر المشترك لكل الصفحات
@@ -1131,8 +1113,8 @@ class ReportController extends Controller
 
                 // جسم الصفحة: صفوف هذه الدفعة فقط
                 $bodyHtml = view('dashbord.report.issuing_all_pdf_rows', [
-                    'rows'   => $chunk,
-                    'meta'   => $meta,
+                    'rows' => $chunk,
+                    'meta' => $meta,
                     'totals' => $totals,
                 ])->render();
 
@@ -1142,9 +1124,10 @@ class ReportController extends Controller
 
         // 13) إخراج كملف تنزيل
         $filename = "sales_all_{$year}_{$meta['from']}_{$meta['to']}.pdf";
+
         return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
@@ -1352,17 +1335,17 @@ class ReportController extends Controller
     public function searchpdf(Request $request)
     {
         $messages = [
-            'fromdate.required' => "اختر الفترة من",
-            'todate.required'   => "اختر الفترة إلى",
+            'fromdate.required' => 'اختر الفترة من',
+            'todate.required' => 'اختر الفترة إلى',
         ];
 
         $this->validate($request, [
             'fromdate' => 'required',
-            'todate'   => 'required',
+            'todate' => 'required',
         ], $messages);
 
         $from = Carbon::parse($request->fromdate)->startOfDay();
-        $to   = Carbon::parse($request->todate)->endOfDay();
+        $to = Carbon::parse($request->todate)->endOfDay();
 
         $issuing = Issuing::with([
             'cards',
@@ -1374,10 +1357,10 @@ class ReportController extends Controller
             'office_users',
             'users',
             'cars',
-            'countries'
+            'countries',
         ])->select('*');
 
-        if (!empty($request->companies_id)) {
+        if (! empty($request->companies_id)) {
             $issuing->where(function ($query) use ($request) {
                 $query->where('companies_id', $request->companies_id)
                     ->orWhereHas('offices', function ($subQuery) use ($request) {
@@ -1385,19 +1368,29 @@ class ReportController extends Controller
                     });
             });
         }
-        if (!empty($request->offices_id))        $issuing->where('offices_id', $request->offices_id);
-        if (!empty($request->company_users_id))  $issuing->where('company_users_id', $request->company_users_id);
-        if (!empty($request->office_users_id))   $issuing->where('office_users_id', $request->office_users_id);
-        if (!empty($request->card_number)) {
-            $issuing->whereHas('cards', fn($q) => $q->where('card_number', $request->card_number));
+        if (! empty($request->offices_id)) {
+            $issuing->where('offices_id', $request->offices_id);
         }
-        if (!empty($request->insurance_name))    $issuing->where('insurance_name', 'like', '%' . $request->insurance_name . '%');
-        if (!empty($request->plate_number))      $issuing->where('plate_number', $request->plate_number);
+        if (! empty($request->company_users_id)) {
+            $issuing->where('company_users_id', $request->company_users_id);
+        }
+        if (! empty($request->office_users_id)) {
+            $issuing->where('office_users_id', $request->office_users_id);
+        }
+        if (! empty($request->card_number)) {
+            $issuing->whereHas('cards', fn ($q) => $q->where('card_number', $request->card_number));
+        }
+        if (! empty($request->insurance_name)) {
+            $issuing->where('insurance_name', 'like', '%'.$request->insurance_name.'%');
+        }
+        if (! empty($request->plate_number)) {
+            $issuing->where('plate_number', $request->plate_number);
+        }
 
         $issuing->whereBetween('issuing_date', [$from, $to]);
 
         // ====== حد منطقي للطباعة عبر المتصفح ======
-        $maxPrintLimit  = (int) env('PRINT_MAX_LIMIT', 50000);   // سقف صارم
+        $maxPrintLimit = (int) env('PRINT_MAX_LIMIT', 50000);   // سقف صارم
         $warnPrintLimit = (int) env('PRINT_WARN_LIMIT', 50000);  // تحذير مبكر
 
         $count = (clone $issuing)->count();
@@ -1407,15 +1400,17 @@ class ReportController extends Controller
             $suggestDays = max(1, (int) floor($maxPrintLimit / max(1, $perDay)));
             $suggestTo = (clone $from)->addDays($suggestDays - 1)->format('Y-m-d');
 
-            Alert::warning("عدد النتائج كبير جداً ($count). الحد الأقصى للطباعة دفعة واحدة هو {$maxPrintLimit} سجل. " .
+            Alert::warning("عدد النتائج كبير جداً ($count). الحد الأقصى للطباعة دفعة واحدة هو {$maxPrintLimit} سجل. ".
                 "الرجاء تقليص الفترة. مثال: من {$from->format('Y-m-d')} إلى {$suggestTo} (حوالي {$suggestDays} يوم).");
+
             return redirect()->back()->withInput();
         }
 
         $issuing = $issuing->orderBy('created_at', 'DESC')->get();
 
         if ($issuing->isEmpty()) {
-            Alert::warning("لايوجد بطاقات");
+            Alert::warning('لايوجد بطاقات');
+
             return redirect()->back()->withInput();
         }
 
@@ -1423,16 +1418,16 @@ class ReportController extends Controller
 
         // تحذير مبكر اختياري
         if ($count > $warnPrintLimit) {
-            Alert::info("تنبيه", "عدد السجلات مرتفع ($count). قد تستغرق الطباعة وقتًا أطول.");
+            Alert::info('تنبيه', "عدد السجلات مرتفع ($count). قد تستغرق الطباعة وقتًا أطول.");
 
             return redirect()->back()->withInput();
         }
 
         return view('dashbord.report.result', [
             'fromdate' => $request->fromdate,
-            'todate'   => $request->todate,
-            'issuing'  => $issuing,
-            'total'    => $total,
+            'todate' => $request->todate,
+            'issuing' => $issuing,
+            'total' => $total,
         ]);
     }
 
@@ -1527,10 +1522,8 @@ class ReportController extends Controller
     //     ]);
     // }
 
-
     // public function searchpdf00(Request $request)
     // {
-
 
     //     $messages = [
     //         'fromdate.required' => "اختر الفترة من  ",
@@ -1549,8 +1542,6 @@ class ReportController extends Controller
     //     // Initialize query with eager loading
     //     $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
 
-
-
     //     if (!empty($request->companies_id)) {
 
     //         $issuing
@@ -1561,7 +1552,6 @@ class ReportController extends Controller
     //                   });
     //         });
     //     }
-
 
     //     if (!empty($request->offices_id)) {
     //         $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
@@ -1609,7 +1599,6 @@ class ReportController extends Controller
 
     //     // Apply date range filtering (if provided)
 
-
     //     // Order and retrieve results
     //     $issuing = $issuing->orderBy('created_at', 'DESC')->get();
     //     // Check if results are empty
@@ -1618,7 +1607,6 @@ class ReportController extends Controller
 
     //         return redirect()->back();
     //     } else {
-
 
     //         $total = $issuing->sum('insurance_total');
 
@@ -1631,7 +1619,6 @@ class ReportController extends Controller
     //     }
     // }
 
-
     public function searchpdfsummery(Request $request)
     {
         $from = Carbon::parse($request->fromdate)->format('Y-m-d');
@@ -1640,9 +1627,7 @@ class ReportController extends Controller
         // Initialize query with eager loading
         $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
 
-
-
-        if (!empty($request->companies_id)) {
+        if (! empty($request->companies_id)) {
             $issuing->where('companies_id', $request->companies_id)
 
                 ->orWhereHas('offices', function ($query) use ($request) {
@@ -1650,56 +1635,53 @@ class ReportController extends Controller
                 });
         }
 
-
-        if (!empty($request->offices_id)) {
+        if (! empty($request->offices_id)) {
             $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
 
             $issuing->where('offices_id', $request->offices_id);
         }
 
-        if (!empty($request->company_users_id)) {
+        if (! empty($request->company_users_id)) {
             $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
             $issuing->orWhere('company_users_id', $request->company_users_id);
         }
 
-        if (!empty($request->office_users_id)) {
+        if (! empty($request->office_users_id)) {
 
             $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
 
             $issuing->where('office_users_id', $request->office_users_id);
         }
         // Apply search criteria
-        if (!empty($request->card_number)) {
+        if (! empty($request->card_number)) {
             $issuing->whereHas('cards', function ($query) use ($request) {
                 $query->where('card_number', $request->card_number);
             });
         }
 
-        if (!empty($request->insurance_name)) {
+        if (! empty($request->insurance_name)) {
 
             $issuing->where('insurance_name', 'like', $request->insurance_name);
         }
 
-        if (!empty($request->plate_number)) {
+        if (! empty($request->plate_number)) {
             $issuing->where('plate_number', $request->plate_number);
         }
 
-        if (!empty($request->fromdate) && !empty($request->todate)) {
-            $issuing = $issuing->whereBetween('issuing_date', [$from . " 00:00:00", $to . " 23:59:59"]);
+        if (! empty($request->fromdate) && ! empty($request->todate)) {
+            $issuing = $issuing->whereBetween('issuing_date', [$from.' 00:00:00', $to.' 23:59:59']);
         }
 
         // Apply date range filtering (if provided)
-
 
         // Order and retrieve results
         $issuing = $issuing->orderBy('created_at', 'DESC')->get();
         // Check if results are empty
         if ($issuing->isEmpty()) {
-            Alert::warning(" لايوجد بطاقات");
+            Alert::warning(' لايوجد بطاقات');
 
             return redirect()->back();
         } else {
-
 
             $total = $issuing->sum('insurance_total');
 
@@ -1716,54 +1698,49 @@ class ReportController extends Controller
     {
         $Offices = Office::where('companies_id', $id)->get();
 
-        if (!$Offices) {
+        if (! $Offices) {
             return response()->json(0);
         }
 
         return response()->json($Offices);
     }
 
-
     public function officesuser($id)
     {
         $Officeuser = OfficeUser::where('offices_id', $id)->get();
 
-        if (!$Officeuser) {
+        if (! $Officeuser) {
             return response()->json(0);
         }
 
         return response()->json($Officeuser);
     }
 
-
     public function companyUser($id)
     {
         $companyUser = CompanyUser::where('companies_id', $id)->get();
 
-        if (!$companyUser) {
+        if (! $companyUser) {
             return response()->json(0);
         }
 
         return response()->json($companyUser);
     }
 
-
-
-
     public function indexSalesCount(Request $request)
     {
         // تحقق أساسي
         $request->validate([
             'companies_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'fromdate'     => ['nullable', 'date'],
-            'todate'       => ['nullable', 'date', 'after_or_equal:fromdate'],
+            'fromdate' => ['nullable', 'date'],
+            'todate' => ['nullable', 'date', 'after_or_equal:fromdate'],
         ]);
 
         // مصفاة القيم المختارة لنعرضها في الواجهة
         $filters = [
             'companies_id' => $request->input('companies_id'),
-            'fromdate'     => $request->input('fromdate'),
-            'todate'       => $request->input('todate'),
+            'fromdate' => $request->input('fromdate'),
+            'todate' => $request->input('todate'),
         ];
 
         // ابني الاستعلام مع الفلاتر الشرطية
@@ -1781,7 +1758,7 @@ class ReportController extends Controller
                 // غيّر الحقل إلى الحقل الصحيح في جدول issuings (مثلاً issue_date أو created_at)
                 $q->whereBetween(DB::raw('DATE(requests.uploded_datetime)'), [
                     $filters['fromdate'],
-                    $filters['todate']
+                    $filters['todate'],
                 ]);
             })
             ->select(
@@ -1807,8 +1784,6 @@ class ReportController extends Controller
         ));
     }
 
-
-
     public function indexsalespdf()
     {
         $user = Auth::user();
@@ -1832,8 +1807,6 @@ class ReportController extends Controller
         return view('dashbord.report.salesindexpdf', compact('user', 'insurance_total', 'insurance_totalt'));
     }
 
-
-
     public function indexsales()
     {
         // Get total insurance per company
@@ -1854,9 +1827,6 @@ class ReportController extends Controller
 
         return view('dashbord.report.salesindex', compact('insurance_total', 'insurance_totalt'));
     }
-
-
-
 
     //  public function indexstock()
     // {
@@ -1922,10 +1892,10 @@ class ReportController extends Controller
                 'companies.id AS company_id',
                 'companies.name AS companies_name',
                 DB::raw('COUNT(DISTINCT cards.id) AS total_cards'),
-                DB::raw("COUNT(DISTINCT IF(cards.cardstautes_id = 1, cards.id, NULL)) AS active_cards"),
-                DB::raw("COUNT(DISTINCT IF(cards.cardstautes_id = 2, cards.id, NULL)) AS sold"),
-                DB::raw("COUNT(DISTINCT IF(cards.cardstautes_id = 3, cards.id, NULL)) AS cancelled"),
-                DB::raw("SUM(issuings.insurance_total) AS total_insurance")
+                DB::raw('COUNT(DISTINCT IF(cards.cardstautes_id = 1, cards.id, NULL)) AS active_cards'),
+                DB::raw('COUNT(DISTINCT IF(cards.cardstautes_id = 2, cards.id, NULL)) AS sold'),
+                DB::raw('COUNT(DISTINCT IF(cards.cardstautes_id = 3, cards.id, NULL)) AS cancelled'),
+                DB::raw('SUM(issuings.insurance_total) AS total_insurance')
             )
             ->join('companies', 'companies.id', '=', 'cards.companies_id')
             ->leftJoin('issuings', 'cards.id', '=', 'issuings.cards_id')
@@ -1934,18 +1904,18 @@ class ReportController extends Controller
 
         // جمع القيم الكلية
         $totals = [
-            'total_cards'     => 0,
-            'sold'            => 0,
-            'active_cards'    => 0,
-            'cancelled'       => $cardCancelled,
+            'total_cards' => 0,
+            'sold' => 0,
+            'active_cards' => 0,
+            'cancelled' => $cardCancelled,
             'total_insurance' => 0,
-            'percentage'      => 0,
+            'percentage' => 0,
         ];
 
         foreach ($cardsStock as $item) {
-            $totals['total_cards']     += (int) $item->total_cards;
-            $totals['sold']            += (int) $item->sold;
-            $totals['active_cards']    += (int) $item->active_cards;
+            $totals['total_cards'] += (int) $item->total_cards;
+            $totals['sold'] += (int) $item->sold;
+            $totals['active_cards'] += (int) $item->active_cards;
             $totals['total_insurance'] += (float) $item->total_insurance;
 
             // احسب النسبة لكل شركة هنا حسب عدد البطاقات النشطة العامة
@@ -1958,13 +1928,10 @@ class ReportController extends Controller
 
         return view('dashbord.report.stockindex', [
             'cardsStock' => $cardsStock,
-            'totals'     => $totals,
-            'cardcount'  => $cardcount,
+            'totals' => $totals,
+            'cardcount' => $cardcount,
         ]);
     }
-
-
-
 
     public function indexcanelcardpdf(Request $request)
     {
@@ -1983,9 +1950,9 @@ class ReportController extends Controller
         }
 
         // Filter by company
-        if ($request->companies_id === "0") {
+        if ($request->companies_id === '0') {
             $cardQuery->whereNull('companies_id');
-        } elseif (!empty($request->companies_id)) {
+        } elseif (! empty($request->companies_id)) {
             $cardQuery->where('companies_id', $request->companies_id);
         }
 
@@ -2028,14 +1995,9 @@ class ReportController extends Controller
         return view('dashbord.report.searchcancepdf', [
             'cards' => $cards,
             'filters' => $request->all(),
-            'user' => $user
+            'user' => $user,
         ]);
     }
-
-
-
-
-
 
     public function indexcanelcard()
     {
@@ -2046,7 +2008,6 @@ class ReportController extends Controller
 
         return view('dashbord.report.searchcance', compact('Company'));
     }
-
 
     public function searchcacel(Request $request)
     {
@@ -2069,22 +2030,19 @@ class ReportController extends Controller
             ->where('cardstautes_id', 3)
             ->when(
                 $request->request_number,
-                fn($q) =>
-                $q->whereHas(
+                fn ($q) => $q->whereHas(
                     'requests',
-                    fn($sub) =>
-                    $sub->where('request_number', $request->request_number)
+                    fn ($sub) => $sub->where('request_number', $request->request_number)
                 )
             )
             ->when(
                 $request->card_number,
-                fn($q) =>
-                $q->where('card_number', $request->card_number)
+                fn ($q) => $q->where('card_number', $request->card_number)
             )
             ->when(
                 $request->companies_id !== null && $request->companies_id !== '',
                 function ($q) use ($request) {
-                    if ($request->companies_id === "0") {
+                    if ($request->companies_id === '0') {
                         $q->whereNull('companies_id');
                     } else {
                         $q->where('companies_id', $request->companies_id);
@@ -2093,28 +2051,23 @@ class ReportController extends Controller
             )
             ->when(
                 $request->offices_id,
-                fn($q) =>
-                $q->whereHas('issuing', fn($sub) => $sub->where('offices_id', $request->offices_id))
+                fn ($q) => $q->whereHas('issuing', fn ($sub) => $sub->where('offices_id', $request->offices_id))
             )
             ->when(
                 $request->company_users_id,
-                fn($q) =>
-                $q->whereHas('issuing', fn($sub) => $sub->where('company_users_id', $request->company_users_id))
+                fn ($q) => $q->whereHas('issuing', fn ($sub) => $sub->where('company_users_id', $request->company_users_id))
             )
             ->when(
                 $request->office_users_id,
-                fn($q) =>
-                $q->whereHas('issuing', fn($sub) => $sub->where('office_users_id', $request->office_users_id))
+                fn ($q) => $q->whereHas('issuing', fn ($sub) => $sub->where('office_users_id', $request->office_users_id))
             )
             ->when(
                 $from && $to,
-                fn($q) =>
-                $q->whereBetween('card_delete_date', [$from, $to])
+                fn ($q) => $q->whereBetween('card_delete_date', [$from, $to])
             )
             ->when(
                 $request->res,
-                fn($q) =>
-                $q->where('res', $request->res)
+                fn ($q) => $q->where('res', $request->res)
             )
             ->get();
 
@@ -2130,14 +2083,9 @@ class ReportController extends Controller
             'code' => 1,
             'status' => true,
             'message' => 'تم جلب البطاقات الملغية.',
-            'data' => $cards
+            'data' => $cards,
         ]);
     }
-
-
-
-
-
 
     public function indexRequestCompanyPdf(Request $request)
     {
@@ -2155,11 +2103,11 @@ class ReportController extends Controller
             $query->where('cards_number', $request->cards_number);
         }
 
-        if (!empty($request->companies_id) && $request->companies_id !== "0") {
+        if (! empty($request->companies_id) && $request->companies_id !== '0') {
             $query->where('companies_id', $request->companies_id);
         }
 
-        if (!empty($request->request_statuses_id) && $request->request_statuses_id !== "0") {
+        if (! empty($request->request_statuses_id) && $request->request_statuses_id !== '0') {
             $query->where('request_statuses_id', $request->request_statuses_id);
         }
 
@@ -2178,13 +2126,9 @@ class ReportController extends Controller
             'request_statuses' => $request_statuses,
             'Company' => $companies,
             'searchParams' => $request->all(),
-            'user' => $user
+            'user' => $user,
         ]);
     }
-
-
-
-
 
     public function indexreqiestcompany()
     {
@@ -2193,10 +2137,9 @@ class ReportController extends Controller
 
         return view('dashbord.report.requestcompanysearch', [
             'request_statuses' => $requestStatuses,
-            'Company' => $companies
+            'Company' => $companies,
         ]);
     }
-
 
     public function searchrequest(Request $request)
     {
@@ -2211,11 +2154,11 @@ class ReportController extends Controller
             $query->where('cards_number', $request->cards_number);
         }
 
-        if (!empty($request->companies_id) && $request->companies_id !== "0") {
+        if (! empty($request->companies_id) && $request->companies_id !== '0') {
             $query->where('companies_id', $request->companies_id);
         }
 
-        if (!empty($request->request_statuses_id) && $request->request_statuses_id !== "0") {
+        if (! empty($request->request_statuses_id) && $request->request_statuses_id !== '0') {
             $query->where('request_statuses_id', $request->request_statuses_id);
         }
 
@@ -2239,25 +2182,21 @@ class ReportController extends Controller
             'code' => 1,
             'status' => true,
             'message' => 'يتم عرض الطلبات ',
-            'data' => $requests
+            'data' => $requests,
         ]);
     }
-
-
-
 
     public function viewdocument($card_id)
     {
 
         try {
-            $lifos = new LifoApiService();
-
+            $lifos = new LifoApiService;
 
             $cards = Card::find($card_id);
             $card_number = $cards->card_number;
             $users = config('apilifo', 'user_api_name');
-            $userid = $users["user_api_name"];
-            $userpass = $users["user_api_password"];
+            $userid = $users['user_api_name'];
+            $userpass = $users['user_api_password'];
 
             $atuh = $lifos->getAuth($userid, $userpass);
             $body = $atuh->getBody();
@@ -2268,13 +2207,12 @@ class ReportController extends Controller
 
                 $headers = [
                     'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $key
+                    'Authorization' => 'Bearer '.$key,
                 ];
-                $bodey = array(
-                    "RQ_OC_NO" => "$card_number",
-                    "RQ_USER_ID" => "$userid"
-                );
-
+                $bodey = [
+                    'RQ_OC_NO' => "$card_number",
+                    'RQ_USER_ID' => "$userid",
+                ];
 
                 $cancel = $lifos->printcard($headers, $bodey);
                 $bodyca = $cancel->getBody();
@@ -2285,70 +2223,77 @@ class ReportController extends Controller
                 if ($code == 1336) {
 
                     // $ex = base64_decode(explode("base64,", $responseca->data)[1]);
-                    $ex = base64_decode(explode("base64,", $responseca->data)[1]);
+                    $ex = base64_decode(explode('base64,', $responseca->data)[1]);
 
                     // Generate a unique identifier for the PDF
                     // $pdfId = uniqid('pdf_');
                     // $ex = base64_decode(explode("base64,", $responseca->data)[1]);
 
                     // header("Content-Type" , "application/pdf") ;
-                    header("Cache-Control: maxage=1");
-                    header("Pragma: public");
-                    header("Content-type: application/pdf");
-                    header("Content-Disposition: inline; filename=12");
-                    header("Content-Description: PHP Generated Data");
-                    header("Content-Transfer-Encoding: binary");
+                    header('Cache-Control: maxage=1');
+                    header('Pragma: public');
+                    header('Content-type: application/pdf');
+                    header('Content-Disposition: inline; filename=12');
+                    header('Content-Description: PHP Generated Data');
+                    header('Content-Transfer-Encoding: binary');
                     echo $ex;
 
                     // Create a JavaScript script to open a new tab and load the PDF
                     //             echo '<script>
                     //     window.open("data:application/pdf;base64,' . base64_encode($ex) . '");
                     // </script>';
-                } else if ($code == 8051) {
-                    Alert::warning("معلمات الطلب غير مكتملة");
-                    return redirect()->back();
-                } else if ($code == 8072) {
-                    Alert::warning("he policy corresponding to the entered OC number is not in approved state.");
-                    return redirect()->back();
-                } else if ($code == 8052) {
-                    Alert::warning(" غير قادر على تقديم الطلب");
-                    return redirect()->back();
-                } else if ($code == 8069) {
+                } elseif ($code == 8051) {
+                    Alert::warning('معلمات الطلب غير مكتملة');
 
-                    Alert::warning("عنوان URL غير موجود");
                     return redirect()->back();
-                } else if ($code == 8070) {
+                } elseif ($code == 8072) {
+                    Alert::warning('he policy corresponding to the entered OC number is not in approved state.');
 
-                    Alert::warning("رقم الشهادة غير موجود أو غير موجود لدى المستخدم الذي قام بتسجيل الدخول.");
                     return redirect()->back();
-                } else if ($code == 8053) {
-                    Alert::warning("غير قادر على تقديم الطلب");
+                } elseif ($code == 8052) {
+                    Alert::warning(' غير قادر على تقديم الطلب');
+
                     return redirect()->back();
-                } else if ($code == 2501) {
-                    Alert::warning("لم يتم العثور على المستخدم في النظام");
+                } elseif ($code == 8069) {
+
+                    Alert::warning('عنوان URL غير موجود');
+
                     return redirect()->back();
-                } else if ($code == 2502) {
-                    Alert::warning("المستخدم غير نشط");
+                } elseif ($code == 8070) {
+
+                    Alert::warning('رقم الشهادة غير موجود أو غير موجود لدى المستخدم الذي قام بتسجيل الدخول.');
+
+                    return redirect()->back();
+                } elseif ($code == 8053) {
+                    Alert::warning('غير قادر على تقديم الطلب');
+
+                    return redirect()->back();
+                } elseif ($code == 2501) {
+                    Alert::warning('لم يتم العثور على المستخدم في النظام');
+
+                    return redirect()->back();
+                } elseif ($code == 2502) {
+                    Alert::warning('المستخدم غير نشط');
+
                     return redirect()->back();
                 }
-            } else if ($responsee->status == 2001) {
-                Alert::warning("فشلت مصادقة المستخدم");
+            } elseif ($responsee->status == 2001) {
+                Alert::warning('فشلت مصادقة المستخدم');
 
                 return redirect()->back();
-            } else if ($responsee->status == 8051) {
-                Alert::warning("معلمات الطلب غير مكتملة");
+            } elseif ($responsee->status == 8051) {
+                Alert::warning('معلمات الطلب غير مكتملة');
 
                 return redirect()->back();
-            } else if ($responsee->status == 8052) {
+            } elseif ($responsee->status == 8052) {
 
-                Alert::warning("غير قادر على بدء الطلب");
+                Alert::warning('غير قادر على بدء الطلب');
 
                 return redirect()->back();
             }
         } catch (\Exception $e) {
 
-
-            Alert::warning($e . "فشل عرض وثيقة");
+            Alert::warning($e.'فشل عرض وثيقة');
 
             return redirect()->back();
         }
@@ -2357,21 +2302,22 @@ class ReportController extends Controller
     /**
      * Print card with dynamic parameters
      */
-    public function printCard(Request $request)
+    public function printCard(Request $request, $cardId = null)
     {
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
-        
+
         // Fetch data from database
         $card = null;
         $issuing = null;
         $company = null;
         $office = null;
         $car = null;
-        
+
         if ($cardId) {
             $card = Card::find($cardId);
+
             $issuing = \App\Models\issuing::where('cards_id', $cardId)->first();
         } elseif ($cardNumber) {
             $card = Card::where('card_number', $cardNumber)->first();
@@ -2379,20 +2325,32 @@ class ReportController extends Controller
                 $issuing = \App\Models\issuing::where('cards_id', $card->id)->first();
             }
         }
-        
+
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
             $car = \App\Models\car::find($issuing->cars_id);
+            $vehicleNationality = \App\Models\VehicleNationality::find($issuing->vehicle_nationalities_id);
+
+            // Convert date strings to Carbon objects
+            if ($issuing->insurance_day_from && ! ($issuing->insurance_day_from instanceof \Carbon\Carbon)) {
+                $issuing->insurance_day_from = \Carbon\Carbon::parse($issuing->insurance_day_from);
+            }
+            if ($issuing->nsurance_day_to && ! ($issuing->nsurance_day_to instanceof \Carbon\Carbon)) {
+                $issuing->nsurance_day_to = \Carbon\Carbon::parse($issuing->nsurance_day_to);
+            }
+            if ($issuing->issuing_date && ! ($issuing->issuing_date instanceof \Carbon\Carbon)) {
+                $issuing->issuing_date = \Carbon\Carbon::parse($issuing->issuing_date);
+            }
         }
-        
-         // Format dates - use request parameters if provided, fallback to database or default
+
+        // Format dates - use request parameters if provided, fallback to database or default
         $startDate = $request->get('insurance_start_date') ?? ($issuing->insurance_day_from ?? now());
-        $endDate = $request->get('insurance_end_date') ?? ($issuing->insurance_day_to ?? now()->addDays(15));
-        
+        $endDate = $request->get('insurance_end_date') ?? ($issuing->nsurance_day_to ?? now()->addDays(15));
+
         $startDayName = date('l', strtotime($startDate));
         $endDayName = date('l', strtotime($endDate));
-        
+
         // Convert day names to Arabic
         $daysMap = [
             'Saturday' => 'السبت',
@@ -2401,13 +2359,13 @@ class ReportController extends Controller
             'Tuesday' => 'الثلاثاء',
             'Wednesday' => 'الأربعاء',
             'Thursday' => 'الخميس',
-            'Friday' => 'الجمعة'
+            'Friday' => 'الجمعة',
         ];
-        
+
         // Convert month numbers to Arabic month names
         $arabicMonths = [
             '01' => 'يناير',
-            '02' => 'فبراير', 
+            '02' => 'فبراير',
             '03' => 'مارس',
             '04' => 'أبريل',
             '05' => 'مايو',
@@ -2417,18 +2375,19 @@ class ReportController extends Controller
             '09' => 'سبتمبر',
             '10' => 'أكتوبر',
             '11' => 'نوفمبر',
-            '12' => 'ديسمبر'
+            '12' => 'ديسمبر',
         ];
-        
+
         // Function to convert date to Arabic format
-        $convertToArabicDate = function($date) use ($arabicMonths) {
+        $convertToArabicDate = function ($date) use ($arabicMonths) {
             $dateObj = strtotime($date);
             $day = date('d', $dateObj);
             $month = date('m', $dateObj);
             $year = date('Y', $dateObj);
-            return $day . '/' . $arabicMonths[$month] . '/' . $year;
+
+            return $day.'/'.$arabicMonths[$month].'/'.$year;
         };
-        
+
         // Build countries array with default values if no issuing data
         $countries = [];
         $defaultCountries = [
@@ -2438,15 +2397,15 @@ class ReportController extends Controller
             'EGY' => false, 'LBY' => false, 'LBN' => false,
             'KWT' => false, 'QAT' => false,
         ];
-        
+
         if ($issuing && $issuing->countries) {
             // Fetch all active countries from database
             $allCountries = Country::where('active', 1)->get();
-            
+
             // Get the issuing's countries (could be a single country or multiple via symbol)
             $issuingCountry = $issuing->countries ?? null;
             $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
-            
+
             foreach ($allCountries as $country) {
                 $isEnabled = false;
                 if ($issuingCountrySymbol) {
@@ -2459,75 +2418,81 @@ class ReportController extends Controller
             // Use default countries if no data from database
             $countries = $defaultCountries;
         }
-        
+
         // Also add hardcoded countries if not in database
         foreach ($defaultCountries as $symbol => $enabled) {
-            if (!isset($countries[$symbol])) {
+            if (! isset($countries[$symbol])) {
                 $countries[$symbol] = $enabled;
             }
         }
-        
+
+        $insurance_clauses_id=InsuranceClause::where('id',$issuing->insurance_clauses_id)->first();
         $data = [
             'test_mode' => $testMode,
             'card_number' => $request->get('card_number') ?? ($card->card_number ?? $cardNumber ?? 'LBY/000000'),
-            
-            // Unified Office Info
-            'unified_office_name' => 'المكتب الموحد Libyan',
-            'unified_office_address' => 'شارع جمال القاسمي بجانب جامع امبارك باب بن غشير',
-            'unified_office_box' => 'ميدان الجزائر 4784',
-            'unified_office_phone' => '+218213632518',
-            'unified_office_email' => 'lub@insurancefed.ly',
-            
+
+            // Unified Office Info - from office relationship or config
+            'unified_office_name' => $office ? $office->name : 'المكتب الموحد الليبي ',
+            'unified_office_address' => $office ? $office->address : 'شارع جمال القاسمي بجانب جامع امبارك باب بن
+غشير',
+            'unified_office_box' => $office ? $office->box : 'ميدان الجزائر 4784',
+            'unified_office_phone' => $office ? $office->phone : '218213632518',
+            'unified_office_fax' => $office ? $office->fax : '218213602571',
+            'unified_office_email' => $office ? $office->email : 'lub@insurancefed.ly',
+            'insurance_clause' => $insurance_clauses_id ? $insurance_clauses_id->slug : $issuing->insurance_clauses_id,
+
             // Insurance Company Info
             'insurance_company' => $company ? $company->name : 'شركة التأمين',
             'company_address' => $company ? $company->address : 'طرابلس',
             'company_box' => $company ? $company->pob : 'صندوق البريد',
+                        'company_fax' => $company ? $company->fax : ' ',
+
             'company_phone' => $company ? $company->phonenumber : '0217140010',
             'company_email' => $company ? $company->email : 'info@company.com',
-            
-            // Beneficiary Info
-            'beneficiary_name' => $request->get('beneficiary_name') ?? ($issuing ? $issuing->insurance_name : 'اسم المؤمن له'),
-            'beneficiary_address' => $request->get('beneficiary_address') ?? ($issuing ? $issuing->insurance_location : 'العنوان'),
-            'beneficiary_phone' => $issuing ? $issuing->insurance_phone : '0000000000',
-            
+
             // Vehicle Info
-            'vehicle_type' => $request->get('vehicle_type') ?? ($car ? $car->name : ($issuing ? $issuing->vehicle_type : 'نوع المركبة')),
-            'vehicle_nationality' => 'الليبية',
+            'vehicle_type' => $car ? $car->name : 'نوع المركبة',
+            'vehicle_nationality' => $vehicleNationality ? $vehicleNationality->name : 'الليبية',
             'manufacturing_year' => $issuing ? $issuing->year_made : date('Y'),
-            'chassis_number' => $request->get('chassis_number') ?? ($issuing ? $issuing->chassis_number : 'رقم الهيكل'),
-            'plate_number' => $request->get('plate_number') ?? ($issuing ? $issuing->plate_number : 'رقم اللوحة'),
-            'engine_number' => $request->get('engine_number') ?? ($issuing ? $issuing->motor_number : 'رقم المحرك'),
+            'chassis_number' => $issuing ? $issuing->chassis_number : 'رقم الهيكل',
+            'plate_number' => $issuing ? $issuing->plate_number : 'رقم اللوحة',
+            'engine_number' => $issuing ? $issuing->motor_number : 'رقم المحرك',
             'usage_purpose' => $issuing ? $issuing->usage_purpose : 'خاصة',
-            
-             // Insurance Period
+
+            // Insurance Period
             'insurance_start_time' => $issuing && $issuing->insurance_day_from ? date('H:i', strtotime($issuing->insurance_day_from)) : '00:00',
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
             'insurance_start_date' => $convertToArabicDate($startDate),
             'insurance_end_time' => $issuing && $issuing->nsurance_day_to ? date('H:i', strtotime($issuing->nsurance_day_to)) : '23:59',
             'insurance_end_day' => $daysMap[$endDayName] ?? 'الأربعاء',
             'insurance_end_date' => $convertToArabicDate($endDate),
-            
+
             // Countries - dynamic from database or default
             'countries' => $countries,
-            
+
             // Office Info
             'office_info' => [],
-            
+
             // Financial
             'total_premium' => $request->get('total_premium') ?? ($issuing ? number_format($issuing->insurance_total ?? 0, 2) : '0.00'),
             'issue_date' => $issuing && $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
             'issue_year' => $issuing && $issuing->issuing_date ? date('Y', strtotime($issuing->issuing_date)) : date('Y'),
-            'issue_month' => $arabicMonths[ $issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m') ],
+            'issue_month' => $arabicMonths[$issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m')],
             'issue_day' => $issuing && $issuing->issuing_date ? date('d', strtotime($issuing->issuing_date)) : date('d'),
-            'issue_weekday' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'issue_weekday' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
             'issue_time' => $issuing && $issuing->issuing_date ? str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date))) : str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A')),
-            
+
             // Free day (تحريـراً في يوم :)
-            'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'free_day' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
         ];
-        
-      
-        
+
+        $data['card'] = $card;
+        $data['issuing'] = $issuing;
+        $data['office'] = $office;
+        $data['company'] = $company;
+        $data['car'] = $car;
+
+
         return view('card', $data);
     }
 
@@ -2535,21 +2500,20 @@ class ReportController extends Controller
      * Generate PDF for insurance card with perfect CSS preservation
      * Uses mPDF for best RTL Arabic support
      */
-
     public function printCardPdf(Request $request)
     {
         // Get all the data using the same logic as printCard
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
-        
+
         // Fetch data from database
         $card = null;
         $issuing = null;
         $company = null;
         $office = null;
         $car = null;
-        
+
         if ($cardId) {
             $card = Card::find($cardId);
             $issuing = \App\Models\issuing::where('cards_id', $cardId)->first();
@@ -2559,20 +2523,19 @@ class ReportController extends Controller
                 $issuing = \App\Models\issuing::where('cards_id', $card->id)->first();
             }
         }
-        
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
             $car = \App\Models\car::find($issuing->cars_id);
         }
-        
+
         // Format dates
         $startDate = $request->get('insurance_start_date') ?? ($issuing->insurance_day_from ?? now());
         $endDate = $request->get('insurance_end_date') ?? ($issuing->insurance_day_to ?? now()->addDays(15));
-        
+
         $startDayName = date('l', strtotime($startDate));
         $endDayName = date('l', strtotime($endDate));
-        
+
         // Convert day names to Arabic
         $daysMap = [
             'Saturday' => 'السبت',
@@ -2581,13 +2544,13 @@ class ReportController extends Controller
             'Tuesday' => 'الثلاثاء',
             'Wednesday' => 'الأربعاء',
             'Thursday' => 'الخميس',
-            'Friday' => 'الجمعة'
+            'Friday' => 'الجمعة',
         ];
-        
+
         // Convert month numbers to Arabic month names
         $arabicMonths = [
             '01' => 'يناير',
-            '02' => 'فبراير', 
+            '02' => 'فبراير',
             '03' => 'مارس',
             '04' => 'أبريل',
             '05' => 'مايو',
@@ -2597,18 +2560,19 @@ class ReportController extends Controller
             '09' => 'سبتمبر',
             '10' => 'أكتوبر',
             '11' => 'نوفمبر',
-            '12' => 'ديسمبر'
+            '12' => 'ديسمبر',
         ];
-        
+
         // Function to convert date to Arabic format
-        $convertToArabicDate = function($date) use ($arabicMonths) {
+        $convertToArabicDate = function ($date) use ($arabicMonths) {
             $dateObj = strtotime($date);
             $day = date('d', $dateObj);
             $month = date('m', $dateObj);
             $year = date('Y', $dateObj);
-            return $day . '/' . $arabicMonths[$month] . '/' . $year;
+
+            return $day.'/'.$arabicMonths[$month].'/'.$year;
         };
-        
+
         // Build countries array
         $countries = [];
         $defaultCountries = [
@@ -2618,12 +2582,12 @@ class ReportController extends Controller
             'EGY' => false, 'LBY' => false, 'LBN' => false,
             'KWT' => false, 'QAT' => false,
         ];
-        
+
         if ($issuing && $issuing->countries) {
             $allCountries = Country::where('active', 1)->get();
             $issuingCountry = $issuing->countries ?? null;
             $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
-            
+
             foreach ($allCountries as $country) {
                 $isEnabled = false;
                 if ($issuingCountrySymbol) {
@@ -2635,36 +2599,36 @@ class ReportController extends Controller
         } else {
             $countries = $defaultCountries;
         }
-        
+
         foreach ($defaultCountries as $symbol => $enabled) {
-            if (!isset($countries[$symbol])) {
+            if (! isset($countries[$symbol])) {
                 $countries[$symbol] = $enabled;
             }
         }
-        
+
         $data = [
             'test_mode' => $testMode,
             'card_number' => $request->get('card_number') ?? ($card->card_number ?? $cardNumber ?? 'LBY/000000'),
-            
+
             // Unified Office Info
             'unified_office_name' => 'المكتب الموحد Libyan',
             'unified_office_address' => 'شارع جمال القاسمي بجانب جامع امبارك باب بن غشير',
             'unified_office_box' => 'ميدان الجزائر 4784',
             'unified_office_phone' => '+218213632518',
             'unified_office_email' => 'lub@insurancefed.ly',
-            
+
             // Insurance Company Info
             'insurance_company' => $company ? $company->name : 'شركة التأمين',
             'company_address' => $company ? $company->address : 'طرابلس',
             'company_box' => $company ? $company->pob : 'صندوق البريد',
             'company_phone' => $company ? $company->phonenumber : '0217140010',
             'company_email' => $company ? $company->email : 'info@company.com',
-            
+
             // Beneficiary Info
             'beneficiary_name' => $request->get('beneficiary_name') ?? ($issuing ? $issuing->insurance_name : 'اسم المؤمن له'),
             'beneficiary_address' => $request->get('beneficiary_address') ?? ($issuing ? $issuing->insurance_location : 'العنوان'),
             'beneficiary_phone' => $issuing ? $issuing->insurance_phone : '0000000000',
-            
+
             // Vehicle Info
             'vehicle_type' => $request->get('vehicle_type') ?? ($car ? $car->name : ($issuing ? $issuing->vehicle_type : 'نوع المركبة')),
             'vehicle_nationality' => 'الليبية',
@@ -2673,7 +2637,7 @@ class ReportController extends Controller
             'plate_number' => $request->get('plate_number') ?? ($issuing ? $issuing->plate_number : 'رقم اللوحة'),
             'engine_number' => $request->get('engine_number') ?? ($issuing ? $issuing->motor_number : 'رقم المحرك'),
             'usage_purpose' => $issuing ? $issuing->usage_purpose : 'خاصة',
-            
+
             // Insurance Period
             'insurance_start_time' => $issuing && $issuing->insurance_day_from ? date('H:i', strtotime($issuing->insurance_day_from)) : '00:00',
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
@@ -2681,32 +2645,32 @@ class ReportController extends Controller
             'insurance_end_time' => $issuing && $issuing->nsurance_day_to ? date('H:i', strtotime($issuing->nsurance_day_to)) : '23:59',
             'insurance_end_day' => $daysMap[$endDayName] ?? 'الأحد',
             'insurance_end_date' => $convertToArabicDate($endDate),
-            
+
             // Countries
             'countries' => $countries,
-            
+
             // Office Info
             'office_info' => [],
-            
+
             // Financial
             'total_premium' => $request->get('total_premium') ?? ($issuing ? number_format($issuing->insurance_total ?? 0, 2) : '0.00'),
             'issue_date' => $issuing && $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
             'issue_year' => $issuing && $issuing->issuing_date ? date('Y', strtotime($issuing->issuing_date)) : date('Y'),
-            'issue_month' => $arabicMonths[ $issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m') ],
+            'issue_month' => $arabicMonths[$issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m')],
             'issue_day' => $issuing && $issuing->issuing_date ? date('d', strtotime($issuing->issuing_date)) : date('d'),
-            'issue_weekday' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'issue_weekday' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
             'issue_time' => $issuing && $issuing->issuing_date ? str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date))) : str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A')),
-            
+
             // Free day
-            'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'free_day' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
         ];
-        
+
         // Create mPDF instance with optimal settings for Arabic RTL
         $tempDir = storage_path('app/mpdf-temp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
-        
+
         $mpdf = new Mpdf([
             'format' => 'A4',
             'mode' => 'utf-8',
@@ -2722,41 +2686,42 @@ class ReportController extends Controller
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
-        
+
         $mpdf->autoScriptToLang = true;
         $mpdf->autoLangToFont = true;
         $mpdf->SetDirectionality('rtl');
         $mpdf->SetDisplayMode('fullpage');
         $mpdf->shrink_tables_to_fit = 1;
-        
+
         // Get the HTML content from the view
         $html = view('card-pdf', $data)->render();
-        
+
         // Write HTML to PDF
         $mpdf->WriteHTML($html);
-        
+
         // Generate filename
-        $filename = 'insurance_card_' . ($data['card_number'] ?? 'document') . '.pdf';
-        
+        $filename = 'insurance_card_'.($data['card_number'] ?? 'document').'.pdf';
+
         // Output as download
         return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
+
     public function printCardPdfold(Request $request)
     {
         // Get all the data using the same logic as printCard
         $cardId = $request->get('card_id');
         $cardNumber = $request->get('card_number');
         $testMode = $request->get('test', false);
-        
+
         // Fetch data from database
         $card = null;
         $issuing = null;
         $company = null;
         $office = null;
         $car = null;
-        
+
         if ($cardId) {
             $card = Card::find($cardId);
             $issuing = \App\Models\Issuing::where('cards_id', $cardId)->first();
@@ -2766,20 +2731,20 @@ class ReportController extends Controller
                 $issuing = \App\Models\Issuing::where('cards_id', $card->id)->first();
             }
         }
-        
+
         if ($issuing) {
             $company = Company::find($issuing->companies_id);
             $office = Office::find($issuing->offices_id);
             $car = \App\Models\car::find($issuing->cars_id);
         }
-        
+
         // Format dates
         $startDate = $request->get('insurance_start_date') ?? ($issuing->insurance_day_from ?? now());
         $endDate = $request->get('insurance_end_date') ?? ($issuing->insurance_day_to ?? now()->addDays(15));
-        
+
         $startDayName = date('l', strtotime($startDate));
         $endDayName = date('l', strtotime($endDate));
-        
+
         // Convert day names to Arabic
         $daysMap = [
             'Saturday' => 'السبت',
@@ -2788,13 +2753,13 @@ class ReportController extends Controller
             'Tuesday' => 'الثلاثاء',
             'Wednesday' => 'الأربعاء',
             'Thursday' => 'الخميس',
-            'Friday' => 'الجمعة'
+            'Friday' => 'الجمعة',
         ];
-        
+
         // Convert month numbers to Arabic month names
         $arabicMonths = [
             '01' => 'يناير',
-            '02' => 'فبراير', 
+            '02' => 'فبراير',
             '03' => 'مارس',
             '04' => 'أبريل',
             '05' => 'مايو',
@@ -2804,18 +2769,19 @@ class ReportController extends Controller
             '09' => 'سبتمبر',
             '10' => 'أكتوبر',
             '11' => 'نوفمبر',
-            '12' => 'ديسمبر'
+            '12' => 'ديسمبر',
         ];
-        
+
         // Function to convert date to Arabic format
-        $convertToArabicDate = function($date) use ($arabicMonths) {
+        $convertToArabicDate = function ($date) use ($arabicMonths) {
             $dateObj = strtotime($date);
             $day = date('d', $dateObj);
             $month = date('m', $dateObj);
             $year = date('Y', $dateObj);
-            return $day . '/' . $arabicMonths[$month] . '/' . $year;
+
+            return $day.'/'.$arabicMonths[$month].'/'.$year;
         };
-        
+
         // Build countries array
         $countries = [];
         $defaultCountries = [
@@ -2825,12 +2791,12 @@ class ReportController extends Controller
             'EGY' => false, 'LBY' => false, 'LBN' => false,
             'KWT' => false, 'QAT' => false,
         ];
-        
+
         if ($issuing && $issuing->countries) {
             $allCountries = Country::where('active', 1)->get();
             $issuingCountry = $issuing->countries ?? null;
             $issuingCountrySymbol = $issuingCountry ? $issuingCountry->symbol : '';
-            
+
             foreach ($allCountries as $country) {
                 $isEnabled = false;
                 if ($issuingCountrySymbol) {
@@ -2842,36 +2808,36 @@ class ReportController extends Controller
         } else {
             $countries = $defaultCountries;
         }
-        
+
         foreach ($defaultCountries as $symbol => $enabled) {
-            if (!isset($countries[$symbol])) {
+            if (! isset($countries[$symbol])) {
                 $countries[$symbol] = $enabled;
             }
         }
-        
+
         $data = [
             'test_mode' => $testMode,
             'card_number' => $request->get('card_number') ?? ($card->card_number ?? $cardNumber ?? 'LBY/000000'),
-            
+
             // Unified Office Info
             'unified_office_name' => 'المكتب الموحد Libyan',
             'unified_office_address' => 'شارع جمال القاسمي بجانب جامع امبارك باب بن غشير',
             'unified_office_box' => 'ميدان الجزائر 4784',
             'unified_office_phone' => '+218213632518',
             'unified_office_email' => 'lub@insurancefed.ly',
-            
+
             // Insurance Company Info
             'insurance_company' => $company ? $company->name : 'شركة التأمين',
             'company_address' => $company ? $company->address : 'طرابلس',
             'company_box' => $company ? $company->pob : 'صندوق البريد',
             'company_phone' => $company ? $company->phonenumber : '0217140010',
             'company_email' => $company ? $company->email : 'info@company.com',
-            
+
             // Beneficiary Info
             'beneficiary_name' => $request->get('beneficiary_name') ?? ($issuing ? $issuing->insurance_name : 'اسم المؤمن له'),
             'beneficiary_address' => $request->get('beneficiary_address') ?? ($issuing ? $issuing->insurance_location : 'العنوان'),
             'beneficiary_phone' => $issuing ? $issuing->insurance_phone : '0000000000',
-            
+
             // Vehicle Info
             'vehicle_type' => $request->get('vehicle_type') ?? ($car ? $car->name : ($issuing ? $issuing->vehicle_type : 'نوع المركبة')),
             'vehicle_nationality' => 'الليبية',
@@ -2880,7 +2846,7 @@ class ReportController extends Controller
             'plate_number' => $request->get('plate_number') ?? ($issuing ? $issuing->plate_number : 'رقم اللوحة'),
             'engine_number' => $request->get('engine_number') ?? ($issuing ? $issuing->motor_number : 'رقم المحرك'),
             'usage_purpose' => $issuing ? $issuing->usage_purpose : 'خاصة',
-            
+
             // Insurance Period
             'insurance_start_time' => $issuing && $issuing->insurance_day_from ? date('H:i', strtotime($issuing->insurance_day_from)) : '00:00',
             'insurance_start_day' => $daysMap[$startDayName] ?? 'السبت',
@@ -2888,32 +2854,32 @@ class ReportController extends Controller
             'insurance_end_time' => $issuing && $issuing->nsurance_day_to ? date('H:i', strtotime($issuing->nsurance_day_to)) : '23:59',
             'insurance_end_day' => $daysMap[$endDayName] ?? 'الأحد',
             'insurance_end_date' => $convertToArabicDate($endDate),
-            
+
             // Countries
             'countries' => $countries,
-            
+
             // Office Info
             'office_info' => [],
-            
+
             // Financial
             'total_premium' => $request->get('total_premium') ?? ($issuing ? number_format($issuing->insurance_total ?? 0, 2) : '0.00'),
             'issue_date' => $issuing && $issuing->issuing_date ? $convertToArabicDate($issuing->issuing_date) : $convertToArabicDate(now()),
             'issue_year' => $issuing && $issuing->issuing_date ? date('Y', strtotime($issuing->issuing_date)) : date('Y'),
-            'issue_month' => $arabicMonths[ $issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m') ],
+            'issue_month' => $arabicMonths[$issuing && $issuing->issuing_date ? date('m', strtotime($issuing->issuing_date)) : date('m')],
             'issue_day' => $issuing && $issuing->issuing_date ? date('d', strtotime($issuing->issuing_date)) : date('d'),
-            'issue_weekday' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'issue_weekday' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
             'issue_time' => $issuing && $issuing->issuing_date ? str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A', strtotime($issuing->issuing_date))) : str_replace(['AM', 'PM'], ['ص', 'م'], date('h:i A')),
-            
+
             // Free day
-            'free_day' => $daysMap[ $issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l') ] ?? 'السبت',
+            'free_day' => $daysMap[$issuing && $issuing->issuing_date ? date('l', strtotime($issuing->issuing_date)) : date('l')] ?? 'السبت',
         ];
-        
+
         // Create mPDF instance with optimal settings for Arabic RTL
         $tempDir = storage_path('app/mpdf-temp');
-        if (!is_dir($tempDir)) {
+        if (! is_dir($tempDir)) {
             mkdir($tempDir, 0755, true);
         }
-        
+
         $mpdf = new Mpdf([
             'format' => 'A4',
             'mode' => 'utf-8',
@@ -2929,26 +2895,26 @@ class ReportController extends Controller
             'autoScriptToLang' => true,
             'autoLangToFont' => true,
         ]);
-        
+
         $mpdf->autoScriptToLang = true;
         $mpdf->autoLangToFont = true;
         $mpdf->SetDirectionality('rtl');
         $mpdf->SetDisplayMode('fullpage');
         $mpdf->shrink_tables_to_fit = 1;
-        
+
         // Get the HTML content from the view
         $html = view('card-pdf', $data)->render();
-        
+
         // Write HTML to PDF
         $mpdf->WriteHTML($html);
-        
+
         // Generate filename
-        $filename = 'insurance_card_' . ($data['card_number'] ?? 'document') . '.pdf';
-        
+        $filename = 'insurance_card_'.($data['card_number'] ?? 'document').'.pdf';
+
         // Output as download
         return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     public function stockpdf()
@@ -2966,9 +2932,9 @@ class ReportController extends Controller
                 'companies.id AS company_id',
                 'companies.name AS companies_name',
                 DB::raw('COUNT(cards.id) AS total_cards'),
-                DB::raw("SUM(CASE WHEN cards.cardstautes_id = 1 THEN 1 ELSE 0 END) AS active_cards"),
-                DB::raw("SUM(CASE WHEN cards.cardstautes_id = 2 THEN 1 ELSE 0 END) AS sold"),
-                DB::raw("SUM(CASE WHEN cards.cardstautes_id = 3 THEN 1 ELSE 0 END) AS cancelled"),
+                DB::raw('SUM(CASE WHEN cards.cardstautes_id = 1 THEN 1 ELSE 0 END) AS active_cards'),
+                DB::raw('SUM(CASE WHEN cards.cardstautes_id = 2 THEN 1 ELSE 0 END) AS sold'),
+                DB::raw('SUM(CASE WHEN cards.cardstautes_id = 3 THEN 1 ELSE 0 END) AS cancelled'),
                 DB::raw('SUM(issuings.insurance_total) AS total_insurance'),
                 DB::raw("ROUND(COUNT(cards.id) / {$percentageBase} * 100, 2) AS percentage")
             )
@@ -2979,32 +2945,31 @@ class ReportController extends Controller
 
         // Calculate totals
         $totals = [
-            'total_cards'     => 0,
-            'sold'            => 0,
-            'active_cards'    => 0,
-            'cancelled'       => 0,
+            'total_cards' => 0,
+            'sold' => 0,
+            'active_cards' => 0,
+            'cancelled' => 0,
             'total_insurance' => 0.0,
-            'percentage'      => 0,
+            'percentage' => 0,
         ];
 
         foreach ($cardsStock as $item) {
-            $totals['total_cards']     += (int)$item->total_cards;
-            $totals['sold']            += (int)$item->sold;
-            $totals['active_cards']    += (int)$item->active_cards;
-            $totals['cancelled']       += (int)$item->cancelled;
-            $totals['total_insurance'] += (float)$item->total_insurance;
-            $totals['percentage']      += (float)$item->percentage;
+            $totals['total_cards'] += (int) $item->total_cards;
+            $totals['sold'] += (int) $item->sold;
+            $totals['active_cards'] += (int) $item->active_cards;
+            $totals['cancelled'] += (int) $item->cancelled;
+            $totals['total_insurance'] += (float) $item->total_insurance;
+            $totals['percentage'] += (float) $item->percentage;
         }
 
         return view('dashbord.report.stock', [
             'cardsStock' => $cardsStock,
-            'totals'     => $totals,
-            'cardcount'  => $cardcount
+            'totals' => $totals,
+            'cardcount' => $cardcount,
         ]);
     }
 
-
-    ///officeStats
+    // /officeStats
 
     public function officeStats(Request $request)
     {
@@ -3046,8 +3011,6 @@ class ReportController extends Controller
         return view('dashbord.report.office_stats', compact('officeLabels', 'officeData', 'companies', 'offices', 'officeUsers', 'request'));
     }
 
-
-
     public function countryissuingsstats()
     {
         // جلب الإحصائيات: عدد الإصدارات لكل دولة
@@ -3065,8 +3028,6 @@ class ReportController extends Controller
         // تمرير البيانات إلى صفحة العرض
         return view('dashbord.report.country_issuings_stats', compact('countryLabels', 'countryData'));
     }
-
-
 
     // إحصائية: عدد إصدارات كل شركة، مع احتساب جميع الإصدارات من المكاتب التابعة لها
     public function totalCompanyIssuingStats(Request $request)
@@ -3092,7 +3053,6 @@ class ReportController extends Controller
 
         return view('dashbord.report.total_company_issuings', compact('companyLabels', 'companyData', 'request'));
     }
-
 
     // مقارنة إصدارات مستخدمي المكاتب
 
@@ -3137,9 +3097,6 @@ class ReportController extends Controller
         return view('dashbord.report.office_users_stats', compact('labels', 'data', 'companies', 'offices', 'officeUsers', 'request'));
     }
 
-
-
-
     public function officeSummaryReport(Request $request)
     {
         $startDate = $request->input('start_date');
@@ -3165,8 +3122,8 @@ class ReportController extends Controller
 
         if ($startDate && $endDate) {
             $query->whereBetween('issuings.created_at', [
-                $startDate . ' 00:00:00',
-                $endDate . ' 23:59:59'
+                $startDate.' 00:00:00',
+                $endDate.' 23:59:59',
             ]);
         }
 
@@ -3181,9 +3138,6 @@ class ReportController extends Controller
         return view('dashbord.report.office_summarypdf', compact('data', 'startDate', 'endDate'));
     }
 
-
-
-
     public function companySummaryReportpdf(Request $request)
     {
         $startDate = $request->input('start_date');
@@ -3191,43 +3145,43 @@ class ReportController extends Controller
         $companyId = $request->input('company_id');
         $user = auth()->user();
 
-        if (!$startDate && !$endDate && !$companyId) {
+        if (! $startDate && ! $endDate && ! $companyId) {
             return view('dashbord.report.company_summary', [
                 'data' => [],
                 'companies' => DB::table('companies')->get(),
                 'startDate' => null,
                 'endDate' => null,
                 'companyId' => null,
-                'user' => $user
+                'user' => $user,
             ]);
         }
 
-       $query = Issuing::query()
+        $query = Issuing::query()
     // نحط LEFT JOIN لأن فيه سجلات بدون مكتب
-    ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
+            ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
     // نربط الشركات إما عبر المكتب أو مباشرة عبر issuings.companies_id
-    ->leftJoin('companies', function ($join) {
-        $join->on('companies.id', '=', 'offices.companies_id')
-             ->orOn('companies.id', '=', 'issuings.companies_id');
-    })
+            ->leftJoin('companies', function ($join) {
+                $join->on('companies.id', '=', 'offices.companies_id')
+                    ->orOn('companies.id', '=', 'issuings.companies_id');
+            })
     // لو الكرت ممكن يكون NULL، خليه LEFT JOIN برضه
-    ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
-    ->select([
-        'companies.name as company_name',
-        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
-        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
-        DB::raw('SUM(issuings.insurance_installment) as net_premium'),
-        DB::raw('SUM(issuings.insurance_tax) as tax'),
-        DB::raw('SUM(issuings.insurance_stamp) as stamp'),
-        DB::raw('SUM(issuings.insurance_supervision) as supervision'),
-        DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
-        DB::raw('SUM(issuings.insurance_total) as total'),
-    ])
+            ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
+            ->select([
+                'companies.name as company_name',
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+                DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+                DB::raw('SUM(issuings.insurance_tax) as tax'),
+                DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+                DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+                DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+                DB::raw('SUM(issuings.insurance_total) as total'),
+            ])
     // نتجمع على الشركة
-    ->groupBy('companies.id', 'companies.name');
+            ->groupBy('companies.id', 'companies.name');
 
         if ($startDate && $endDate) {
-            $query->whereBetween('issuings.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            $query->whereBetween('issuings.created_at', [$startDate.' 00:00:00', $endDate.' 23:59:59']);
         }
 
         if ($companyId) {
@@ -3242,7 +3196,7 @@ class ReportController extends Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'companyId' => $companyId,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -3252,7 +3206,6 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $companyId = $request->input('company_id');
         $user = auth()->user();
-
 
         // السماح بعرض التقرير إذا وُجدت تواريخ أو شركة
         if (
@@ -3264,63 +3217,61 @@ class ReportController extends Controller
                 'startDate' => null,
                 'endDate' => null,
                 'companyId' => null,
-                'user' => $user
+                'user' => $user,
             ]);
         }
 
-    //  $query = issuing::query()
-    // ->with(['cards', 'offices', 'offices.company'])
-    // ->join('cards', 'issuings.cards_id', '=', 'cards.id')
-    // ->join('offices', 'issuings.offices_id', '=', 'offices.id')
-    // ->join('companies', 'offices.companies_id', '=', 'companies.id')
-    // ->select([
-    //     'companies.name as company_name',
-    //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
-    //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
-    //     DB::raw('SUM(issuings.insurance_installment) as net_premium'),
-    //     DB::raw('SUM(issuings.insurance_tax) as tax'),
-    //     DB::raw('SUM(issuings.insurance_stamp) as stamp'),
-    //     DB::raw('SUM(issuings.insurance_supervision) as supervision'),
-    //     DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
-    //     DB::raw('SUM(issuings.insurance_total) as total'),
-    // ])
+        //  $query = issuing::query()
+        // ->with(['cards', 'offices', 'offices.company'])
+        // ->join('cards', 'issuings.cards_id', '=', 'cards.id')
+        // ->join('offices', 'issuings.offices_id', '=', 'offices.id')
+        // ->join('companies', 'offices.companies_id', '=', 'companies.id')
+        // ->select([
+        //     'companies.name as company_name',
+        //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+        //     DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+        //     DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+        //     DB::raw('SUM(issuings.insurance_tax) as tax'),
+        //     DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+        //     DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+        //     DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+        //     DB::raw('SUM(issuings.insurance_total) as total'),
+        // ])
 
-    // ->groupBy('companies.id', 'companies.name');
+        // ->groupBy('companies.id', 'companies.name');
 
+        $query = Issuing::query()
+            // نحط LEFT JOIN لأن فيه سجلات بدون مكتب
+            ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
+            // نربط الشركات إما عبر المكتب أو مباشرة عبر issuings.companies_id
+            ->leftJoin('companies', function ($join) {
+                $join->on('companies.id', '=', 'offices.companies_id')
+                    ->orOn('companies.id', '=', 'issuings.companies_id');
+            })
+            // لو الكرت ممكن يكون NULL، خليه LEFT JOIN برضه
+            ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
+            ->select([
+                'companies.name as company_name',
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
+                DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
+                DB::raw('SUM(issuings.insurance_installment) as net_premium'),
+                DB::raw('SUM(issuings.insurance_tax) as tax'),
+                DB::raw('SUM(issuings.insurance_stamp) as stamp'),
+                DB::raw('SUM(issuings.insurance_supervision) as supervision'),
+                DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
+                DB::raw('SUM(issuings.insurance_total) as total'),
+            ])
+            // نتجمع على الشركة
+            ->groupBy('companies.id', 'companies.name');
 
-
-$query = Issuing::query()
-    // نحط LEFT JOIN لأن فيه سجلات بدون مكتب
-    ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
-    // نربط الشركات إما عبر المكتب أو مباشرة عبر issuings.companies_id
-    ->leftJoin('companies', function ($join) {
-        $join->on('companies.id', '=', 'offices.companies_id')
-             ->orOn('companies.id', '=', 'issuings.companies_id');
-    })
-    // لو الكرت ممكن يكون NULL، خليه LEFT JOIN برضه
-    ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
-    ->select([
-        'companies.name as company_name',
-        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 2 THEN 1 END) as issued_count'),
-        DB::raw('COUNT(CASE WHEN cards.cardstautes_id = 3 THEN 1 END) as canceled_count'),
-        DB::raw('SUM(issuings.insurance_installment) as net_premium'),
-        DB::raw('SUM(issuings.insurance_tax) as tax'),
-        DB::raw('SUM(issuings.insurance_stamp) as stamp'),
-        DB::raw('SUM(issuings.insurance_supervision) as supervision'),
-        DB::raw('SUM(issuings.insurance_version) as issuing_fee'),
-        DB::raw('SUM(issuings.insurance_total) as total'),
-    ])
-    // نتجمع على الشركة
-    ->groupBy('companies.id', 'companies.name');
-
-        if (!empty($startDate) && !empty($endDate)) {
+        if (! empty($startDate) && ! empty($endDate)) {
             $query->whereBetween('issuings.created_at', [
-                $startDate . ' 00:00:00',
-                $endDate . ' 23:59:59'
+                $startDate.' 00:00:00',
+                $endDate.' 23:59:59',
             ]);
         }
 
-        if (!empty($companyId)) {
+        if (! empty($companyId)) {
             $query->where('companies.id', $companyId);
         }
 
@@ -3332,7 +3283,7 @@ $query = Issuing::query()
             'startDate' => $startDate,
             'endDate' => $endDate,
             'companyId' => $companyId,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
@@ -3352,7 +3303,7 @@ $query = Issuing::query()
                 'startDate' => null,
                 'endDate' => null,
                 'companyId' => null,
-                'user' => $user
+                'user' => $user,
             ]);
         }
 
@@ -3360,7 +3311,7 @@ $query = Issuing::query()
             ->leftJoin('offices', 'issuings.offices_id', '=', 'offices.id')
             ->leftJoin('companies', function ($join) {
                 $join->on('companies.id', '=', 'offices.companies_id')
-                     ->orOn('companies.id', '=', 'issuings.companies_id');
+                    ->orOn('companies.id', '=', 'issuings.companies_id');
             })
             ->leftJoin('cards', 'issuings.cards_id', '=', 'cards.id')
             ->select([
@@ -3375,12 +3326,12 @@ $query = Issuing::query()
                 DB::raw('SUM(issuings.insurance_total) as total'),
             ])
             ->where('companies.id', $companyId)
-            ->groupBy(DB::raw("COALESCE(offices.id, 0)"), DB::raw("COALESCE(offices.name, 'المكتب الرئيسي')"));
+            ->groupBy(DB::raw('COALESCE(offices.id, 0)'), DB::raw("COALESCE(offices.name, 'المكتب الرئيسي')"));
 
-        if (!empty($startDate) && !empty($endDate)) {
+        if (! empty($startDate) && ! empty($endDate)) {
             $query->whereBetween('issuings.created_at', [
-                $startDate . ' 00:00:00',
-                $endDate . ' 23:59:59'
+                $startDate.' 00:00:00',
+                $endDate.' 23:59:59',
             ]);
         }
 
@@ -3409,12 +3360,72 @@ $query = Issuing::query()
             'startDate' => $startDate,
             'endDate' => $endDate,
             'companyId' => $companyId,
-            'user' => $user
+            'user' => $user,
         ]);
     }
 
     public function insuranceCard()
     {
         return view('dashbord.report.insurance_card');
+    }
+
+    public function downloadReport($id)
+    {
+        try {
+            $report = Issuing::with([
+                'cards',
+                'companies',
+                'offices.companies',
+                'company_users',
+                'office_users',
+                'cars',
+                'countries',
+            ])->findOrFail($id);
+
+            $data = [
+                'report' => $report,
+                'generated_at' => now('Africa/Tripoli')->format('Y-m-d H:i:s'),
+                'user' => auth()->user()->username ?? 'نظام التأمين',
+            ];
+
+            $html = view('dashbord.report.report_pdf_template', $data)->render();
+
+            $tempDir = storage_path('app/mpdf-temp');
+            if (! is_dir($tempDir)) {
+                @mkdir($tempDir, 0775, true);
+            }
+
+            $mpdf = new Mpdf([
+                'format' => 'A4',
+                'orientation' => 'P',
+                'default_font' => 'amiri',
+                'tempDir' => $tempDir,
+                'margin_left' => 15,
+                'margin_right' => 15,
+                'margin_top' => 15,
+                'margin_bottom' => 15,
+            ]);
+
+            $mpdf->autoScriptToLang = true;
+            $mpdf->autoLangToFont = true;
+            $mpdf->SetDirectionality('rtl');
+            $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::DEFAULT_MODE);
+
+            $filename = 'report-'.$id.'.pdf';
+
+            return response($mpdf->Output($filename, \Mpdf\Output\Destination::STRING_RETURN))
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Report not found', ['id' => $id, 'error' => $e->getMessage()]);
+            Alert::error('خطأ', 'التقرير غير موجود')->persistent('حسنًا');
+
+            return redirect()->back();
+        } catch (\Exception $e) {
+            Log::error('PDF generation failed', ['id' => $id, 'error' => $e->getMessage()]);
+            Alert::error('خطأ', 'فشل إنشاء PDF: '.$e->getMessage())->persistent('حسنًا');
+
+            return redirect()->back();
+        }
     }
 }
