@@ -447,12 +447,10 @@ ol li, ul li {
             $car = $car ?? null;
         @endphp
         
-        @if (env('TEST_MODE', ture))
         <div class="watermark" dir="ltr">Test Document</div>
         <div class="header-top" dir="ltr">
             This document is generated for testing purposes only. This is not a valid document.
         </div>
-        @endif
 
         <div class="main-header">
             <div style="width: 55px;"><img class="logo-img" src="{{ asset('logo.png') }}" alt="Logo"></div>
@@ -683,9 +681,9 @@ ol li, ul li {
         </div>
 
         <div class="warning" style="text-align: center !important;border-top:none !important">
-            @if (env('TEST_MODE', true))
+            {{-- @if (env('TEST_MODE', true)) --}}
                 <small>This document is generated for testing purpose only. This is not a valid document</small>
-                @endif
+                {{-- @endif --}}
         </div>
     </div>
 
