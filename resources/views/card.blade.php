@@ -447,7 +447,7 @@ ol li, ul li {
             $car = $car ?? null;
         @endphp
         
-        @if (env('TEST_MODE', false))
+        @if (env('TEST_MODE', ture))
         <div class="watermark" dir="ltr">Test Document</div>
         <div class="header-top" dir="ltr">
             This document is generated for testing purposes only. This is not a valid document.
@@ -683,7 +683,7 @@ ol li, ul li {
         </div>
 
         <div class="warning" style="text-align: center !important;border-top:none !important">
-            @if (env('TEST_MODE', false))
+            @if (env('TEST_MODE', true))
                 <small>This document is generated for testing purpose only. This is not a valid document</small>
                 @endif
         </div>
