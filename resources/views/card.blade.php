@@ -481,12 +481,12 @@ ol li, ul li {
             </div>
 
             <div class="contact-box">
-                <strong dir="rtl">الشركة المصدرة  للبطاقة </strong>: {{ $insurance_company ?? '' }}<br>
-                <strong dir="rtl">العنوان</strong> :{{ $company_address ?? '' }}<br>
-                <strong dir="rtl">صندوق البريد</strong> :{{ $company_box ?? '' }}<br>
-                <strong dir="rtl">الهاتف</strong> :{{ $company_phone ?? '' }}<br>
-                <strong dir="rtl">الفاكس</strong> :{{ $company_fax ?? '' }}<br>
-                <strong dir="rtl">البريد الإلكتروني</strong>: {{ $company_email ?? '' }}
+                <strong dir="rtl">الشركة المصدرة  للبطاقة </strong>: {{ $company->name ?? '' }}<br>
+                <strong dir="rtl">العنوان</strong> :{{ $company->address ?? '' }}<br>
+                <strong dir="rtl">صندوق البريد</strong> :{{ $company->pob ?? '' }}<br>
+                <strong dir="rtl">الهاتف</strong> :{{ $company->phonenumber ?? '' }}<br>
+                <strong dir="rtl">الفاكس</strong> :{{ $company->fax ?? '' }}<br>
+                <strong dir="rtl">البريد الإلكتروني</strong>: {{ $company->email ?? '' }}
             </div>
         </div>
 

@@ -2490,6 +2490,7 @@ class ReportController extends Controller
         $data['issuing'] = $issuing;
         $data['office'] = $office;
         $data['company'] = $company;
+     
         $data['car'] = $car;
 
 
