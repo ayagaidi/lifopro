@@ -34,8 +34,7 @@
       // مراقبة الجلسة
       $(document).on('change', 'select, input', checkSession);
 
-
-            $('select[name="companies_id"]').on('change', function() {
+         $('select[name="companies_id"]').on('change', function() {
                 checkSession();
                 var companies_id = $(this).val();
                 $('select[name="company_users_id"]').empty();
@@ -116,8 +115,6 @@
                     $('select[name="office_users_id"]').empty();
                 }
             });
-
-
       // بحث
       $(document).on('click', '#search-btn', function () { search(1); });
 
@@ -200,7 +197,7 @@
   <div class="row small-spacing">
     <div class="col-md-12">
       <div class="box-content">
-        <h4 class="box-title"><a href="{{ route('report/issuing') }}">ادارة التقارير</a>/ تقاريرالمبيعات</h4>
+        <h4 class="box-title"><a href="{{ route('report/issuing') }}">ادارة التقارير</a>/ تقاريرالمبيعات @if(isset($year)) {{ $year }} @endif</h4>
       </div>
 
       <div class="box-content">
@@ -294,6 +291,31 @@
             <!--{{-- زر PDF الأصلي --}}-->
             <!--<button type="submit" class="btn btn-primary waves-effect">تصدير ك PDF</button>-->
             <button type="button" id="btnExportAllPdf" class="btn btn-danger waves-effect">تصدير PDF (كل النتائج)</button>
+            @if(isset($year))
+            <script>
+                $(document).on('click', '#btnExportAllPdf', function () {
+                    if (!$('#fromdate').val() || !$('#todate').val()) {
+                        Swal.fire("تنبيه", "الرجاء اختيار تاريخ البدء وتاريخ النهاية", "warning");
+                        return;
+                    }
+
+                    const q = $.param({
+                        offices_id:       $('#offices_id').val() || '',
+                        companies_id:     $('#companies_id').val() || '',
+                        office_users_id:  $('#office_users_id').val() || '',
+                        insurance_name:   $('#insurance_name').val() || '',
+                        card_number:      $('#card_number').val() || '',
+                        chassis_number:   $('#chassis_number').val() || '',
+                        plate_number:     $('#plate_number').val() || '',
+                        company_users_id: $('#company_users_id').val() || '',
+                        fromdate:         $('#fromdate').val(),
+                        todate:           $('#todate').val()
+                    });
+
+                    window.location.href = "{{ route('report.issuing.export-pdf-year', $year) }}?" + q;
+                });
+            </script>
+            @endif
 
           </div>
         </form>
@@ -354,6 +376,7 @@
                     <th>رقم الهيكل</th>
                     <th>رقم المحرك</th>
                     <th class="view">عرض الوثيقة</th>
+                    {{-- <th class="view">طباعة البطاقة</th> --}}
                   </tr>
                 </thead>
                 <tbody id="allRows"></tbody>
@@ -397,8 +420,13 @@
         return;
       }
 
+      var searchUrl = '../../report/issuing/searchby';
+      @if(isset($year))
+        searchUrl = '../../report/issuing/{{ $year }}/searchby';
+      @endif
+
       $.ajax({
-        url: '../../report/issuing/searchby',
+        url: searchUrl,
         type: 'GET',
         data: payload,
         success: function (response) {
@@ -547,7 +575,7 @@
       const cars = item.cars ? (item.cars.name ?? item.cars_id) : (item.cars_id ?? '-');
 
       const cardNumberForRoute = item.cards_id; // غيّرها لو مسارك يعتمد card_number
-      const baseUrl = "{{ route('viewdocument', ['cardnumber' => 'PLACEHOLDER']) }}";
+      const baseUrl = "{{ route('print-card', ['card_id' => 'PLACEHOLDER']) }}";
       const url     = baseUrl.replace('PLACEHOLDER', encodeURIComponent(cardNumberForRoute));
       const docLink =
         '<a style="color:#f97424;" target="_blank" href="'+url+'">' +
@@ -570,7 +598,7 @@
           '<td>' + (item.insurance_version ?? 0) + '</td>' +
           '<td>' + (item.insurance_total ?? 0) + '</td>' +
           '<td>' + (item.insurance_day_from ?? '-') + '</td>' +
-          '<td>' + (item.nsurance_day_to ?? '-') + '</td>' + // تم الإصلاح هنا (إزالة تعليق HTML)
+          '<td>' + (item.insurance_day_to ?? '-') + '</td>' + // تم الإصلاح هنا (إزالة تعليق HTML)
           '<td>' + (item.insurance_days_number ?? '-') + '</td>' +
           '<td>' + cars + '</td>' +
           '<td>' + (item.plate_number ?? '-') + '</td>' +
@@ -608,7 +636,13 @@
         page:             page,
         per_page:         per_page
       };
-      return $.ajax({ url: '../../report/issuing/searchby', type: 'GET', data: payload });
+
+      var searchUrl = '../../report/issuing/searchby';
+      @if(isset($year))
+        searchUrl = '../../report/issuing/{{ $year }}/searchby';
+      @endif
+
+      return $.ajax({ url: searchUrl, type: 'GET', data: payload });
     }
 
     // طباعة HTML
