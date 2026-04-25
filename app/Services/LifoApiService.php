@@ -2,88 +2,85 @@
 
 namespace App\Services;
 
-use Ixudra\Curl\Facades\Curl;
-use Illuminate\Support\Facades\Crypt;
-use Illuminate\Support\Facades\Http;
 use App\Models\ApiLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 
 class LifoApiService
 {
-
     public $url;
 
     public function __construct()
     {
-        
+
         // $this->url = 'http://197.44.140.211:83/api/';
-                // $this->url = 'https://oc.gaif.org:83/api/';
+        // $this->url = 'https://oc.gaif.org:83/api/';
 
-                $this->url = 'http://197.44.140.211:83/api/';
+        $this->url = config('apilifo.api_url');
 
-        
     }
 
-    public  function getAuth($USER_ID, $PASSWORD)
+    public function getAuth($USER_ID, $PASSWORD)
     {
         $DATA = [
             'USER_ID' => $USER_ID,
             'PASSWORD' => $PASSWORD,
         ];
-        $response = Http::post($this->url . 'OcUser/GetToken', $DATA);
+        $response = Http::post($this->url.'OcUser/GetToken', $DATA);
         $this->logApiCall('getAuth', $DATA, $response);
+
         return $response;
     }
 
-
-
-    public  function issuingPolicy($headers, $DATA)
+    public function issuingPolicy($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcPolicy/NewPolicy', $DATA);
+            ->post($this->url.'OcPolicy/NewPolicy', $DATA);
         $this->logApiCall('issuingPolicy', $DATA, $response);
+
         return $response;
     }
 
-    public  function cancelPolicy($headers, $DATA)
+    public function cancelPolicy($headers, $DATA)
     {
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcPolicy/PolicyStatusChange', $DATA);
+            ->post($this->url.'OcPolicy/PolicyStatusChange', $DATA);
         $this->logApiCall('cancelPolicy', $DATA, $response);
+
         return $response;
     }
 
-
-    public  function policystatus($headers, $DATA)
+    public function policystatus($headers, $DATA)
     {
 
-      
-
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcPolicy/OCPolStatus', $DATA);
+            ->post($this->url.'OcPolicy/OCPolStatus', $DATA);
         $this->logApiCall('policystatus', $DATA, $response);
+
         return $response;
     }
-// 
-    public  function newrequestadmin($headers, $DATA)
+
+    //
+    public function newrequestadmin($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/NewUORequest', $DATA);
+            ->post($this->url.'OcRequest/NewUORequest', $DATA);
         $this->logApiCall('newrequestadmin', $DATA, $response);
+
         return $response;
     }
 
-    public  function requeststatusadmin($headers, $DATA)
+    public function requeststatusadmin($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/UoRequestStatus', $DATA);
+            ->post($this->url.'OcRequest/UoRequestStatus', $DATA);
         $this->logApiCall('requeststatusadmin', $DATA, $response);
+
         return $response;
     }
-
 
     // public  function addcardsadmin($headers, $DATA)
     // {
@@ -93,77 +90,77 @@ class LifoApiService
 
     //     return $response;
     // }
-    public  function addcardsadmin($headers, $DATA)
+    public function addcardsadmin($headers, $DATA)
     {
 
-
-        $response = Http::withHeaders($headers)->post($this->url . 'OcRequest/UoOcSerialRequest', $DATA);
+        $response = Http::withHeaders($headers)->post($this->url.'OcRequest/UoOcSerialRequest', $DATA);
         $this->logApiCall('addcardsadmin', $DATA, $response);
+
         return $response;
     }
 
-    public  function postInsCompCertificateBook($headers, $DATA)
+    public function postInsCompCertificateBook($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OrangeCardServices/PostInsCompCertificateBook', $DATA);
+            ->post($this->url.'OrangeCardServices/PostInsCompCertificateBook', $DATA);
         $this->logApiCall('postInsCompCertificateBook', $DATA, $response);
+
         return $response;
     }
 
-    
     //
-    public  function newrequest($headers, $DATA)
+    public function newrequest($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/NewICRequest', $DATA);
+            ->post($this->url.'OcRequest/NewICRequest', $DATA);
         $this->logApiCall('newrequest', $DATA, $response);
+
         return $response;
     }
 
-    public  function requeststatus($headers, $DATA)
+    public function requeststatus($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/IcRequestStatus', $DATA);
+            ->post($this->url.'OcRequest/IcRequestStatus', $DATA);
         $this->logApiCall('requeststatus', $DATA, $response);
+
         return $response;
     }
 
-    public  function addcards($headers, $DATA)
+    public function addcards($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/IcOcSerialRequest', $DATA);
+            ->post($this->url.'OcRequest/IcOcSerialRequest', $DATA);
         $this->logApiCall('addcards', $DATA, $response);
+
         return $response;
     }
 
-
-    
-
-    public  function printcard($headers, $DATA)
+    public function printcard($headers, $DATA)
     {
 
         $response = Http::withHeaders($headers)
-            ->post($this->url . 'OcRequest/OCCertificate', $DATA);
+            ->post($this->url.'OcRequest/OCCertificate', $DATA);
         $this->logApiCall('printcard', $DATA, $response);
+
         return $response;
     }
 
-    function extractStatus($statusMessage)
-{
-    // Regular expression to match the status
-    $pattern = '/\b(Submitted|Approved|Rejected)\b/';
-    preg_match($pattern, $statusMessage, $matches);
+    public function extractStatus($statusMessage)
+    {
+        // Regular expression to match the status
+        $pattern = '/\b(Submitted|Approved|Rejected)\b/';
+        preg_match($pattern, $statusMessage, $matches);
 
-    return isset($matches[1]) ? $matches[1] : null;
-}
+        return isset($matches[1]) ? $matches[1] : null;
+    }
 
     private function logApiCall($operation_type, $data, $response, $username = null)
     {
-
 
         $status = $response->successful() ? 'success' : 'failure';
 
@@ -178,40 +175,46 @@ class LifoApiService
         $related_link = null;
         switch ($operation_type) {
             case 'getAuth':
-                $related_link = $this->url . 'OcUser/GetToken';
+                $related_link = $this->url.'OcUser/GetToken';
                 break;
             case 'issuingPolicy':
-                $related_link = $this->url . 'OcPolicy/NewPolicy';
+                $related_link = $this->url.'OcPolicy/NewPolicy';
                 break;
             case 'cancelPolicy':
-                $related_link = $this->url . 'OcPolicy/PolicyStatusChange';
+                $related_link = $this->url.'OcPolicy/PolicyStatusChange';
                 break;
             case 'policystatus':
-                $related_link = $this->url . 'OcPolicy/OCPolStatus';
+                $related_link = $this->url.'OcPolicy/OCPolStatus';
                 break;
             case 'newrequestadmin':
-                $related_link = $this->url . 'OcRequest/NewUORequest';
+                $related_link = $this->url.'OcRequest/NewUORequest';
                 break;
             case 'requeststatusadmin':
-                $related_link = $this->url . 'OcRequest/UoRequestStatus';
+                $related_link = $this->url.'OcRequest/UoRequestStatus';
                 break;
             case 'addcardsadmin':
-                $related_link = $this->url . 'OcRequest/UoOcSerialRequest';
+                $related_link = $this->url.'OcRequest/UoOcSerialRequest';
                 break;
             case 'newrequest':
-                $related_link = $this->url . 'OcRequest/NewICRequest';
+                $related_link = $this->url.'OcRequest/NewICRequest';
                 break;
             case 'requeststatus':
-                $related_link = $this->url . 'OcRequest/IcRequestStatus';
+                $related_link = $this->url.'OcRequest/IcRequestStatus';
                 break;
             case 'addcards':
-                $related_link = $this->url . 'OcRequest/IcOcSerialRequest';
+                $related_link = $this->url.'OcRequest/IcOcSerialRequest';
                 break;
             case 'postInsCompCertificateBook':
-                $related_link = $this->url . 'OrangeCardServices/PostInsCompCertificateBook';
+                $related_link = $this->url.'OrangeCardServices/PostInsCompCertificateBook';
                 break;
             case 'printcard':
-                $related_link = $this->url . 'OcRequest/OCCertificate';
+                $related_link = $this->url.'OcRequest/OCCertificate';
+                break;
+            case 'accept_request':
+                $related_link = $this->url.'OrangeCardServices/PostInsCompCertificateBook';
+                break;
+            case 'reject_request':
+                $related_link = $this->url.'OcRequest/UoRequestStatus';
                 break;
             default:
                 $related_link = $this->url;
@@ -220,25 +223,25 @@ class LifoApiService
         // Determine company_name and office_name based on user type
         $company_name = null;
         $office_name = null;
-        
+
         if (Auth::guard('officess')->check()) {
             // Office user is logged in
             $officeUser = Auth::guard('officess')->user();
             $office_name = $officeUser->offices ? $officeUser->offices->name : null;
             $company_name = $officeUser->offices && $officeUser->offices->companies ? $officeUser->offices->companies->name : null;
-                          $office_user_name = $officeUser->username;
+            $office_user_name = $officeUser->username;
 
         } elseif (Auth::guard('companys')->check()) {
             // Company user is logged in
             $companyUser = Auth::guard('companys')->user();
             $company_name = $companyUser->companies ? $companyUser->companies->name : null;
-            $office_user_name =  null;
+            $office_user_name = null;
         } elseif (Auth::check()) {
             // Regular user is logged in
             $user = Auth::user();
             $company_name = $user->companies ? $user->companies->name : null;
             $office_name = $user->offices ? $user->offices->name : null;
-                        $office_user_name =  null;
+            $office_user_name = null;
 
         }
 
@@ -246,7 +249,7 @@ class LifoApiService
             'user_name' => $username ?? (Auth::check() ? Auth::user()->username : (Auth::guard('officess')->check() ? Auth::guard('officess')->user()->username : (Auth::guard('companys')->check() ? Auth::guard('companys')->user()->username : (Auth::guard('admin')->check() ? Auth::guard('admin')->user()->username : 'System')))),
             'company_name' => $company_name,
             'office_name' => $office_name,
-                                'office_user_name' => $office_user_name,
+            'office_user_name' => $office_user_name,
 
             'operation_type' => $operation_type,
             'execution_date' => now(),
@@ -256,6 +259,4 @@ class LifoApiService
             'related_link' => $related_link,
         ]);
     }
-
-    
 }
