@@ -784,14 +784,16 @@ class RequestsController extends Controller
                 ];
 
                 $RQ_USER_ID = Apiuser::where('companies_id', $reques->companies_id)->first();
+                $CB_INS_COMP_CODE=$RQ_USER_ID->username;
+                // dd($CB_INS_COMP_CODE);
                 $cards_number = $reques->cards_number;
                 $get_cards_data = Card::whereNull('companies_id')->limit($cards_number)->get();
-                $formattedData = $get_cards_data->map(function ($card) {
+                $formattedData = $get_cards_data->map(function ($card,$CB_INS_COMP_CODE) {
                     return [
                         'CB_CERT_UID' => 0,
                         'CB_CERT_NO' => $card['card_number'],
                         'CB_BOOK_ID' => 0,
-                        'CB_INS_COMP_CODE' => 0,
+                        'CB_INS_COMP_CODE' =>$CB_INS_COMP_CODE,
                     ];
                 })->values()->toJson();
 
