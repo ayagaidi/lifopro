@@ -396,7 +396,7 @@
         </a>
     </li>
     @endcan
-@endif
+
 
 
                             </ul>
