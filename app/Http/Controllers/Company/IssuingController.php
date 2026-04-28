@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Country;
 use App\Models\InsuranceClause;
 use App\Models\issuing;
+use App\Models\Office;
 use App\Models\Price;
 use App\Models\VehicleNationality;
 use App\Services\LifoApiService;
@@ -84,7 +85,9 @@ class IssuingController extends Controller
             return response()->json(['error' => 'Plate number or chassis number is required'], 400);
         }
 
-        $query = Issuing::where('companies_id', Auth::user()->companies_id);
+        $companyId = Auth::user()->companies_id;
+        $officeIds = Office::where('companies_id', $companyId)->pluck('id');
+        $query = Issuing::where('companies_id', $companyId)->orWhereIn('offices_id', $officeIds);
 
         if ($plateNumber) {
             $query->where('plate_number', $plateNumber);

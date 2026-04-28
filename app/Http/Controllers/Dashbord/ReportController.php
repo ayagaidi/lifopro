@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use Mpdf\HTMLParserMode;
 use Mpdf\Mpdf;
 use RealRashid\SweetAlert\Facades\Alert;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {

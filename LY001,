@@ -1,0 +1,9 @@
+
+   ERROR  Command "db:" is ambiguous. Did you mean one of these?  
+
+  ⇂ db:monitor  
+  ⇂ db:show  
+  ⇂ db:table  
+  ⇂ db:wipe  
+  ⇂ db:seed  
+

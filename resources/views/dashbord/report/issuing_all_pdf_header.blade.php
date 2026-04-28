@@ -43,7 +43,7 @@
   <table>
     <thead>
       <tr>
-          <th style="width:1%">#</th>
+          <th style="width:2%">#</th>
                   <th style="width:9%">رقم البطاقة</th>
 
         <th style="width:11%">التاريخ</th>

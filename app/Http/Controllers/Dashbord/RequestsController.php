@@ -820,11 +820,11 @@ class RequestsController extends Controller
                     $office_user_name = $user->username;
                 }
                 
-                dd($response);
+               
                 $companies_name=$reques->companies ? $reques->companies->name : null;
                 ApiLog::create([
                     'user_name' => Auth::user()->username,
-                    'company_name' => $companies_name ? Auth::user()->username->companies->name : null,
+                    'company_name' => $companies_name ,
                     'office_name' => $office_name,
                     'office_user_name' => $office_user_name,
                     'operation_type' => 'accept_request',
@@ -832,7 +832,7 @@ class RequestsController extends Controller
                     'status' => $response->status == 8076 ? 'success' : 'failure',
                     'sent_data' => json_encode($body),
                     'received_data' => json_encode($response),
-                    'related_link' => 'http://197.44.140.211:83/api/OrangeCardServices/PostInsCompCertificateBook',
+                    'related_link' => 'https://oc.gaif.org:83/api/OrangeCardServices/PostInsCompCertificateBook',
                 ]);
                 ActivityLogger::activity("API Response for accept request: " . json_encode($response));
                 $code = $response->status;
@@ -929,7 +929,7 @@ class RequestsController extends Controller
                 'status' => 'success',
                 'sent_data' => json_encode(['request_id' => $reques->id, 'request_number' => $reques->request_number]),
                 'received_data' => json_encode(['message' => 'Request rejected successfully']),
-                'related_link' => 'http://197.44.140.211:83/api/OcRequest/UoRequestStatus',
+                'related_link' => 'https://oc.gaif.org:83/api/OcRequest/UoRequestStatus',
             ]);
             Alert::success("تمت عملية رفض   الطلب    بنجاح");
             ActivityLogger::activity("تمت عملية   رفض  الطلب  بنجاح");

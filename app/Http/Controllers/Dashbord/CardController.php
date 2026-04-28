@@ -275,11 +275,6 @@ public function index(Request $request)
         return view('dashbord.card.index');
     }
 
-            return view('card', compact('card'));
-        }
-
-        return view('dashbord.card.index');
-    }
 
     public function cardall()
     {

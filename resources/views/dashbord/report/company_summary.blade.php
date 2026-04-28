@@ -2,19 +2,6 @@
 @section('title', 'التقرير المجمع للشركات')
 
 @section('content')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<script>
-$(document).ready(function() {
-    $('select[name="company_id"]').select2({
-        placeholder: "اختر الشركة ...",
-        allowClear: true,
-        language: "ar"
-    });
-});
-</script>
-
 <div class="box-content">
     <h4 class="box-title">التقرير المجمع حسب الشركات</h4>
 
@@ -31,7 +18,7 @@ $(document).ready(function() {
             </div>
             <div class="form-group col-md-3">
                 <label>الشركة:</label>
-                <select name="company_id" class="form-control select2">
+                <select name="company_id" class="form-control">
                     <option value="">-- اختر الشركة --</option>
                     @foreach($companies as $company)
                         <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
@@ -73,7 +60,7 @@ $(document).ready(function() {
                         <th>الدمغة</th>
                         <th>الإشراف</th>
                         <th>رسوم الإصدار</th>
-                        <th style="text-align: center">الإجمالي</th>
+                        <th>الإجمالي</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,19 +78,19 @@ $(document).ready(function() {
                         </tr>
                     @endforeach
                 </tbody>
-                <tfoot>
-                    <tr class="text-center">
-                        <th  style="text-align: center">الإجمالي</th>
-                        <th style="text-align: center;">{{ $data->sum('issued_count') }}</th>
-                        <th style="text-align: center;">{{ $data->sum('canceled_count') }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('net_premium'), 2) }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('tax'), 2) }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('stamp'), 2) }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('supervision'), 2) }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('issuing_fee'), 2) }}</th>
-                        <th style="text-align: center;">{{ number_format($data->sum('total'), 2) }}</th>
-                    </tr>
-                </tfoot>
+                <!--<tfoot>-->
+                <!--    <tr>-->
+                <!--        <th>الإجمالي</th>-->
+                <!--        <th>{{ $data->sum('issued_count') }}</th>-->
+                <!--        <th>{{ $data->sum('canceled_count') }}</th>-->
+                <!--        <th>{{ number_format($data->sum('net_premium'), 2) }}</th>-->
+                <!--        <th>{{ number_format($data->sum('tax'), 2) }}</th>-->
+                <!--        <th>{{ number_format($data->sum('stamp'), 2) }}</th>-->
+                <!--        <th>{{ number_format($data->sum('supervision'), 2) }}</th>-->
+                <!--        <th>{{ number_format($data->sum('issuing_fee'), 2) }}</th>-->
+                <!--        <th>{{ number_format($data->sum('total'), 2) }}</th>-->
+                <!--    </tr>-->
+                <!--</tfoot>-->
             </table>
         </div>
     @else
