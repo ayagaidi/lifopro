@@ -372,7 +372,6 @@
                                 <li><a href="{{ route('report/cancelcards') }}"> تقارير البطاقات الملغية </a></li>
 
                                 <li><a href="{{ route('report/requestcompany') }}"> تقارير طلبات شركات التآمين </a></li>
-@if (Auth::user()->id == 1)
     <li>
         <a href="{{ route('report/companySummary') }}">
             تقارير مجمع لإصدارات الشركات
@@ -384,7 +383,6 @@
         </a>
     </li>
  
-@else
     @can('companySummary')
         <li>
             <a href="{{ route('report/companySummary') }}">

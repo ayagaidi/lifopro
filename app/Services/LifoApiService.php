@@ -16,10 +16,12 @@ class LifoApiService
     public function __construct()
     {
         
+                    $this->url = 'http://197.44.140.211:83/api/';
+
         // $this->url = 'http://197.44.140.211:83/api/';
                 // $this->url = 'https://oc.gaif.org:83/api/';
 
-                        $this->url = 'https://oc.gaif.org:83/api/';
+                        // $this->url = 'https://oc.gaif.org:83/api/';
 
         
     }
