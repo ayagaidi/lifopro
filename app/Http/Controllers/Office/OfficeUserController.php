@@ -356,7 +356,7 @@ class OfficeUserController extends Controller
             'user_name' => $user->username,
             'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->username,
-            'company_name' => $user->offices->companies->name ?? null,
+            'company_name' => $user->offices->companies->name ?? 'الإتحاد الليبي للتأمين',
             'office_name' => $user->offices->name ?? null,
             'activity_date' => now(),
             'status' => 'success',

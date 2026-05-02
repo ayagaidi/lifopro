@@ -88,7 +88,7 @@ class ApiuserController extends Controller
                         'user_name' => $request->username,
                         'performed_by' => Auth::user()->username ?? Auth::user()->username,
                         'target_user' => $request->username,
-                        'company_name' => $Apiuser->companies->name ?? null,
+                        'company_name' => $Apiuser->companies->name ?? 'الإتحاد الليبي للتأمين',
                         'office_name' => null, // API users don't belong to an office
                         'activity_date' => now(),
                         'status' => 'success',
@@ -232,7 +232,7 @@ class ApiuserController extends Controller
                             'user_name' => $request->username,
                             'performed_by' => Auth::user()->username ?? Auth::user()->username,
                             'target_user' => $request->username,
-                            'company_name' => $Apiuser->companies->name ?? null,
+                            'company_name' => $Apiuser->companies->name ?? 'الإتحاد الليبي للتأمين',
                             'office_name' => null, // API users don't belong to an office
                             'activity_date' => now(),
                             'status' => 'success',

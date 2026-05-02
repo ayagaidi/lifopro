@@ -275,7 +275,7 @@ class UserController extends Controller
             'user_name' => $user->name ?? $user->username,
             'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->name ?? $user->username,
-            'company_name' => null, // Regular users don't belong to a company
+            'company_name' => 'الإتحاد الليبي للتأمين', // Default to Libyan Insurance Federation
             'office_name' => null, // Regular users don't belong to an office
             'activity_date' => now(),
             'status' => 'success',
@@ -322,7 +322,7 @@ class UserController extends Controller
             'user_name' => $user->name ?? $user->username,
             'performed_by' => Auth::user()->username ?? Auth::user()->username,
             'target_user' => $user->name ?? $user->username,
-            'company_name' => null, // Regular users don't belong to a company
+            'company_name' => 'الإتحاد الليبي للتأمين', // Default to Libyan Insurance Federation
             'office_name' => null, // Regular users don't belong to an office
             'activity_date' => now(),
             'status' => 'success',

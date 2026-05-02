@@ -62,7 +62,7 @@ class User extends Authenticatable
             'user_name' => $this->username ?? $this->email,
             'performed_by' => $this->username ?? $this->email,
             'target_user' => $this->username ?? $this->email,
-            'company_name' => null, // Regular users don't belong to a company
+            'company_name' => 'الإتحاد الليبي للتأمين', // Default to Libyan Insurance Federation
             'office_name' => null, // Regular users don't belong to an office
             'activity_date' => now(),
             'status' => 'success',

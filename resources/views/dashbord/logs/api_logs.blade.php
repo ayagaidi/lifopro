@@ -51,26 +51,32 @@ $(document).ready(function() {
                 @php
                     $companies = App\Models\Company::all();
                 @endphp
-                
-                <div class="col-md-3">
+
+                <div class="col-md-2">
+                    <input type="text" id="performed_by" class="form-control" placeholder="قام بالعملية">
+                </div>
+                <div class="col-md-2">
+                    <input type="text" id="target_user" class="form-control" placeholder="المستخدم المستهدف">
+                </div>
+                <div class="col-md-2">
                     <select id="company_name" class="form-control select2">
                         <option value="">اختر الشركة</option>
                         @foreach($companies as $company)
-                            <option value="{{ $company->name }}">{{ $company->name }}</option>
+                            <option value="{{ $company->name }}" {{ $company->name == 'الإتحاد الليبي للتأمين' ? 'selected' : '' }}>{{ $company->name }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="office_name" class="form-control select2">
                         <option value="">اختر المكتب</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="office_user_name" class="form-control select2">
                         <option value="">اسم مستخدم المكتب</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <select id="operation_type" class="form-control select2">
                         <option value="">اختر نوع العملية</option>
                         <option value="getAuth">getAuth - تسجيل الدخول</option>
@@ -152,6 +158,8 @@ $(document).ready(function() {
         ajax: {
             url: '{{ route("logs/api") }}',
             data: function(d) {
+                d.performed_by = $('#performed_by').val();
+                d.target_user = $('#target_user').val();
                 d.company_name = $('#company_name').val();
                 d.office_name = $('#office_name').val();
                 d.office_user_name = $('#office_user_name').val();
@@ -186,7 +194,7 @@ $(document).ready(function() {
     tableContainer.hide();
 
     $('#searchBtn').on('click', function() {
-        var hasFilters =  $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#office_user_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
+        var hasFilters = $('#performed_by').val().trim() !== '' || $('#target_user').val().trim() !== '' || $('#company_name').val().trim() !== '' || $('#office_name').val().trim() !== '' || $('#office_user_name').val().trim() !== '' || $('#operation_type').val().trim() !== '' || $('#status').val() !== '' || $('#start_date').val() !== '' || $('#end_date').val() !== '';
         if (!hasFilters) {
             Swal.fire({
                 title: 'تحذير',

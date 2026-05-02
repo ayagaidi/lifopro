@@ -83,6 +83,12 @@ class LogsController extends Controller
             $query = ApiLog::query();
 
             // Apply filters
+            if ($request->has('performed_by') && !empty($request->performed_by)) {
+                $query->where('user_name', 'like', '%' . $request->performed_by . '%');
+            }
+            if ($request->has('target_user') && !empty($request->target_user)) {
+                $query->where('user_name', 'like', '%' . $request->target_user . '%');
+            }
             if ($request->has('user_name') && !empty($request->user_name)) {
                 $query->where('user_name', 'like', '%' . $request->user_name . '%');
             }
