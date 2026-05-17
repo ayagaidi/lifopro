@@ -484,22 +484,51 @@ class ReportController extends Controller
     //     // ]);
     // }public function searchby(Request $request)
 
-    public function searchby(Request $request)
+      public function searchby(Request $request)
     {
-        $from = Carbon::parse($request->fromdate)->startOfDay();
-        $to = Carbon::parse($request->todate)->endOfDay();
+               $from = Carbon::parse($request->fromdate)->startOfDay();
+$to   = Carbon::parse($request->todate)->endOfDay();
 
-        // تقييد البحث بالسنة الحالية أو القادمة
-        $currentYearStart = Carbon::now()->startOfYear();
-        $nextYearEnd = Carbon::now()->addYear()->endOfYear();
+// السنة المختارة من الفورم
+$selectedYear = (int) $request->year;
 
-        if ($from->lt($currentYearStart) || $to->gt($nextYearEnd)) {
-            return response()->json([
-                'code' => 3,
-                'status' => false,
-                'message' => 'التاريخ يجب أن يكون ضمن السنة الحالية أو السنة القادمة فقط',
-            ], 400);
-        }
+// التحقق من وجود السنة
+if (!$selectedYear) {
+    return response()->json([
+        'code' => 3,
+        'status' => false,
+        'message' => 'الرجاء اختيار السنة',
+    ], 400);
+}
+
+// بداية ونهاية السنة المختارة
+$yearStart = Carbon::create($selectedYear, 1, 1)->startOfDay();
+$yearEnd   = Carbon::create($selectedYear, 12, 31)->endOfDay();
+
+// التحقق أن التواريخ داخل نفس السنة
+if (
+    $from->lt($yearStart) ||
+    $from->gt($yearEnd) ||
+    $to->lt($yearStart) ||
+    $to->gt($yearEnd)
+) {
+
+    return response()->json([
+        'code' => 3,
+        'status' => false,
+        'message' => 'يجب أن تكون التواريخ ضمن السنة المختارة فقط',
+    ], 400);
+}
+
+// التحقق أن from <= to
+if ($from->gt($to)) {
+
+    return response()->json([
+        'code' => 3,
+        'status' => false,
+        'message' => 'تاريخ البداية يجب أن يكون أصغر من تاريخ النهاية',
+    ], 400);
+}
 
         $query = Issuing::query()
             ->with([

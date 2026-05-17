@@ -30,6 +30,128 @@
         allowClear: true,
         language: "ar"
       });
+      
+      function fillDatesByYear() {
+    const year = $('#year').val();
+
+    if (!year) return;
+
+    $('#fromdate').val(year + '-01-01');
+    $('#todate').val(year + '-03-31');
+}
+
+$(document).ready(function () {
+
+    // تعبئة أول ما الصفحة تحمل
+    fillDatesByYear();
+
+    // عند تغيير السنة
+    $('#year').on('change', function () {
+        fillDatesByYear();
+    });
+
+});
+         // عند تغيير السنة
+  // ======================================
+// التحكم في السنة مع التواريخ
+// ======================================
+
+$('#year').on('change', function () {
+
+    const year = $(this).val();
+
+    if (!year) {
+        $('#fromdate').val('');
+        $('#todate').val('');
+        return;
+    }
+
+    // من 1 يناير
+    $('#fromdate').val(`${year}-01-01`);
+
+    // إلى 31 مارس
+    $('#todate').val(`${year}-03-31`);
+});
+
+
+
+// ======================================
+// منع اختيار سنة مختلفة
+// ======================================
+
+// التحقق من التواريخ
+// ======================================
+
+$('#fromdate, #todate').on('change', function () {
+
+    const selectedYear = $('#year').val();
+    const fromDate = $('#fromdate').val();
+    const toDate   = $('#todate').val();
+
+    // لازم تكون داخل نفس السنة المختارة
+    if (selectedYear) {
+
+        const fromYear = fromDate ? fromDate.split('-')[0] : '';
+        const toYear   = toDate ? toDate.split('-')[0] : '';
+
+        if (
+            (fromYear && fromYear != selectedYear) ||
+            (toYear && toYear != selectedYear)
+        ) {
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'تنبيه',
+                text: 'يجب أن تكون التواريخ ضمن نفس السنة المختارة',
+                confirmButtonText: 'حسناً'
+            });
+
+            $('#fromdate').val('');
+            $('#todate').val('');
+            return;
+        }
+    }
+
+    // ======================================
+    // منع المدة أكثر من 3 شهور
+    // ======================================
+
+    if (fromDate && toDate) {
+
+        const start = new Date(fromDate);
+        const end   = new Date(toDate);
+
+        // حساب الفرق بالأيام
+        const diffTime = end - start;
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+        // 92 يوم تقريباً = 3 شهور
+        if (diffDays > 92) {
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'تنبيه',
+                text: 'الحد الأقصى للفترة هو 3 أشهر فقط',
+                confirmButtonText: 'حسناً'
+            });
+
+            $('#todate').val('');
+        }
+
+        // منع تاريخ النهاية أصغر من البداية
+        if (diffDays < 0) {
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'تنبيه',
+                text: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية',
+                confirmButtonText: 'حسناً'
+            });
+
+            $('#todate').val('');
+        }
+    }
+});
 
       // مراقبة الجلسة
       $(document).on('change', 'select, input', checkSession);
@@ -270,6 +392,20 @@
                 class="form-control @error('chassis_number') is-invalid @enderror" placeholder="رقم الهيكل">
               @error('chassis_number') <span class="invalid-feedback" style="color:red">{{ $message }}</span> @enderror
             </div>
+            <div class="form-group col-md-3">
+    <label class="control-label">السنة</label>
+    <select name="year" id="year" class="form-control">
+        <option value="">اختر السنة</option>
+
+        @for($year = 2020; $year <= 2050; $year++)
+            <option value="{{ $year }}"
+                {{ now()->year == $year ? 'selected' : '' }}>
+                {{ $year }}
+            </option>
+        @endfor
+    </select>
+</div>
+
 
             <div class="form-group col-md-3">
               <label class="control-label"> من </label>
@@ -387,6 +523,7 @@
         company_users_id: $('#company_users_id').val() || '',
         fromdate:         $('#fromdate').val(),
         todate:           $('#todate').val(),
+        year: $('#year').val(),
         page:             page,
         per_page:         perPage
       };
@@ -914,6 +1051,8 @@ $(document).on('click', '#btnExportAllPdf', function () {
     return;
   }
 
+
+
   // إظهار اللودر قبل بدء العملية
 //   $('#loader-overlay').show();
 
@@ -931,6 +1070,8 @@ $(document).on('click', '#btnExportAllPdf', function () {
   });
 
   window.location.href = "{{ route('report.issuing.export-pdf') }}?" + q;
+  
+  
 });
 
   </script>
