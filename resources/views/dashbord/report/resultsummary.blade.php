@@ -238,7 +238,7 @@
                                         $total_total += $item->insurance_total;
                                     @endphp
                                     <td>{{ $count++ }}</td>
-                                    <td>{{ $item->cards->card_number }}</td>
+                                    <td>{{ $item->cards?->card_number ?? '' }}</td>
                                     <td>{{ $user }}</td>
                                     <td>{{ $companies }}</td>
                                     <td>{{ $offices }}</td>

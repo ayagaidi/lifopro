@@ -1654,75 +1654,73 @@ if ($from->gt($to)) {
         $from = Carbon::parse($request->fromdate)->format('Y-m-d');
         $to = Carbon::parse($request->todate)->format('Y-m-d');
 
-        // Initialize query with eager loading
-        $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
+        // بناء الاستعلام مرة واحدة
+        $query = Issuing::with(['cards', 'companies', 'offices', 'company_users', 'office_users'])
+            ->select('*');
 
-        if (! empty($request->companies_id)) {
-            $issuing->where('companies_id', $request->companies_id)
-
-                ->orWhereHas('offices', function ($query) use ($request) {
-                    $query->where('companies_id', $request->companies_id);
-                });
-        }
-
-        if (! empty($request->offices_id)) {
-            $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
-
-            $issuing->where('offices_id', $request->offices_id);
-        }
-
-        if (! empty($request->company_users_id)) {
-            $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
-            $issuing->orWhere('company_users_id', $request->company_users_id);
-        }
-
-        if (! empty($request->office_users_id)) {
-
-            $issuing = Issuing::with(['cards', 'vehicle_nationalities', 'companies', 'offices', 'offices.companies', 'company_users', 'cards', 'office_users', 'users', 'cars', 'countries'])->select('*');
-
-            $issuing->where('office_users_id', $request->office_users_id);
-        }
-        // Apply search criteria
-        if (! empty($request->card_number)) {
-            $issuing->whereHas('cards', function ($query) use ($request) {
-                $query->where('card_number', $request->card_number);
+        // فلتر الشركة
+        if (!empty($request->companies_id)) {
+            $query->where(function ($q) use ($request) {
+                $q->where('companies_id', $request->companies_id)
+                  ->orWhereHas('offices', fn($sub) => $sub->where('companies_id', $request->companies_id));
             });
         }
 
-        if (! empty($request->insurance_name)) {
-
-            $issuing->where('insurance_name', 'like', $request->insurance_name);
+        // فلتر المكتب
+        if (!empty($request->offices_id)) {
+            $query->where('offices_id', $request->offices_id);
         }
 
-        if (! empty($request->plate_number)) {
-            $issuing->where('plate_number', $request->plate_number);
+        // فلتر مستخدم الشركة
+        if (!empty($request->company_users_id)) {
+            $query->where('company_users_id', $request->company_users_id);
         }
 
-        if (! empty($request->fromdate) && ! empty($request->todate)) {
-            $issuing = $issuing->whereBetween('issuing_date', [$from.' 00:00:00', $to.' 23:59:59']);
+        // فلتر مستخدم المكتب
+        if (!empty($request->office_users_id)) {
+            $query->where('office_users_id', $request->office_users_id);
         }
 
-        // Apply date range filtering (if provided)
+        // رقم البطاقة
+        if (!empty($request->card_number)) {
+            $query->whereHas('cards', fn($q) => $q->where('card_number', $request->card_number));
+        }
 
-        // Order and retrieve results
-        $issuing = $issuing->orderBy('created_at', 'DESC')->get();
-        // Check if results are empty
+        // اسم العميل
+        if (!empty($request->insurance_name)) {
+            $query->where('insurance_name', 'like', '%' . $request->insurance_name . '%');
+        }
+
+        // رقم اللوحة
+        if (!empty($request->plate_number)) {
+            $query->where('plate_number', $request->plate_number);
+        }
+
+        // نطاق التاريخ (من - إلى)
+        if (!empty($request->fromdate) && !empty($request->todate)) {
+            $query->whereBetween('issuing_date', [$from . ' 00:00:00', $to . ' 23:59:59']);
+        }
+
+        // الترتيب + التقسيم (Pagination) لتجنب تحميل بيانات كبيرة
+        $issuing = $query->orderBy('created_at', 'DESC')->paginate(50);
+
         if ($issuing->isEmpty()) {
-            Alert::warning(' لايوجد بطاقات');
-
-            return redirect()->back();
-        } else {
-
-            $total = $issuing->sum('insurance_total');
-
-            return view('dashbord.report.resultsummary')
-                ->with('fromdate', $request->fromdate)
-                ->with('todate', $request->todate)
-
-                ->with('issuing', $issuing)
-                ->with('total', $total);
+            return response()->json(['message' => 'لايوجد بطاقات'], 404);
         }
+
+        // المجموع الكلي لكل الصفحات (مش الصفحة الحالية بس)
+        $total = (clone $query)->selectRaw('SUM(insurance_total) as total')->value('total') ?? 0;
+
+        // AJAX → نرجع الجدول فقط (للعرض داخل الصفحة)
+        if ($request->ajax()) {
+            return view('dashbord.report.partials.resultsummary-table', compact('issuing', 'total'));
+        }
+
+        // فتح مباشر → الصفحة الكاملة
+        return view('dashbord.report.resultsummary', compact('issuing', 'fromdate', 'todate', 'total'));
     }
+
+     
 
     public function offices($id)
     {

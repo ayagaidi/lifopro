@@ -4,7 +4,11 @@
 @section('content')
 
  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@linways/table-to-excel@1.0.4/dist/tableToExcel.min.js" defer></script>
+  <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
 
     <script>
     
@@ -161,73 +165,34 @@
                                 </span>
                             @enderror
                         </div>
-                        @php
-    $currentYearStart = \Carbon\Carbon::now()->startOfYear()->format('Y-m-d'); // بداية السنة الحالية
-    $nextYearEnd = \Carbon\Carbon::now()->addYear()->endOfYear()->format('Y-m-d'); // نهاية السنة القادمة
-@endphp
-                        @if(isset($year))
                         <div class="form-group col-md-3">
-                            <label for="inputName" class="control-label"> من </label>
-                           <input name="fromdate" id="fromdate" type="date"
-       min="{{ $year }}-01-01"
-       max="{{ $year }}-12-31"
-       class="form-control @error('fromdate') is-invalid @enderror wd-250" required />
+    <label class="control-label">السنة</label>
+    <select name="year" id="year" class="form-control">
+        <option value="">اختر السنة</option>
+
+        @for($year = 2020; $year <= 2051; $year++)
+            <option value="{{ $year }}"
+                {{ now()->year == $year ? 'selected' : '' }}>
+                {{ $year }}
+            </option>
+        @endfor
+    </select>
+</div>
 
 
+            <div class="form-group col-md-3">
+              <label class="control-label"> من </label>
+              <input name="fromdate" id="fromdate" type="date"
+                class="form-control @error('fromdate') is-invalid @enderror wd-250" required />
+              @error('fromdate') <span class="invalid-feedback" style="color:red">{{ $message }}</span> @enderror
+            </div>
 
-                            @error('fromdate')
-                                <span class="invalid-feedback" style="color: red" role="alert">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="form-group col-md-3">
-                            <label for="inputName" class="control-label"> الي </label>
-                           <input name="todate" id="todate" type="date"
-       min="{{ $year }}-01-01"
-       max="{{ $year }}-12-31"
-       class="form-control @error('todate') is-invalid @enderror wd-250" required />
-
-
-
-                            @error('todate')
-                                <span class="invalid-feedback" style="color: red" role="alert">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        @else
-                        <div class="form-group col-md-3">
-                            <label for="inputName" class="control-label"> من </label>
-                           <input name="fromdate" id="fromdate" type="date"
-       min="{{ $currentYearStart }}"
-       max="{{ $nextYearEnd }}"
-       class="form-control @error('fromdate') is-invalid @enderror wd-250" required />
-
-
-
-                            @error('fromdate')
-                                <span class="invalid-feedback" style="color: red" role="alert">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="form-group col-md-3">
-                            <label for="inputName" class="control-label"> الي </label>
-                           <input name="todate" id="todate" type="date"
-       min="{{ $currentYearStart }}"
-       max="{{ $nextYearEnd }}"
-       class="form-control @error('todate') is-invalid @enderror wd-250" required />
-
-
-
-                            @error('todate')
-                                <span class="invalid-feedback" style="color: red" role="alert">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                        @endif
+            <div class="form-group col-md-3">
+              <label class="control-label"> إلى </label>
+              <input name="todate" id="todate" type="date"
+                class="form-control @error('todate') is-invalid @enderror wd-250" required />
+              @error('todate') <span class="invalid-feedback" style="color:red">{{ $message }}</span> @enderror
+            </div>
                     </div>
                     <div class="form-group  col-md-12" style="text-align: left;">
                         <button type="button" onclick="search()"
@@ -383,7 +348,7 @@
 
 
             // 
-function search() {
+function search(page = 1) {
     checkSession(); // Ensure session is valid before proceeding
     $('#loader-overlay').show();
 
@@ -408,57 +373,115 @@ function search() {
     var fromDateObj = new Date(fromdate);
     var toDateObj = new Date(todate);
 
-    @if(isset($year))
-    // للسنة المحددة
-    var startOfYear = new Date({{ $year }}, 0, 1);  // 1 يناير السنة المحددة
-    var endOfYear = new Date({{ $year }}, 11, 31); // 31 ديسمبر السنة المحددة
-
-    // التحقق أن التواريخ ضمن السنة المحددة
-    if (fromDateObj < startOfYear || toDateObj > endOfYear) {
-        $('#loader-overlay').hide();
-        swal.fire(`يجب أن تكون التواريخ ضمن السنة {{ $year }}`);
-        return;
+    // التحقق أن التواريخ ضمن السنة المختارة فقط (سنة واحدة)
+    var selectedYear = $('#year').val();
+    if (selectedYear) {
+        var startOfYear = new Date(parseInt(selectedYear), 0, 1);
+        var endOfYear = new Date(parseInt(selectedYear), 11, 31);
+        if (fromDateObj < startOfYear || toDateObj > endOfYear ||
+            fromDateObj.getFullYear() != parseInt(selectedYear) || toDateObj.getFullYear() != parseInt(selectedYear)) {
+            $('#loader-overlay').hide();
+            swal.fire(`يجب أن تكون التواريخ ضمن السنة ${selectedYear} فقط`);
+            return;
+        }
     }
-    @else
-    // بداية السنة الحالية
-    var currentYear = new Date().getFullYear();
-    var startOfYear = new Date(currentYear, 0, 1);  // 1 يناير السنة الحالية
-    var endOfNextYear = new Date(currentYear + 1, 11, 31); // 31 ديسمبر السنة القادمة
 
-    // التحقق أن التواريخ بين بداية السنة الحالية ونهاية السنة القادمة
-    if (fromDateObj < startOfYear || toDateObj > endOfNextYear) {
-        $('#loader-overlay').hide();
-        swal.fire(`يجب أن تكون التواريخ بين ${startOfYear.toLocaleDateString()} و ${endOfNextYear.toLocaleDateString()}`);
-        return;
-    }
-    @endif
-
-    // التحقق أن الفرق بين التاريخين لا يتجاوز 3 أشهر (90 يوم تقريبًا)
+    // التحقق أن الفرق بين التاريخين ≤ 3 أشهر (92 يوم كحد أقصى)
     var diffTime = toDateObj - fromDateObj;
-    var maxDiffDays = 90; // 3 أشهر تقريبًا
-    var diffDays = diffTime / (1000 * 60 * 60 * 24); // تحويل الفرق لأيام
+    var diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-    if (diffDays > maxDiffDays) {
+    if (diffDays > 92 || diffDays < 0) {
         $('#loader-overlay').hide();
-        swal.fire("مدة البحث يجب ألا تتجاوز 3 أشهر فقط");
+        swal.fire("مدة البحث يجب ألا تتجاوز 3 أشهر فقط وتاريخ النهاية بعد البداية");
         return;
     }
 
-    if (((companies_id || offices_id || office_users_id || card_number || insurance_name || plate_number ||
-        chassis_number || company_users_id) == 1) || (fromdate && todate)) {
+    // At least one filter or dates must be provided
+    const hasFilter = companies_id || offices_id || office_users_id || company_users_id ||
+                      insurance_name || card_number || plate_number || chassis_number;
 
-        // ... باقي كود ajax والنجاح والفشل كما في الكود السابق
-
-    } else {
+    if (!hasFilter && (!fromdate || !todate)) {
+        $('#loader-overlay').hide();
         swal.fire("الرجاء قم باختيار خيار واحد على الأقل");
         $('#searchs').html("");
-        $('#loader-overlay').hide();
+        return;
     }
+
+    $.ajax({
+        url: '../../report/issuing/search/summary',
+        type: 'GET',
+        data: {
+            offices_id, companies_id, office_users_id, company_users_id,
+            insurance_name, card_number, plate_number, chassis_number,
+            fromdate, todate, year: $('#year').val(), page: page
+        },
+        success: function (response) {
+            $('#loader-overlay').hide();
+            $('#searchs').html(response);
+
+            // Handle pagination clicks via AJAX
+            $('#searchs .pagination a').on('click', function(e) {
+                e.preventDefault();
+                const page = $(this).attr('href').split('page=')[1];
+                search(page);
+            });
+        },
+        error: function (xhr) {
+            $('#loader-overlay').hide();
+            if (xhr.status === 404) {
+                swal.fire("لايوجد بطاقات");
+            } else {
+                swal.fire("حدث خطأ أثناء جلب البيانات");
+            }
+        }
+    });
 }
 
         </script>
 
-
+<script>
+function fillDatesByYear() {
+    const year = $('#year').val();
+    if (!year) return;
+    $('#fromdate').val(year + '-01-01');
+    $('#todate').val(year + '-03-31');
+}
+$(document).ready(function () {
+    fillDatesByYear();
+    $('#year').on('change', function () { fillDatesByYear(); });
+});
+$('#year').on('change', function () {
+    const year = $(this).val();
+    if (!year) { $('#fromdate').val(''); $('#todate').val(''); return; }
+    $('#fromdate').val(`${year}-01-01`);
+    $('#todate').val(`${year}-03-31`);
+});
+$('#fromdate, #todate').on('change', function () {
+    const selectedYear = $('#year').val();
+    const fromDate = $('#fromdate').val();
+    const toDate   = $('#todate').val();
+    if (selectedYear) {
+        const fromYear = fromDate ? fromDate.split('-')[0] : '';
+        const toYear   = toDate ? toDate.split('-')[0] : '';
+        if ((fromYear && fromYear != selectedYear) || (toYear && toYear != selectedYear)) {
+            Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'يجب أن تكون التواريخ ضمن نفس السنة المختارة', confirmButtonText: 'حسناً' });
+            $('#fromdate').val(''); $('#todate').val(''); return;
+        }
+    }
+    if (fromDate && toDate) {
+        const start = new Date(fromDate); const end = new Date(toDate);
+        const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+        if (diffDays > 92) {
+            Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'الحد الأقصى للفترة هو 3 أشهر فقط', confirmButtonText: 'حسناً' });
+            $('#todate').val('');
+        }
+        if (diffDays < 0) {
+            Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية', confirmButtonText: 'حسناً' });
+            $('#todate').val('');
+        }
+    }
+});
+</script>
 
     @if(isset($year))
     <script>
